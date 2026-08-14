@@ -12,6 +12,14 @@ if TYPE_CHECKING:
 
 
 class PlayerAI(Protocol):
+    def choose_player(
+        self,
+        game: Game,
+        player_index: int,
+        eligible_player_indices: Sequence[int],
+    ) -> int:
+        """Return one eligible player index for a card effect."""
+
     def choose_suitcase_card(
         self,
         game: Game,
@@ -42,6 +50,16 @@ class RandomAI:
 
     def __init__(self, rng: random.Random | None = None) -> None:
         self.rng = rng or random.Random()
+
+    def choose_player(
+        self,
+        game: Game,
+        player_index: int,
+        eligible_player_indices: Sequence[int],
+    ) -> int:
+        if not eligible_player_indices:
+            raise ValueError("Cannot choose from an empty player selection")
+        return self.rng.choice(eligible_player_indices)
 
     def choose_suitcase_card(
         self,

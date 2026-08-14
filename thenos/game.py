@@ -178,6 +178,21 @@ class Game:
         player.acquired_cards[card.title] += 1
         self.stats.card_acquisitions[card.title] += 1
 
+    def choose_player(
+        self,
+        player_index: int,
+        eligible_player_indices: Sequence[int],
+    ) -> int:
+        """Ask a player's AI to choose one player from an eligible set."""
+        if not eligible_player_indices:
+            raise ValueError("Cannot choose from an empty player selection")
+        choice = self.ais[player_index].choose_player(
+            self, player_index, tuple(eligible_player_indices)
+        )
+        if choice not in eligible_player_indices:
+            raise ValueError(f"AI selected ineligible player index: {choice}")
+        return choice
+
     def energy_cost(self, player_index: int, card: CardInstance) -> int:
         player = self.players[player_index]
         cost = card.definition.cost

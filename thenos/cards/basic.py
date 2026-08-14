@@ -120,6 +120,49 @@ class FiveTenFifteenBehavior(CardBehavior):
         game.pick_from_suitcase(game.players.index(player))
 
 
+class SanJuanBehavior(CardBehavior):
+    """Track a qualifying player and reward them for avoiding Board Games."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        eligible_player_indices = [
+            player_index
+            for player_index, candidate in enumerate(game.players)
+            if len(candidate.played_today) <= 2
+        ]
+        if not eligible_player_indices:
+            return
+
+        player_index = game.players.index(player)
+        target_player_index = game.choose_player(
+            player_index, eligible_player_indices
+        )
+        card.markers["energy_cube"] = True
+        card.markers["target_player_index"] = target_player_index
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        target_player_index = card.markers.get("target_player_index")
+        if not isinstance(target_player_index, int):
+            return card.definition.base_fun
+
+        target_player = game.players[target_player_index]
+        if not any(
+            "Board Game" in played_card.definition.tags
+            for played_card in target_player.played_today
+        ):
+            return card.definition.base_fun + 3
+        return card.definition.base_fun
+
+
 BIOGRAPHY = CardDefinition(
     slug="biography",
     title="Biography",
@@ -170,6 +213,15 @@ FIVE_TEN_FIFTEEN = CardDefinition(
     cost=3,
     base_fun=2,
     behavior=FiveTenFifteenBehavior(),
+)
+
+SAN_JUAN = CardDefinition(
+    slug="san-juan",
+    title="San Juan",
+    tags=frozenset({"Board Game"}),
+    cost=3,
+    base_fun=2,
+    behavior=SanJuanBehavior(),
 )
 
 WATERSKI = CardDefinition(
