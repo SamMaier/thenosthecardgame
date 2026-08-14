@@ -113,7 +113,28 @@ class Game:
     def draw_phase(self) -> None:
         for _ in range(DAILY_PICKS):
             for player_index in self.player_order():
-                self.pick_from_suitcase(player_index)
+                uses_extra_pick = self._uses_extra_suitcase_pick(player_index)
+                if uses_extra_pick:
+                    self.players[player_index].energy -= 1
+                picks = 2 if uses_extra_pick else 1
+                for _ in range(picks):
+                    self.pick_from_suitcase(player_index)
+
+    def _uses_extra_suitcase_pick(self, player_index: int) -> bool:
+        player = self.players[player_index]
+        if player.energy < 1:
+            return False
+        if not any(
+            card.definition.behavior.allows_extra_suitcase_pick(
+                self, player, card
+            )
+            for card in player.tomorrow_cards
+        ):
+            return False
+        chooser = getattr(self.ais[player_index], "choose_extra_suitcase_pick", None)
+        return chooser is not None and chooser(
+            self, player_index, tuple(self.suitcase)
+        )
 
     def pick_from_suitcase(self, player_index: int) -> CardInstance:
         # Each physical card shown is one offer, including duplicate titles.

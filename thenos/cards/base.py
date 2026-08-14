@@ -54,6 +54,15 @@ class CardBehavior:
         """Resolve the Tomorrow action of an active card."""
         pass
 
+    def allows_extra_suitcase_pick(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        """Whether an active Tomorrow card offers an extra pick this turn."""
+        return False
+
     def fun_value(
         self,
         game: Game,
@@ -96,4 +105,3 @@ class CardInstance:
     @property
     def title(self) -> str:
         return self.definition.title
-

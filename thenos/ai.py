@@ -28,6 +28,14 @@ class PlayerAI(Protocol):
     ) -> int:
         """Return one of ``playable_hand_indices``."""
 
+    def choose_extra_suitcase_pick(
+        self,
+        game: Game,
+        player_index: int,
+        suitcase: Sequence[CardInstance],
+    ) -> bool:
+        """Whether to pay 1 Energy for a second pick during this selection."""
+
 
 class RandomAI:
     """Pick uniformly and play until no legal affordable card remains."""
@@ -55,3 +63,11 @@ class RandomAI:
             raise ValueError("No playable card was supplied")
         return self.rng.choice(playable_hand_indices)
 
+    def choose_extra_suitcase_pick(
+        self,
+        game: Game,
+        player_index: int,
+        suitcase: Sequence[CardInstance],
+    ) -> bool:
+        # The baseline AI does not take optional Unpack-like actions.
+        return False
