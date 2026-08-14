@@ -10,7 +10,7 @@ class SimulationTests(unittest.TestCase):
 
         self.assertEqual(report.games, 10)
         self.assertEqual(set(report.cards), {card.title for card in CARD_REGISTRY.values()})
-        self.assertEqual(sum(card.picks for card in report.cards.values()), 795)
+        self.assertEqual(sum(card.picks for card in report.cards.values()), 767)
         for card in report.cards.values():
             self.assertGreater(card.offers, 0)
             self.assertGreater(card.picks, 0)

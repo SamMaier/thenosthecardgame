@@ -252,6 +252,28 @@ class EpicDuelsBehavior(CardBehavior):
         return True
 
 
+class FitToPrintBehavior(CardBehavior):
+    """Score a bonus when this player played more cards than every opponent."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        player_card_count = len(player.played_today)
+        opponent_card_counts = [
+            len(opponent.played_today)
+            for opponent in game.players
+            if opponent is not player
+        ]
+        bonus = 4 if all(
+            player_card_count > opponent_count
+            for opponent_count in opponent_card_counts
+        ) else 0
+        return card.definition.base_fun + bonus
+
+
 BIOGRAPHY = CardDefinition(
     slug="biography",
     title="Biography",
@@ -347,6 +369,15 @@ EPIC_DUELS = CardDefinition(
     cost=2,
     base_fun=2,
     behavior=EpicDuelsBehavior(),
+)
+
+FIT_TO_PRINT = CardDefinition(
+    slug="fit-to-print",
+    title="Fit to Print",
+    tags=frozenset({"Board Game", "Indoors"}),
+    cost=3,
+    base_fun=1,
+    behavior=FitToPrintBehavior(),
 )
 
 WATERSKI = CardDefinition(
