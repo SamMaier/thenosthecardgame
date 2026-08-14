@@ -2,8 +2,7 @@
 
 This repository is a headless Python simulator for four pre-programmed AIs. The
 source of truth for card wording is `cards.csv`; `rules.md` is the source of
-truth for general rules. Do not infer an ambiguous interaction. Ask the user
-before encoding behavior that is not settled by those files.
+truth for general rules.
 
 Only Biography, Fajitas, and Waterski are currently implemented. The default
 deck contains 50 copies of each registered card.
