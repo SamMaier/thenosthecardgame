@@ -1,0 +1,57 @@
+"""AI decision interfaces and the baseline random player."""
+
+from __future__ import annotations
+
+import random
+from typing import Protocol, Sequence, TYPE_CHECKING
+
+from thenos.cards.base import CardInstance
+
+if TYPE_CHECKING:
+    from thenos.game import Game
+
+
+class PlayerAI(Protocol):
+    def choose_suitcase_card(
+        self,
+        game: Game,
+        player_index: int,
+        suitcase: Sequence[CardInstance],
+    ) -> int:
+        """Return an index into ``suitcase``."""
+
+    def choose_card_to_play(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> int:
+        """Return one of ``playable_hand_indices``."""
+
+
+class RandomAI:
+    """Pick uniformly and play until no legal affordable card remains."""
+
+    def __init__(self, rng: random.Random | None = None) -> None:
+        self.rng = rng or random.Random()
+
+    def choose_suitcase_card(
+        self,
+        game: Game,
+        player_index: int,
+        suitcase: Sequence[CardInstance],
+    ) -> int:
+        if not suitcase:
+            raise ValueError("Cannot choose from an empty Suitcase")
+        return self.rng.randrange(len(suitcase))
+
+    def choose_card_to_play(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> int:
+        if not playable_hand_indices:
+            raise ValueError("No playable card was supplied")
+        return self.rng.choice(playable_hand_indices)
+
