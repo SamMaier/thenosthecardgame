@@ -134,6 +134,28 @@ class WakesurfBehavior(CardBehavior):
         return card.effective_base_fun + bonus
 
 
+class SkiOnCousinsShouldersBehavior(CardBehavior):
+    """Score a bonus when this player's total is below at least half of opponents."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        opponents_with_higher_scores = sum(
+            player.fun < opponent.fun
+            for opponent in game.players
+            if opponent is not player
+        )
+        bonus = (
+            5
+            if opponents_with_higher_scores * 2 >= len(game.players) - 1
+            else 0
+        )
+        return card.effective_base_fun + bonus
+
+
 class ThrowABaseballBehavior(CardBehavior):
     """Pick one card from the Suitcase when this card is played."""
 
@@ -258,6 +280,15 @@ WAKESURF = CardDefinition(
     cost=4,
     base_fun=1,
     behavior=WakesurfBehavior(),
+)
+
+SKI_ON_COUSINS_SHOULDERS = CardDefinition(
+    slug="ski-on-cousins-shoulders",
+    title="Ski on Cousin's Shoulders",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=5,
+    base_fun=3,
+    behavior=SkiOnCousinsShouldersBehavior(),
 )
 
 MORNING_WALK = CardDefinition(
