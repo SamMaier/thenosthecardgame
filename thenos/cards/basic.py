@@ -246,6 +246,47 @@ class SettlersCitiesAndKnightsBehavior(CardBehavior):
         return card.effective_base_fun + bonus
 
 
+class EpicPrankBehavior(CardBehavior):
+    """Discard an Item from hand to increase this card's Fun."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        item_cards = tuple(
+            hand_card for hand_card in player.hand if "Item" in hand_card.tags
+        )
+        if not item_cards:
+            return
+
+        player_index = game.players.index(player)
+        choice = game.ais[player_index].choose_card_to_discard(
+            game, player_index, item_cards
+        )
+        if choice < 0 or choice >= len(item_cards):
+            raise ValueError(f"AI returned invalid Item discard index: {choice}")
+
+        discarded_item = item_cards[choice]
+        hand_index = next(
+            index
+            for index, hand_card in enumerate(player.hand)
+            if hand_card is discarded_item
+        )
+        game.discard_from_hand(player_index, hand_index)
+        card.markers["discarded_item"] = discarded_item
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        bonus = 6 if card.markers.get("discarded_item") is not None else 0
+        return card.effective_base_fun + bonus
+
+
 class EpicDuelsBehavior(CardBehavior):
     """Allow the player to play additional cards during this turn."""
 
@@ -402,6 +443,15 @@ SETTLERS_CITIES_AND_KNIGHTS = CardDefinition(
     cost=5,
     base_fun=4,
     behavior=SettlersCitiesAndKnightsBehavior(),
+)
+
+EPIC_PRANK = CardDefinition(
+    slug="epic-prank",
+    title="Epic Prank",
+    tags=frozenset({"Event"}),
+    cost=4,
+    base_fun=2,
+    behavior=EpicPrankBehavior(),
 )
 
 EPIC_DUELS = CardDefinition(
