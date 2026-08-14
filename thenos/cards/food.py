@@ -130,6 +130,44 @@ STEAK = CardDefinition(
 )
 
 
+class IceCreamSandwichBehavior(CardBehavior):
+    """Gain Energy after playing an earlier Food card today."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        card_position = next(
+            (
+                position
+                for position, played_card in enumerate(player.played_today)
+                if played_card is card
+            ),
+            None,
+        )
+        if card_position is None:
+            return
+
+        has_previous_food = any(
+            "Food" in played_card.tags
+            for played_card in player.played_today[:card_position]
+        )
+        if has_previous_food:
+            game.gain_energy(player, 2, card)
+
+
+ICE_CREAM_SANDWICH = CardDefinition(
+    slug="ice-cream-sandwich",
+    title="Ice Cream Sandwich",
+    tags=frozenset({"Food"}),
+    cost=2,
+    base_fun=1,
+    behavior=IceCreamSandwichBehavior(),
+)
+
+
 class BublyBehavior(CardBehavior):
     """Reward this card when an earlier card gave its player Energy today."""
 
@@ -304,4 +342,5 @@ FOOD_CARDS = (
     PUDDING_CHOMEUR,
     MORNING_COFFEE,
     AFTERNOON_COFFEE,
+    ICE_CREAM_SANDWICH,
 )
