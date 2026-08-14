@@ -121,7 +121,7 @@ class ChuckAFrisbeeBehavior(CardBehavior):
         card: CardInstance,
     ) -> None:
         player.played_today.remove(card)
-        player.hand.append(card)
+        game.give_card(game.players.index(player), card)
 
 
 class PaddleboatBehavior(CardBehavior):
@@ -146,6 +146,22 @@ class PaddleboatBehavior(CardBehavior):
         return card.effective_base_fun + 2 * int(
             card.markers.get("energy_cubes", 0)
         )
+
+
+class PaddleboardBehavior(CardBehavior):
+    """Discard this player's hand and pick the same number of Suitcase cards."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        hand_size = len(player.hand)
+        game.discard_cards_from_hand(player_index, range(hand_size))
+        for _ in range(hand_size):
+            game.pick_from_suitcase(player_index)
 
 
 class KayakBehavior(CardBehavior):
@@ -240,6 +256,15 @@ PADDLEBOAT = CardDefinition(
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=4,
     behavior=PaddleboatBehavior(),
+)
+
+PADDLEBOARD = CardDefinition(
+    slug="paddleboard",
+    title="Paddleboard",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=4,
+    base_fun=6,
+    behavior=PaddleboardBehavior(),
 )
 
 KAYAK = CardDefinition(
