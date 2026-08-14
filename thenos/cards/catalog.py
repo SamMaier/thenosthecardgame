@@ -40,6 +40,7 @@ from thenos.cards.exercise import (
     PADDLEBOAT,
     PLAY_WITH_THE_KIDS,
     THROW_A_BASEBALL,
+    WAKESURF,
     WRESTLE_THE_KIDS,
     ZUMBA,
 )
@@ -78,6 +79,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         ZUMBA,
         PLAY_WITH_THE_KIDS,
         THROW_A_BASEBALL,
+        WAKESURF,
         WRESTLE_THE_KIDS,
         MORNING_BIKE,
         MORNING_WALK,

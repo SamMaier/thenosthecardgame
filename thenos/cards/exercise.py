@@ -99,6 +99,19 @@ class WrestleTheKidsBehavior(CardBehavior):
         return card.effective_base_fun + len(player.hand)
 
 
+class WakesurfBehavior(CardBehavior):
+    """Score a bonus when this player's hand is empty at day's end."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        bonus = 6 if not player.hand else 0
+        return card.effective_base_fun + bonus
+
+
 class ThrowABaseballBehavior(CardBehavior):
     """Pick one card from the Suitcase when this card is played."""
 
@@ -214,6 +227,15 @@ WRESTLE_THE_KIDS = CardDefinition(
     cost=5,
     base_fun=1,
     behavior=WrestleTheKidsBehavior(),
+)
+
+WAKESURF = CardDefinition(
+    slug="wakesurf",
+    title="Wakesurf",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=4,
+    base_fun=1,
+    behavior=WakesurfBehavior(),
 )
 
 MORNING_WALK = CardDefinition(
