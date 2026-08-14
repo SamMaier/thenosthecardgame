@@ -426,6 +426,7 @@ class Game:
             # visible_cards orders active Tomorrow cards before today's cards.
             for card in player.visible_cards:
                 player.fun += self.card_fun(player_index, card)
+                card.effective_behavior.on_score(self, player, card)
 
         for player in self.players:
             previous_tomorrow = player.tomorrow_cards

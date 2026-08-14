@@ -111,6 +111,19 @@ class ThrowABaseballBehavior(CardBehavior):
         game.pick_from_suitcase(game.players.index(player))
 
 
+class ChuckAFrisbeeBehavior(CardBehavior):
+    """Return this card to its owner's hand after it scores."""
+
+    def on_score(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player.played_today.remove(card)
+        player.hand.append(card)
+
+
 class KayakBehavior(CardBehavior):
     """Allow optional remaining Energy to increase this card's Fun."""
 
@@ -186,6 +199,15 @@ THROW_A_BASEBALL = CardDefinition(
     cost=2,
     base_fun=1,
     behavior=ThrowABaseballBehavior(),
+)
+
+CHUCK_A_FRISBEE = CardDefinition(
+    slug="chuck-a-frisbee",
+    title="Chuck a Frisbee",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=3,
+    base_fun=3,
+    behavior=ChuckAFrisbeeBehavior(),
 )
 
 KAYAK = CardDefinition(

@@ -101,6 +101,15 @@ class CardBehavior:
         """Modify ``target`` while ``source`` is visible."""
         return current_fun
 
+    def on_score(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        """Resolve this card's effect immediately after it scores."""
+        pass
+
 
 @dataclass(frozen=True, slots=True)
 class CardDefinition:

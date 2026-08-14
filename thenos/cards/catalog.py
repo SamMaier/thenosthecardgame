@@ -32,6 +32,7 @@ from thenos.cards.events import (
     STAY_UP_LATE,
 )
 from thenos.cards.exercise import (
+    CHUCK_A_FRISBEE,
     KAYAK,
     MORNING_BIKE,
     MORNING_WALK,
@@ -78,6 +79,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         WRESTLE_THE_KIDS,
         MORNING_BIKE,
         MORNING_WALK,
+        CHUCK_A_FRISBEE,
         *ENERGY_EFFECT_CARDS,
         *FUN_EFFECT_CARDS,
         *PURE_FUN_CARDS,
