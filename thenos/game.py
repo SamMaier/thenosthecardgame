@@ -272,7 +272,25 @@ class Game:
                 )
                 if choice not in playable:
                     raise ValueError(f"AI selected unplayable hand index: {choice}")
-                self.play_card(player_index, choice)
+                played_card = self.play_card(player_index, choice)
+
+                # A normal turn ends after one card.  Some cards explicitly
+                # let their player continue playing during this same turn.
+                extra_plays = played_card.definition.behavior.allows_extra_card_plays(
+                    self, player, played_card
+                )
+                while extra_plays:
+                    playable = self.playable_hand_indices(player_index)
+                    if not playable:
+                        break
+                    choice = self.ais[player_index].choose_card_to_play(
+                        self, player_index, tuple(playable)
+                    )
+                    if choice not in playable:
+                        raise ValueError(
+                            f"AI selected unplayable hand index: {choice}"
+                        )
+                    self.play_card(player_index, choice)
 
         if first_to_bed is None:
             raise RuntimeError("Playing phase ended without a first player going to bed")

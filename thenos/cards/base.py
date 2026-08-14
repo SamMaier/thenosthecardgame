@@ -45,6 +45,15 @@ class CardBehavior:
     ) -> None:
         pass
 
+    def allows_extra_card_plays(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        """Whether this card lets its player continue playing this turn."""
+        return False
+
     def on_start_day(
         self,
         game: Game,

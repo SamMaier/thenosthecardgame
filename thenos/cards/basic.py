@@ -240,6 +240,18 @@ class SettlersCitiesAndKnightsBehavior(CardBehavior):
         return card.definition.base_fun + bonus
 
 
+class EpicDuelsBehavior(CardBehavior):
+    """Allow the player to play additional cards during this turn."""
+
+    def allows_extra_card_plays(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return True
+
+
 BIOGRAPHY = CardDefinition(
     slug="biography",
     title="Biography",
@@ -326,6 +338,15 @@ SETTLERS_CITIES_AND_KNIGHTS = CardDefinition(
     cost=5,
     base_fun=4,
     behavior=SettlersCitiesAndKnightsBehavior(),
+)
+
+EPIC_DUELS = CardDefinition(
+    slug="epic-duels",
+    title="Epic Duels",
+    tags=frozenset({"Board Game", "Indoors"}),
+    cost=2,
+    base_fun=2,
+    behavior=EpicDuelsBehavior(),
 )
 
 WATERSKI = CardDefinition(

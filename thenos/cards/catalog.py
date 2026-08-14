@@ -8,6 +8,7 @@ from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.basic import (
     BIOGRAPHY,
     CARCASSONNE,
+    EPIC_DUELS,
     FAJITAS,
     FIVE_TEN_FIFTEEN,
     PUERTO_RICO,
@@ -29,6 +30,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
     for card in (
         BIOGRAPHY,
         CARCASSONNE,
+        EPIC_DUELS,
         FAJITAS,
         FIVE_TEN_FIFTEEN,
         PUERTO_RICO,
