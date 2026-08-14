@@ -130,6 +130,25 @@ class FunForTagTodayBehavior(CardBehavior):
         return current_fun
 
 
+class ZeroFunForTagTodayBehavior(CardBehavior):
+    """Set every matching card played today to zero Fun."""
+
+    def __init__(self, tag: str) -> None:
+        self.tag = tag
+
+    def modify_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if _is_today_and_matches(player, target, lambda card: self.tag in card.tags):
+            return 0
+        return current_fun
+
+
 class TomorrowFunForTagBehavior(CardBehavior):
     """Add Fun to matching cards while this card is active Tomorrow."""
 
@@ -461,6 +480,15 @@ TREKKING_THROUGH_HISTORY = CardDefinition(
     behavior=FunForTagTodayBehavior("Board Game", 1),
 )
 
+FAMILY_BASEBALL_GAME = CardDefinition(
+    slug="family-baseball-game",
+    title="Family Baseball Game",
+    tags=frozenset({"Exercise", "Event", "Outdoors"}),
+    cost=3,
+    base_fun=5,
+    behavior=ZeroFunForTagTodayBehavior("Board Game"),
+)
+
 EUCHRE = CardDefinition(
     slug="euchre",
     title="Euchre",
@@ -716,6 +744,7 @@ TEACH_KID_TO_SKI = CardDefinition(
 
 FUN_EFFECT_CARDS = (
     TREKKING_THROUGH_HISTORY,
+    FAMILY_BASEBALL_GAME,
     EUCHRE,
     WORK_CALL,
     STRETCH,
