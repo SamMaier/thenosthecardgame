@@ -44,6 +44,14 @@ class PlayerAI(Protocol):
     ) -> int:
         """Return an index into the player's hand to discard."""
 
+    def choose_cards_to_discard(
+        self,
+        game: Game,
+        player_index: int,
+        hand: Sequence[CardInstance],
+    ) -> Sequence[int]:
+        """Return the hand indices of any cards to discard."""
+
     def choose_card_to_play(
         self,
         game: Game,
@@ -106,6 +114,15 @@ class RandomAI:
         if not hand:
             raise ValueError("Cannot choose a card from an empty hand")
         return self.rng.randrange(len(hand))
+
+    def choose_cards_to_discard(
+        self,
+        game: Game,
+        player_index: int,
+        hand: Sequence[CardInstance],
+    ) -> Sequence[int]:
+        count = self.rng.randrange(len(hand) + 1)
+        return self.rng.sample(range(len(hand)), count)
 
     def choose_card_to_play(
         self,

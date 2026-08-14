@@ -222,6 +222,25 @@ class Game:
         self.discard_card(card)
         return card
 
+    def discard_cards_from_hand(
+        self,
+        player_index: int,
+        hand_indices: Sequence[int],
+    ) -> list[CardInstance]:
+        """Remove and discard several distinct cards from a player's hand."""
+        player = self.players[player_index]
+        indices = tuple(hand_indices)
+        if len(set(indices)) != len(indices):
+            raise ValueError("Cannot discard the same hand card more than once")
+        if any(index < 0 or index >= len(player.hand) for index in indices):
+            raise ValueError("Invalid hand index in discard selection")
+
+        discarded_cards: list[CardInstance] = []
+        for index in sorted(indices, reverse=True):
+            discarded_cards.append(self.discard_from_hand(player_index, index))
+        discarded_cards.reverse()
+        return discarded_cards
+
     def choose_player(
         self,
         player_index: int,

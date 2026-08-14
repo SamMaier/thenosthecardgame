@@ -292,6 +292,24 @@ class EuchreTournamentBehavior(CardBehavior):
             game.pick_suitcase_cards(game.players.index(player), targets)
 
 
+class ScrabbleBehavior(CardBehavior):
+    """Trade any number of hand cards for the same number of Suitcase picks."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        hand = tuple(player.hand)
+        chooser = game.ais[player_index].choose_cards_to_discard
+        choices = tuple(chooser(game, player_index, hand)) if hand else ()
+        game.discard_cards_from_hand(player_index, choices)
+        for _ in choices:
+            game.pick_from_suitcase(player_index)
+
+
 BIOGRAPHY = CardDefinition(
     slug="biography",
     title="Biography",
@@ -405,6 +423,15 @@ EUCHRE_TOURNAMENT = CardDefinition(
     cost=7,
     base_fun=5,
     behavior=EuchreTournamentBehavior(),
+)
+
+SCRABBLE = CardDefinition(
+    slug="scrabble",
+    title="Scrabble",
+    tags=frozenset({"Board Game", "Outdoors"}),
+    cost=3,
+    base_fun=1,
+    behavior=ScrabbleBehavior(),
 )
 
 WATERSKI = CardDefinition(
