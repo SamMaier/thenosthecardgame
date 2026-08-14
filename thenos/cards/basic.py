@@ -50,6 +50,32 @@ class TheCrewBehavior(CardBehavior):
         return card.definition.base_fun + (2 if card.markers.get("energy_cube") else 0)
 
 
+class SoloBehavior(CardBehavior):
+    """Score a bonus when no opponent played a Board Game previously today."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        opponents = [opponent for opponent in game.players if opponent is not player]
+        if not any(
+            "Board Game" in played_card.definition.tags
+            for opponent in opponents
+            for played_card in opponent.played_today
+        ):
+            card.markers["energy_cube"] = True
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        return card.definition.base_fun + (2 if card.markers.get("energy_cube") else 0)
+
+
 class CarcassonneBehavior(CardBehavior):
     """Score a bonus when directly between two Board Games played today."""
 
@@ -105,6 +131,15 @@ THE_CREW = CardDefinition(
     cost=1,
     base_fun=1,
     behavior=TheCrewBehavior(),
+)
+
+SOLO = CardDefinition(
+    slug="solo",
+    title="Solo",
+    tags=frozenset({"Board Game"}),
+    cost=3,
+    base_fun=3,
+    behavior=SoloBehavior(),
 )
 
 CARCASSONNE = CardDefinition(

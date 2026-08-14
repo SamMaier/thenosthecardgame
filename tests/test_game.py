@@ -17,7 +17,7 @@ class GameTests(unittest.TestCase):
         result = game.run()
 
         self.assertEqual(result.days_played, DAYS_PER_GAME)
-        self.assertEqual(sum(game.stats.suitcase_picks.values()), 81)
+        self.assertEqual(sum(game.stats.suitcase_picks.values()), 87)
         self.assertAlmostEqual(sum(result.win_shares), 1.0)
         self.assertTrue(all(score >= 0 for score in result.scores))
 
