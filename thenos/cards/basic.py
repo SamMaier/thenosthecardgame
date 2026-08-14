@@ -108,6 +108,18 @@ class CarcassonneBehavior(CardBehavior):
         return card.definition.base_fun
 
 
+class FiveTenFifteenBehavior(CardBehavior):
+    """Pick one card from the Suitcase when this card is played."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.pick_from_suitcase(game.players.index(player))
+
+
 BIOGRAPHY = CardDefinition(
     slug="biography",
     title="Biography",
@@ -149,6 +161,15 @@ CARCASSONNE = CardDefinition(
     cost=2,
     base_fun=1,
     behavior=CarcassonneBehavior(),
+)
+
+FIVE_TEN_FIFTEEN = CardDefinition(
+    slug="5-10-15",
+    title="5 10 15",
+    tags=frozenset({"Board Game"}),
+    cost=3,
+    base_fun=2,
+    behavior=FiveTenFifteenBehavior(),
 )
 
 WATERSKI = CardDefinition(
