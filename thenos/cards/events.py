@@ -67,6 +67,28 @@ class ChristmasNameDrawBehavior(CardBehavior):
         )
 
 
+class StayUpLateBehavior(CardBehavior):
+    """Gain Energy now, then reduce the next day's starting Energy."""
+
+    has_tomorrow_action = True
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player.energy += 2
+
+    def on_start_day(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player.energy -= 2
+
+
 SING_SONG = CardDefinition(
     slug="sing-song",
     title="Sing Song",
@@ -82,4 +104,12 @@ CHRISTMAS_NAME_DRAW = CardDefinition(
     tags=frozenset({"Event"}),
     cost=4,
     behavior=ChristmasNameDrawBehavior(),
+)
+
+STAY_UP_LATE = CardDefinition(
+    slug="stay-up-late",
+    title="Stay Up Late",
+    tags=frozenset({"Event", "Indoors"}),
+    cost=0,
+    behavior=StayUpLateBehavior(),
 )

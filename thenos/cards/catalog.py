@@ -24,7 +24,7 @@ from thenos.cards.basic import (
     WINGSPAN,
     WATERSKI,
 )
-from thenos.cards.events import CHRISTMAS_NAME_DRAW, SING_SONG
+from thenos.cards.events import CHRISTMAS_NAME_DRAW, SING_SONG, STAY_UP_LATE
 from thenos.cards.energy_effects import ENERGY_EFFECT_CARDS
 from thenos.cards.fun_effects import FUN_EFFECT_CARDS
 from thenos.cards.pure_energy import PURE_ENERGY_CARDS
@@ -53,6 +53,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         WEDDING_ANNIVERSARY,
         SING_SONG,
         CHRISTMAS_NAME_DRAW,
+        STAY_UP_LATE,
         *ENERGY_EFFECT_CARDS,
         *FUN_EFFECT_CARDS,
         *PURE_FUN_CARDS,
