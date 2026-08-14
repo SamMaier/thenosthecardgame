@@ -70,6 +70,28 @@ WEIRD_CHIP_FLAVOR = CardDefinition(
 )
 
 
+class CharcuterieBehavior(CardBehavior):
+    """Gain one Energy immediately when this card is played."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.gain_energy(player, 1, card)
+
+
+CHARCUTERIE = CardDefinition(
+    slug="charcuterie",
+    title="Charcuterie",
+    tags=frozenset({"Food"}),
+    cost=2,
+    base_fun=2,
+    behavior=CharcuterieBehavior(),
+)
+
+
 class BublyBehavior(CardBehavior):
     """Reward this card when an earlier card gave its player Energy today."""
 
@@ -237,6 +259,7 @@ AFTERNOON_COFFEE = CardDefinition(
 FOOD_CARDS = (
     DORITOS,
     WEIRD_CHIP_FLAVOR,
+    CHARCUTERIE,
     BUBLY,
     CAMP_CROSSROADS_DESSERT,
     PUDDING_CHOMEUR,
