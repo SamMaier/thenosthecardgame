@@ -270,6 +270,28 @@ class FunForTagsBeforeAndAfterBehavior(CardBehavior):
         return current_fun
 
 
+class FunForOtherCardsWrittenCostBehavior(CardBehavior):
+    """Add each other card's printed Energy cost to its Fun."""
+
+    def modify_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        source_position = _today_position(player, source)
+        target_position = _today_position(player, target)
+        if (
+            source_position is not None
+            and target_position is not None
+            and target is not source
+        ):
+            return current_fun + target.definition.cost
+        return current_fun
+
+
 class FunForNextTagBehavior(CardBehavior):
     """Add Fun to the next matching card played after this card today."""
 
@@ -733,6 +755,14 @@ EVENING_ON_THE_DOCK = CardDefinition(
     behavior=FunForAllCardsBeforeBehavior(1),
 )
 
+COUCH_TUBE = CardDefinition(
+    slug="couch-tube",
+    title="Couch Tube",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=4,
+    behavior=FunForOtherCardsWrittenCostBehavior(),
+)
+
 TEACH_KID_TO_SKI = CardDefinition(
     slug="teach-kid-to-ski",
     title="Teach Kid to Ski",
@@ -772,5 +802,6 @@ FUN_EFFECT_CARDS = (
     CLIFF_CLIMBING,
     ICE_WINE,
     EVENING_ON_THE_DOCK,
+    COUCH_TUBE,
     TEACH_KID_TO_SKI,
 )
