@@ -31,6 +31,7 @@ from thenos.cards.events import (
     SING_SONG,
     STAY_UP_LATE,
 )
+from thenos.cards.food import FOOD_CARDS
 from thenos.cards.exercise import (
     CHUCK_A_FRISBEE,
     KAYAK,
@@ -80,6 +81,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         CHRISTMAS_NAME_DRAW,
         STAY_UP_LATE,
         PHOTO_SHOOT,
+        *FOOD_CARDS,
         ZUMBA,
         PLAY_WITH_THE_KIDS,
         THROW_A_BASEBALL,
