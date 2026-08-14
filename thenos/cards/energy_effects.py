@@ -5,7 +5,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Callable
 
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
-from thenos.cards.fun_effects import _is_after_for_cost, _today_position
+from thenos.cards.fun_effects import (
+    _is_after_for_cost,
+    _is_next_card,
+    _today_position,
+)
 
 if TYPE_CHECKING:
     from thenos.game import Game
@@ -74,6 +78,24 @@ class EnergyForNextTagBehavior(CardBehavior):
         ):
             return current_cost + self.energy_delta
         return current_cost
+
+
+class GainEnergyForNextTagBehavior(CardBehavior):
+    """Gain Energy when the immediately following card has a matching tag."""
+
+    def __init__(self, tag: str, energy_gain: int) -> None:
+        self.tag = tag
+        self.energy_gain = energy_gain
+
+    def on_card_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        played_card: CardInstance,
+    ) -> None:
+        if _is_next_card(player, source, played_card) and self.tag in played_card.tags:
+            player.energy += self.energy_gain
 
 
 class SetEnergyForNextTagBehavior(CardBehavior):
@@ -339,6 +361,15 @@ DISHWASHING = CardDefinition(
     behavior=TomorrowEnergyForTagBehavior("Food", -1),
 )
 
+BEACH_VOLLEYBALL = CardDefinition(
+    slug="beach-volleyball",
+    title="Beach Volleyball",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=4,
+    base_fun=4,
+    behavior=GainEnergyForNextTagBehavior("Indoors", 2),
+)
+
 
 ENERGY_EFFECT_CARDS = (
     FORCED_FAMILY_FUN,
@@ -353,4 +384,5 @@ ENERGY_EFFECT_CARDS = (
     MEDICAL_ADVICE,
     AFTER_DINNER_ENTERTAINMENT,
     DISHWASHING,
+    BEACH_VOLLEYBALL,
 )
