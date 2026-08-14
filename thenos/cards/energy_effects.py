@@ -70,7 +70,7 @@ class EnergyForNextTagBehavior(CardBehavior):
             player,
             source,
             target,
-            lambda card: self.tag in card.definition.tags,
+            lambda card: self.tag in card.tags,
         ):
             return current_cost + self.energy_delta
         return current_cost
@@ -95,7 +95,7 @@ class SetEnergyForNextTagBehavior(CardBehavior):
             player,
             source,
             target,
-            lambda card: self.tag in card.definition.tags,
+            lambda card: self.tag in card.tags,
         ):
             return self.energy_cost
         return current_cost
@@ -119,7 +119,7 @@ class HalfEnergyForNextTagBehavior(CardBehavior):
             player,
             source,
             target,
-            lambda card: self.tag in card.definition.tags,
+            lambda card: self.tag in card.tags,
         ):
             return current_cost // 2
         return current_cost
@@ -140,7 +140,7 @@ class EnergyForTagAfterBehavior(CardBehavior):
         target: CardInstance,
         current_cost: int,
     ) -> int:
-        if _is_after_for_cost(player, source, target) and self.tag in target.definition.tags:
+        if _is_after_for_cost(player, source, target) and self.tag in target.tags:
             return current_cost + self.energy_delta
         return current_cost
 

@@ -45,13 +45,14 @@ class TheCrewBehavior(CardBehavior):
         opponents = [opponent for opponent in game.players if opponent is not player]
         board_game_opponents = sum(
             any(
-                "Board Game" in played_card.definition.tags
+                "Board Game" in played_card.tags
                 for played_card in opponent.played_today
             )
             for opponent in opponents
         )
         if board_game_opponents * 2 >= len(opponents):
             card.markers["energy_cube"] = True
+            card.markers["_the_crew_energy_cube"] = True
 
     def fun_value(
         self,
@@ -59,7 +60,9 @@ class TheCrewBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        return card.definition.base_fun + (2 if card.markers.get("energy_cube") else 0)
+        return card.effective_base_fun + (
+            2 if card.markers.get("_the_crew_energy_cube") else 0
+        )
 
 
 class SoloBehavior(CardBehavior):
@@ -73,11 +76,12 @@ class SoloBehavior(CardBehavior):
     ) -> None:
         opponents = [opponent for opponent in game.players if opponent is not player]
         if not any(
-            "Board Game" in played_card.definition.tags
+            "Board Game" in played_card.tags
             for opponent in opponents
             for played_card in opponent.played_today
         ):
             card.markers["energy_cube"] = True
+            card.markers["_solo_energy_cube"] = True
 
     def fun_value(
         self,
@@ -85,7 +89,9 @@ class SoloBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        return card.definition.base_fun + (2 if card.markers.get("energy_cube") else 0)
+        return card.effective_base_fun + (
+            2 if card.markers.get("_solo_energy_cube") else 0
+        )
 
 
 class CarcassonneBehavior(CardBehavior):
@@ -106,18 +112,18 @@ class CarcassonneBehavior(CardBehavior):
             None,
         )
         if card_position is None or card_position == 0:
-            return card.definition.base_fun
+            return card.effective_base_fun
 
         if card_position + 1 >= len(player.played_today):
-            return card.definition.base_fun
+            return card.effective_base_fun
 
         neighbors = (
             player.played_today[card_position - 1],
             player.played_today[card_position + 1],
         )
-        if all("Board Game" in neighbor.definition.tags for neighbor in neighbors):
-            return card.definition.base_fun + 4
-        return card.definition.base_fun
+        if all("Board Game" in neighbor.tags for neighbor in neighbors):
+            return card.effective_base_fun + 4
+        return card.effective_base_fun
 
 
 class FiveTenFifteenBehavior(CardBehavior):
@@ -164,15 +170,15 @@ class SanJuanBehavior(CardBehavior):
     ) -> int:
         target_player_index = card.markers.get("target_player_index")
         if not isinstance(target_player_index, int):
-            return card.definition.base_fun
+            return card.effective_base_fun
 
         target_player = game.players[target_player_index]
         if not any(
-            "Board Game" in played_card.definition.tags
+            "Board Game" in played_card.tags
             for played_card in target_player.played_today
         ):
-            return card.definition.base_fun + 3
-        return card.definition.base_fun
+            return card.effective_base_fun + 3
+        return card.effective_base_fun
 
 
 class PuertoRicoBehavior(CardBehavior):
@@ -204,7 +210,7 @@ class PuertoRicoBehavior(CardBehavior):
     ) -> int:
         target = card.markers.get("suitcase_target")
         target_survived = any(suitcase_card is target for suitcase_card in game.suitcase)
-        return card.definition.base_fun + (3 if target_survived else 0)
+        return card.effective_base_fun + (3 if target_survived else 0)
 
 
 class SettlersCitiesAndKnightsBehavior(CardBehavior):
@@ -237,7 +243,7 @@ class SettlersCitiesAndKnightsBehavior(CardBehavior):
         card: CardInstance,
     ) -> int:
         bonus = 4 if card.markers.get("discarded_card") else 0
-        return card.definition.base_fun + bonus
+        return card.effective_base_fun + bonus
 
 
 class EpicDuelsBehavior(CardBehavior):
@@ -271,7 +277,7 @@ class FitToPrintBehavior(CardBehavior):
             player_card_count > opponent_count
             for opponent_count in opponent_card_counts
         ) else 0
-        return card.definition.base_fun + bonus
+        return card.effective_base_fun + bonus
 
 
 class EuchreTournamentBehavior(CardBehavior):
@@ -286,7 +292,7 @@ class EuchreTournamentBehavior(CardBehavior):
         targets = tuple(
             suitcase_card
             for suitcase_card in game.suitcase
-            if {"Item", "Food"} & suitcase_card.definition.tags
+            if {"Item", "Food"} & suitcase_card.tags
         )
         if targets:
             game.pick_suitcase_cards(game.players.index(player), targets)

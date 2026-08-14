@@ -2,7 +2,7 @@ import unittest
 from collections import Counter
 
 from thenos.cards import CARD_REGISTRY, create_default_deck
-from thenos.game import DAYS_PER_GAME, Game, fractional_wins
+from thenos.game import DAILY_PICKS, DAYS_PER_GAME, PLAYER_COUNT, Game, fractional_wins
 
 
 class GameTests(unittest.TestCase):
@@ -17,7 +17,10 @@ class GameTests(unittest.TestCase):
         result = game.run()
 
         self.assertEqual(result.days_played, DAYS_PER_GAME)
-        self.assertGreaterEqual(sum(game.stats.suitcase_picks.values()), 75)
+        self.assertGreaterEqual(
+            sum(game.stats.suitcase_picks.values()),
+            PLAYER_COUNT * DAILY_PICKS * DAYS_PER_GAME,
+        )
         self.assertAlmostEqual(sum(result.win_shares), 1.0)
         self.assertTrue(all(score >= 0 for score in result.scores))
 

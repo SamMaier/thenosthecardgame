@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Sequence
 
 from thenos.ai import PlayerAI, RandomAI
-from thenos.cards.base import CardInstance
+from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.catalog import create_default_deck
 from thenos.models import GameStats, PlayerState
 
@@ -108,7 +108,7 @@ class Game:
             player.energy = DAILY_ENERGY
             player.asleep = False
             for card in player.tomorrow_cards:
-                card.definition.behavior.on_start_day(self, player, card)
+                card.effective_behavior.on_start_day(self, player, card)
 
     def draw_phase(self) -> None:
         for _ in range(DAILY_PICKS):
@@ -125,7 +125,7 @@ class Game:
         if player.energy < 1:
             return False
         if not any(
-            card.definition.behavior.allows_extra_suitcase_pick(
+            card.effective_behavior.allows_extra_suitcase_pick(
                 self, player, card
             )
             for card in player.tomorrow_cards
@@ -256,11 +256,26 @@ class Game:
             raise ValueError(f"AI selected ineligible player index: {choice}")
         return choice
 
+    def choose_card_to_copy(
+        self,
+        player_index: int,
+        eligible_cards: Sequence[CardInstance],
+    ) -> CardInstance:
+        """Ask a player's AI to choose one eligible physical card."""
+        if not eligible_cards:
+            raise ValueError("Cannot choose from an empty card selection")
+        choice = self.ais[player_index].choose_card_to_copy(
+            self, player_index, tuple(eligible_cards)
+        )
+        if choice < 0 or choice >= len(eligible_cards):
+            raise ValueError(f"AI selected an invalid card index: {choice}")
+        return eligible_cards[choice]
+
     def energy_cost(self, player_index: int, card: CardInstance) -> int:
         player = self.players[player_index]
-        cost = card.definition.cost
+        cost = card.effective_cost
         for source in player.visible_cards:
-            cost = source.definition.behavior.modify_energy_cost(
+            cost = source.effective_behavior.modify_energy_cost(
                 self, player, source, card, cost
             )
         return max(0, cost)
@@ -270,7 +285,7 @@ class Game:
         return [
             index
             for index, card in enumerate(player.hand)
-            if card.definition.behavior.can_play(self, player, card)
+            if card.effective_behavior.can_play(self, player, card)
             and self.energy_cost(player_index, card) <= player.energy
         ]
 
@@ -279,7 +294,7 @@ class Game:
         if hand_index < 0 or hand_index >= len(player.hand):
             raise ValueError(f"Invalid hand index: {hand_index}")
         card = player.hand[hand_index]
-        if not card.definition.behavior.can_play(self, player, card):
+        if not card.effective_behavior.can_play(self, player, card):
             raise ValueError(f"{card.title} cannot legally be played")
         cost = self.energy_cost(player_index, card)
         if cost > player.energy:
@@ -289,8 +304,33 @@ class Game:
         player.hand.pop(hand_index)
         player.played_today.append(card)
         self.stats.card_plays[card.title] += 1
-        card.definition.behavior.on_play(self, player, card)
+        card.effective_behavior.on_play(self, player, card)
         return card
+
+    def copy_card_effect(
+        self,
+        player_index: int,
+        source: CardInstance,
+        destination: CardInstance,
+    ) -> None:
+        """Resolve ``source``'s effect as a new play of ``destination``."""
+        player = self.players[player_index]
+        source_cost = source.definition.cost
+        if source_cost > player.energy:
+            raise ValueError(f"Not enough Energy to copy {source.title}")
+        player.energy -= source_cost
+
+        copied_definition = CardDefinition(
+            slug=destination.definition.slug,
+            title=destination.definition.title,
+            tags=destination.definition.tags,
+            cost=source_cost,
+            base_fun=source.effective_base_fun,
+            behavior=source.effective_behavior,
+        )
+        destination.markers["_copied_definition"] = copied_definition
+        destination.markers["_copying_effect"] = True
+        source.effective_behavior.on_play(self, player, destination)
 
     def playing_phase(self) -> None:
         first_to_bed: int | None = None
@@ -319,7 +359,7 @@ class Game:
 
                 # A normal turn ends after one card.  Some cards explicitly
                 # let their player continue playing during this same turn.
-                extra_plays = played_card.definition.behavior.allows_extra_card_plays(
+                extra_plays = played_card.effective_behavior.allows_extra_card_plays(
                     self, player, played_card
                 )
                 while extra_plays:
@@ -341,9 +381,9 @@ class Game:
 
     def card_fun(self, player_index: int, target: CardInstance) -> int:
         player = self.players[player_index]
-        value = target.definition.behavior.fun_value(self, player, target)
+        value = target.effective_behavior.fun_value(self, player, target)
         for source in player.visible_cards:
-            value = source.definition.behavior.modify_fun(
+            value = source.effective_behavior.modify_fun(
                 self, player, source, target, value
             )
         return value
@@ -361,7 +401,7 @@ class Game:
                 self.discard_card(card)
 
             for card in player.played_today:
-                if card.definition.behavior.has_tomorrow_action:
+                if card.effective_behavior.has_tomorrow_action:
                     card.is_tomorrow = True
                     player.tomorrow_cards.append(card)
                 else:

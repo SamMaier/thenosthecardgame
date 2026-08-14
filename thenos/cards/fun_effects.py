@@ -125,7 +125,7 @@ class FunForTagTodayBehavior(CardBehavior):
         target: CardInstance,
         current_fun: int,
     ) -> int:
-        if _is_today_and_matches(player, target, lambda card: self.tag in card.definition.tags):
+        if _is_today_and_matches(player, target, lambda card: self.tag in card.tags):
             return current_fun + self.bonus
         return current_fun
 
@@ -145,7 +145,7 @@ class FunForTagAfterBehavior(CardBehavior):
         target: CardInstance,
         current_fun: int,
     ) -> int:
-        if _is_after(player, source, target) and self.tag in target.definition.tags:
+        if _is_after(player, source, target) and self.tag in target.tags:
             return current_fun + self.bonus
         return current_fun
 
@@ -171,7 +171,7 @@ class FunForTagBeforeBehavior(CardBehavior):
             source_position is not None
             and target_position is not None
             and target_position < source_position
-            and self.tag in target.definition.tags
+            and self.tag in target.tags
         ):
             return current_fun + self.bonus
         return current_fun
@@ -223,7 +223,7 @@ class FunForTagsBeforeAndAfterBehavior(CardBehavior):
             source_position is not None
             and target_position is not None
             and target is not source
-            and self.tags.intersection(target.definition.tags)
+            and self.tags.intersection(target.tags)
         ):
             return current_fun + self.bonus
         return current_fun
@@ -248,7 +248,7 @@ class FunForNextTagBehavior(CardBehavior):
             player,
             source,
             target,
-            lambda card: self.tag in card.definition.tags,
+            lambda card: self.tag in card.tags,
         ):
             return current_fun + self.bonus
         return current_fun
@@ -291,9 +291,9 @@ class FunForNextTagWrittenCostBehavior(CardBehavior):
             player,
             source,
             target,
-            lambda card: self.tag in card.definition.tags,
+            lambda card: self.tag in card.tags,
         ):
-            return current_fun + target.definition.cost
+            return current_fun + target.effective_cost
         return current_fun
 
 
@@ -317,7 +317,7 @@ class FunForNthTagBehavior(CardBehavior):
             player,
             source,
             target,
-            lambda card: self.tag in card.definition.tags,
+            lambda card: self.tag in card.tags,
             self.ordinal,
         ):
             return current_fun + self.bonus
@@ -343,7 +343,7 @@ class FunForNthTagDoubleBehavior(CardBehavior):
             player,
             source,
             target,
-            lambda card: self.tag in card.definition.tags,
+            lambda card: self.tag in card.tags,
             self.ordinal,
         ):
             return current_fun * 2
@@ -359,7 +359,7 @@ class FunAndEnergyForTagAfterBehavior(CardBehavior):
         self.fun_bonus = fun_bonus
 
     def _matches(self, player: PlayerState, source: CardInstance, target: CardInstance) -> bool:
-        return _is_after(player, source, target) and self.tag in target.definition.tags
+        return _is_after(player, source, target) and self.tag in target.tags
 
     def modify_energy_cost(
         self,
@@ -369,7 +369,7 @@ class FunAndEnergyForTagAfterBehavior(CardBehavior):
         target: CardInstance,
         current_cost: int,
     ) -> int:
-        if _is_after_for_cost(player, source, target) and self.tag in target.definition.tags:
+        if _is_after_for_cost(player, source, target) and self.tag in target.tags:
             return current_cost + self.energy_delta
         return current_cost
 
@@ -483,7 +483,7 @@ class WaterTrampolineBehavior(FunForNextCardBehavior):
         target: CardInstance,
         current_fun: int,
     ) -> int:
-        if _is_next_card(player, source, target) and "Relax" in target.definition.tags:
+        if _is_next_card(player, source, target) and "Relax" in target.tags:
             return current_fun * 2
         return current_fun
 

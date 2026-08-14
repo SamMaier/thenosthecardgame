@@ -78,7 +78,7 @@ class CardBehavior:
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        return card.definition.base_fun
+        return card.effective_base_fun
 
     def modify_fun(
         self,
@@ -114,3 +114,28 @@ class CardInstance:
     @property
     def title(self) -> str:
         return self.definition.title
+
+    @property
+    def effective_definition(self) -> CardDefinition:
+        """Return the definition currently supplying this copy's behavior."""
+        copied_definition = self.markers.get("_copied_definition")
+        if isinstance(copied_definition, CardDefinition):
+            return copied_definition
+        return self.definition
+
+    @property
+    def effective_behavior(self) -> CardBehavior:
+        return self.effective_definition.behavior
+
+    @property
+    def effective_cost(self) -> int:
+        return self.effective_definition.cost
+
+    @property
+    def effective_base_fun(self) -> int:
+        return self.effective_definition.base_fun
+
+    @property
+    def tags(self) -> frozenset[str]:
+        """The card's printed tags, which copied effects do not replace."""
+        return self.definition.tags

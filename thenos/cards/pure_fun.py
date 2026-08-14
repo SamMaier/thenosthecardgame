@@ -23,9 +23,9 @@ class NewfangledTresFuteBehavior(CardBehavior):
         unique_tags = {
             tag
             for played_card in player.played_today
-            for tag in played_card.definition.tags
+            for tag in played_card.tags
         }
-        return card.definition.base_fun + len(unique_tags)
+        return card.effective_base_fun + len(unique_tags)
 
 
 TRES_FUTE = CardDefinition(
