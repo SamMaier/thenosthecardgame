@@ -48,4 +48,26 @@ DORITOS = CardDefinition(
 )
 
 
-FOOD_CARDS = (DORITOS,)
+class WeirdChipFlavorBehavior(CardBehavior):
+    """Gain two Energy immediately when this card is played."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player.energy += 2
+
+
+WEIRD_CHIP_FLAVOR = CardDefinition(
+    slug="weird-chip-flavor",
+    title="Weird Chip Flavor",
+    tags=frozenset({"Food"}),
+    cost=0,
+    base_fun=-2,
+    behavior=WeirdChipFlavorBehavior(),
+)
+
+
+FOOD_CARDS = (DORITOS, WEIRD_CHIP_FLAVOR)
