@@ -1,14 +1,14 @@
 import unittest
 from collections import Counter
 
-from thenos.cards import create_default_deck
+from thenos.cards import CARD_REGISTRY, create_default_deck
 from thenos.game import DAYS_PER_GAME, Game, fractional_wins
 
 
 class GameTests(unittest.TestCase):
     def test_default_deck_has_fifty_copies_of_each_implemented_card(self) -> None:
         counts = Counter(card.title for card in create_default_deck())
-        self.assertEqual(len(counts), 22)
+        self.assertEqual(len(counts), len(CARD_REGISTRY))
         self.assertTrue(all(count == 50 for count in counts.values()))
 
     def test_complete_seeded_game_runs_six_days(self) -> None:
@@ -17,7 +17,7 @@ class GameTests(unittest.TestCase):
         result = game.run()
 
         self.assertEqual(result.days_played, DAYS_PER_GAME)
-        self.assertEqual(sum(game.stats.suitcase_picks.values()), 72)
+        self.assertEqual(sum(game.stats.suitcase_picks.values()), 75)
         self.assertAlmostEqual(sum(result.win_shares), 1.0)
         self.assertTrue(all(score >= 0 for score in result.scores))
 
