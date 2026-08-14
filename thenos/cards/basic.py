@@ -274,6 +274,24 @@ class FitToPrintBehavior(CardBehavior):
         return card.definition.base_fun + bonus
 
 
+class EuchreTournamentBehavior(CardBehavior):
+    """Pick the currently visible Item and Food cards from the Suitcase."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        targets = tuple(
+            suitcase_card
+            for suitcase_card in game.suitcase
+            if {"Item", "Food"} & suitcase_card.definition.tags
+        )
+        if targets:
+            game.pick_suitcase_cards(game.players.index(player), targets)
+
+
 BIOGRAPHY = CardDefinition(
     slug="biography",
     title="Biography",
@@ -378,6 +396,15 @@ FIT_TO_PRINT = CardDefinition(
     cost=3,
     base_fun=1,
     behavior=FitToPrintBehavior(),
+)
+
+EUCHRE_TOURNAMENT = CardDefinition(
+    slug="euchre-tournament",
+    title="Euchre Tournament",
+    tags=frozenset({"Board Game", "Indoors"}),
+    cost=7,
+    base_fun=5,
+    behavior=EuchreTournamentBehavior(),
 )
 
 WATERSKI = CardDefinition(

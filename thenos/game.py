@@ -137,22 +137,46 @@ class Game:
         )
 
     def pick_from_suitcase(self, player_index: int) -> CardInstance:
-        # Each physical card shown is one offer, including duplicate titles.
-        self.stats.suitcase_offers.update(card.title for card in self.suitcase)
         choice = self.ais[player_index].choose_suitcase_card(
             self, player_index, tuple(self.suitcase)
         )
         if choice < 0 or choice >= len(self.suitcase):
             raise ValueError(f"AI returned invalid Suitcase index: {choice}")
 
-        card = self.suitcase.pop(choice)
-        player = self.players[player_index]
-        self.give_card(player_index, card)
-        player.picked_cards[card.title] += 1
-        self.stats.suitcase_picks[card.title] += 1
-        # Refill the emptied spot immediately, as required by the rules.
-        self.suitcase.insert(choice, self._draw_from_trunk())
-        return card
+        return self.pick_suitcase_cards(player_index, (self.suitcase[choice],))[0]
+
+    def pick_suitcase_cards(
+        self,
+        player_index: int,
+        cards: Sequence[CardInstance],
+    ) -> list[CardInstance]:
+        """Take specified physical Suitcase cards and refill their slots.
+
+        ``cards`` must be a distinct subset of the currently visible cards.
+        Refilling happens after each card is taken, so replacement cards are
+        not included in the requested set.
+        """
+        if len({id(card) for card in cards}) != len(cards):
+            raise ValueError("Cannot pick the same Suitcase card more than once")
+        if any(card not in self.suitcase for card in cards):
+            raise ValueError(
+                "Every picked card must be currently visible in the Suitcase"
+            )
+
+        # Each physical card shown is one offer, including duplicate titles.
+        self.stats.suitcase_offers.update(card.title for card in self.suitcase)
+        picked_cards: list[CardInstance] = []
+        for target in cards:
+            choice = self.suitcase.index(target)
+            card = self.suitcase.pop(choice)
+            player = self.players[player_index]
+            self.give_card(player_index, card)
+            player.picked_cards[card.title] += 1
+            self.stats.suitcase_picks[card.title] += 1
+            # Refill the emptied spot immediately, as required by the rules.
+            self.suitcase.insert(choice, self._draw_from_trunk())
+            picked_cards.append(card)
+        return picked_cards
 
     def choose_suitcase_target(self, player_index: int) -> CardInstance:
         """Choose a physical Suitcase card without taking or discarding it."""
