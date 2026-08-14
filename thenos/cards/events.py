@@ -28,6 +28,45 @@ class SingSongBehavior(CardBehavior):
         return card.effective_base_fun + len(unique_tags)
 
 
+class ChristmasNameDrawBehavior(CardBehavior):
+    """Match this player's visible cards to a selected opponent card's tags."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        eligible_cards = tuple(
+            played_card
+            for opponent_index, opponent in enumerate(game.players)
+            if opponent_index != player_index
+            for played_card in opponent.played_today
+        )
+        if not eligible_cards:
+            return
+
+        target = game.choose_card_target(player_index, eligible_cards)
+        target.markers["energy_cube"] = True
+        card.markers["target_card"] = target
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        target = card.markers.get("target_card")
+        if not isinstance(target, CardInstance):
+            return card.effective_base_fun
+
+        return card.effective_base_fun + sum(
+            bool(target.tags.intersection(visible_card.tags))
+            for visible_card in player.visible_cards
+        )
+
+
 SING_SONG = CardDefinition(
     slug="sing-song",
     title="Sing Song",
@@ -35,4 +74,12 @@ SING_SONG = CardDefinition(
     cost=4,
     base_fun=1,
     behavior=SingSongBehavior(),
+)
+
+CHRISTMAS_NAME_DRAW = CardDefinition(
+    slug="christmas-name-draw",
+    title="Christmas Name Draw",
+    tags=frozenset({"Event"}),
+    cost=4,
+    behavior=ChristmasNameDrawBehavior(),
 )

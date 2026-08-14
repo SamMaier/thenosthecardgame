@@ -271,6 +271,21 @@ class Game:
             raise ValueError(f"AI selected an invalid card index: {choice}")
         return eligible_cards[choice]
 
+    def choose_card_target(
+        self,
+        player_index: int,
+        eligible_cards: Sequence[CardInstance],
+    ) -> CardInstance:
+        """Ask a player's AI to choose one physical card as a target."""
+        if not eligible_cards:
+            raise ValueError("Cannot choose from an empty card selection")
+        choice = self.ais[player_index].choose_card_target(
+            self, player_index, tuple(eligible_cards)
+        )
+        if choice < 0 or choice >= len(eligible_cards):
+            raise ValueError(f"AI selected an invalid card index: {choice}")
+        return eligible_cards[choice]
+
     def energy_cost(self, player_index: int, card: CardInstance) -> int:
         player = self.players[player_index]
         cost = card.effective_cost

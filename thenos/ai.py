@@ -28,6 +28,14 @@ class PlayerAI(Protocol):
     ) -> int:
         """Return an index into eligible cards for a copying effect."""
 
+    def choose_card_target(
+        self,
+        game: Game,
+        player_index: int,
+        eligible_cards: Sequence[CardInstance],
+    ) -> int:
+        """Return an index into eligible cards for a card-targeting effect."""
+
     def choose_suitcase_card(
         self,
         game: Game,
@@ -94,6 +102,16 @@ class RandomAI:
         return self.rng.choice(eligible_player_indices)
 
     def choose_card_to_copy(
+        self,
+        game: Game,
+        player_index: int,
+        eligible_cards: Sequence[CardInstance],
+    ) -> int:
+        if not eligible_cards:
+            raise ValueError("Cannot choose from an empty card selection")
+        return self.rng.randrange(len(eligible_cards))
+
+    def choose_card_target(
         self,
         game: Game,
         player_index: int,
