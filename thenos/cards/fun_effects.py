@@ -150,6 +150,58 @@ class FunForTagAfterBehavior(CardBehavior):
         return current_fun
 
 
+class FunForTagBeforeBehavior(CardBehavior):
+    """Add Fun to each matching card played before this card today."""
+
+    def __init__(self, tag: str, bonus: int) -> None:
+        self.tag = tag
+        self.bonus = bonus
+
+    def modify_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        source_position = _today_position(player, source)
+        target_position = _today_position(player, target)
+        if (
+            source_position is not None
+            and target_position is not None
+            and target_position < source_position
+            and self.tag in target.definition.tags
+        ):
+            return current_fun + self.bonus
+        return current_fun
+
+
+class FunForAllCardsBeforeBehavior(CardBehavior):
+    """Add Fun to every card played before this card today."""
+
+    def __init__(self, bonus: int) -> None:
+        self.bonus = bonus
+
+    def modify_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        source_position = _today_position(player, source)
+        target_position = _today_position(player, target)
+        if (
+            source_position is not None
+            and target_position is not None
+            and target_position < source_position
+        ):
+            return current_fun + self.bonus
+        return current_fun
+
+
 class FunForTagsBeforeAndAfterBehavior(CardBehavior):
     """Add Fun to matching cards played before and after this card today."""
 
@@ -597,6 +649,40 @@ LONG_DISTANCE_VISITORS = CardDefinition(
     behavior=PickThreeAndFunForSocialAfterBehavior(),
 )
 
+OUTDOOR_MOVIE = CardDefinition(
+    slug="outdoor-movie",
+    title="Outdoor Movie",
+    tags=frozenset({"Event", "Outdoors"}),
+    cost=2,
+    base_fun=2,
+    behavior=FunForTagBeforeBehavior("Relax", 1),
+)
+
+CLIFF_CLIMBING = CardDefinition(
+    slug="cliff-climbing",
+    title="Cliff Climbing",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=6,
+    base_fun=4,
+    behavior=FunForTagBeforeBehavior("Outdoors", 1),
+)
+
+ICE_WINE = CardDefinition(
+    slug="ice-wine",
+    title="Ice Wine",
+    tags=frozenset({"Food"}),
+    cost=5,
+    behavior=FunForTagBeforeBehavior("Food", 3),
+)
+
+EVENING_ON_THE_DOCK = CardDefinition(
+    slug="evening-on-the-dock",
+    title="Evening on the Dock",
+    tags=frozenset({"Relax", "Social"}),
+    cost=5,
+    behavior=FunForAllCardsBeforeBehavior(1),
+)
+
 
 FUN_EFFECT_CARDS = (
     TREKKING_THROUGH_HISTORY,
@@ -623,4 +709,8 @@ FUN_EFFECT_CARDS = (
     BRING_A_FRIEND,
     DOXOLOGY,
     LONG_DISTANCE_VISITORS,
+    OUTDOOR_MOVIE,
+    CLIFF_CLIMBING,
+    ICE_WINE,
+    EVENING_ON_THE_DOCK,
 )
