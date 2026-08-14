@@ -165,10 +165,8 @@ All Social and Event cards you played previously and after this today score +1 F
 Sweet Lawn Chair,Item,4,All Relax cards you play after this today score +1 Fun.
 Bougie Coffee Machine,Item,5,"Draw 3 cards from the Trunk, playing any drawn Food cards for 0 Energy."
 Chalk Art,Relax,0,1 Fun.
-Read the Radar,Relax,1,Privately view the next 3 Daily Condition cards.
 Early Bedtime,Relax,1,"Cannot be played as 4th or later card.
 Tomorrow: start the day with +3 energy."
-Wildlife Spotting,Relax,1,"Look at the next Daily Condition, then optionally Unpack without losing Fun."
 Biography,Relax,1,2 Fun.
 Cheesy Phone Game,Relax,1,1 Fun. +3 Fun if at least half your opponents have played a Relax card previously today (indicate if this was true by placing an energy cube on this card)
 Fancy Craft,Relax,2,"Perform the Unpack action, but gain 1 Fun instead of losing 1 Fun. You may optionally do this a second time after seeing the results of the first Unpack."
