@@ -6,10 +6,11 @@ from itertools import count
 
 from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.basic import BIOGRAPHY, FAJITAS, WATERSKI
+from thenos.cards.pure_fun import PURE_FUN_CARDS
 
 
 CARD_REGISTRY: dict[str, CardDefinition] = {
-    card.slug: card for card in (BIOGRAPHY, FAJITAS, WATERSKI)
+    card.slug: card for card in (BIOGRAPHY, FAJITAS, WATERSKI, *PURE_FUN_CARDS)
 }
 
 _instance_ids = count()
@@ -32,4 +33,3 @@ def create_default_deck(copies_per_card: int = 50) -> list[CardInstance]:
         for slug in CARD_REGISTRY
         for _ in range(copies_per_card)
     ]
-

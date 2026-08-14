@@ -1,0 +1,23 @@
+import unittest
+
+from thenos.cards import make_card
+from tests.helpers import empty_game
+
+
+class ChalkArtTests(unittest.TestCase):
+    def test_cost_tags_and_fun(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 7
+        player.hand.append(make_card("chalk-art"))
+
+        card = game.play_card(0, 0)
+
+        self.assertEqual(card.definition.cost, 0)
+        self.assertEqual(card.definition.tags, frozenset({"Relax"}))
+        self.assertEqual(player.energy, 7)
+        self.assertEqual(game.card_fun(0, card), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

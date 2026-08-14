@@ -1,5 +1,6 @@
 import unittest
 
+from thenos.cards import CARD_REGISTRY
 from thenos.simulation import simulate_games
 
 
@@ -8,7 +9,7 @@ class SimulationTests(unittest.TestCase):
         report = simulate_games(10, seed=2026)
 
         self.assertEqual(report.games, 10)
-        self.assertEqual(set(report.cards), {"Biography", "Fajitas", "Waterski"})
+        self.assertEqual(set(report.cards), {card.title for card in CARD_REGISTRY.values()})
         self.assertEqual(sum(card.picks for card in report.cards.values()), 720)
         for card in report.cards.values():
             self.assertGreater(card.offers, 0)
