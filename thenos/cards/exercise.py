@@ -134,6 +134,19 @@ class WakesurfBehavior(CardBehavior):
         return card.effective_base_fun + bonus
 
 
+class SlalomStartBehavior(CardBehavior):
+    """Score a bonus when this player has exactly one card at day's end."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        bonus = 6 if len(player.hand) == 1 else 0
+        return card.effective_base_fun + bonus
+
+
 class SkiOnCousinsShouldersBehavior(CardBehavior):
     """Score a bonus when this player's total is below at least half of opponents."""
 
@@ -280,6 +293,15 @@ WAKESURF = CardDefinition(
     cost=4,
     base_fun=1,
     behavior=WakesurfBehavior(),
+)
+
+SLALOM_START = CardDefinition(
+    slug="slalom-start",
+    title="Slalom Start",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=5,
+    base_fun=2,
+    behavior=SlalomStartBehavior(),
 )
 
 SKI_ON_COUSINS_SHOULDERS = CardDefinition(
