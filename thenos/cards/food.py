@@ -205,6 +205,35 @@ MORNING_COFFEE = CardDefinition(
 )
 
 
+class AfternoonCoffeeBehavior(CardBehavior):
+    """Gain three Energy; this must not be one of the first two cards today."""
+
+    def can_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return len(player.played_today) >= 2
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.gain_energy(player, 3, card)
+
+
+AFTERNOON_COFFEE = CardDefinition(
+    slug="afternoon-coffee",
+    title="Afternoon Coffee",
+    tags=frozenset({"Food"}),
+    cost=1,
+    behavior=AfternoonCoffeeBehavior(),
+)
+
+
 FOOD_CARDS = (
     DORITOS,
     WEIRD_CHIP_FLAVOR,
@@ -212,4 +241,5 @@ FOOD_CARDS = (
     CAMP_CROSSROADS_DESSERT,
     PUDDING_CHOMEUR,
     MORNING_COFFEE,
+    AFTERNOON_COFFEE,
 )
