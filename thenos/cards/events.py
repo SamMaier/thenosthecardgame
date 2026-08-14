@@ -78,7 +78,7 @@ class StayUpLateBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player.energy += 2
+        game.gain_energy(player, 2, card)
 
     def on_start_day(
         self,

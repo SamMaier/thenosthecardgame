@@ -36,7 +36,7 @@ class DoritosBehavior(CardBehavior):
             for played_card in player.played_today[:card_position]
         )
         if food_cards_played >= 2:
-            player.energy += 2
+            game.gain_energy(player, 2, card)
 
 
 DORITOS = CardDefinition(
@@ -57,7 +57,7 @@ class WeirdChipFlavorBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player.energy += 2
+        game.gain_energy(player, 2, card)
 
 
 WEIRD_CHIP_FLAVOR = CardDefinition(
@@ -70,4 +70,40 @@ WEIRD_CHIP_FLAVOR = CardDefinition(
 )
 
 
-FOOD_CARDS = (DORITOS, WEIRD_CHIP_FLAVOR)
+class BublyBehavior(CardBehavior):
+    """Reward this card when an earlier card gave its player Energy today."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        card_position = next(
+            (
+                position
+                for position, played_card in enumerate(player.played_today)
+                if played_card is card
+            ),
+            None,
+        )
+        if card_position is None:
+            return card.effective_base_fun
+
+        bonus = any(
+            played_card.markers.get("_gave_energy")
+            for played_card in player.played_today[:card_position]
+        )
+        return card.effective_base_fun + (2 if bonus else 0)
+
+
+BUBLY = CardDefinition(
+    slug="bubly",
+    title="Bubly",
+    tags=frozenset({"Food"}),
+    cost=0,
+    behavior=BublyBehavior(),
+)
+
+
+FOOD_CARDS = (DORITOS, WEIRD_CHIP_FLAVOR, BUBLY)

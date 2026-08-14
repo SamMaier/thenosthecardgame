@@ -18,7 +18,7 @@ class GainOneEnergyBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player.energy += 1
+        game.gain_energy(player, 1, card)
 
 
 M_AND_MS = CardDefinition(

@@ -95,7 +95,7 @@ class GainEnergyForNextTagBehavior(CardBehavior):
         played_card: CardInstance,
     ) -> None:
         if _is_next_card(player, source, played_card) and self.tag in played_card.tags:
-            player.energy += self.energy_gain
+            game.gain_energy(player, self.energy_gain, source)
 
 
 class SetEnergyForNextTagBehavior(CardBehavior):

@@ -18,7 +18,7 @@ class FajitasBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player.energy += 4
+        game.gain_energy(player, 4, card)
 
 
 class WingspanBehavior(CardBehavior):

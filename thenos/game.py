@@ -110,6 +110,17 @@ class Game:
             for card in player.tomorrow_cards:
                 card.effective_behavior.on_start_day(self, player, card)
 
+    def gain_energy(
+        self,
+        player: PlayerState,
+        amount: int,
+        source: CardInstance | None = None,
+    ) -> None:
+        """Give Energy and remember the card that gave it, when applicable."""
+        player.energy += amount
+        if amount > 0 and source is not None:
+            source.markers["_gave_energy"] = True
+
     def draw_phase(self) -> None:
         for _ in range(DAILY_PICKS):
             for player_index in self.player_order():

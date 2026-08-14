@@ -30,7 +30,7 @@ class MorningWalkBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player.energy += 2
+        game.gain_energy(player, 2, card)
 
 
 class MorningBikeBehavior(CardBehavior):
@@ -52,7 +52,7 @@ class MorningBikeBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player.energy += 5
+        game.gain_energy(player, 5, card)
 
 
 class MorningRunBehavior(CardBehavior):
@@ -74,7 +74,7 @@ class MorningRunBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player.energy += 7
+        game.gain_energy(player, 7, card)
 
 
 class ZumbaBehavior(CardBehavior):
@@ -88,7 +88,7 @@ class ZumbaBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player.energy += 3
+        game.gain_energy(player, 3, card)
 
 
 class PlayWithTheKidsBehavior(CardBehavior):
