@@ -271,7 +271,10 @@ class FunForTagsBeforeAndAfterBehavior(CardBehavior):
 
 
 class FunForOtherCardsWrittenCostBehavior(CardBehavior):
-    """Add each other card's printed Energy cost to its Fun."""
+    """Adjust each other card's Fun by its printed Energy cost."""
+
+    def __init__(self, multiplier: int = 1) -> None:
+        self.multiplier = multiplier
 
     def modify_fun(
         self,
@@ -288,8 +291,15 @@ class FunForOtherCardsWrittenCostBehavior(CardBehavior):
             and target_position is not None
             and target is not source
         ):
-            return current_fun + target.definition.cost
+            return current_fun + self.multiplier * target.definition.cost
         return current_fun
+
+
+class WakeboardBehavior(FunForOtherCardsWrittenCostBehavior):
+    """Reduce other cards' Fun by their printed Energy costs."""
+
+    def __init__(self) -> None:
+        super().__init__(multiplier=-1)
 
 
 class FunForNextTagBehavior(CardBehavior):
@@ -763,6 +773,15 @@ COUCH_TUBE = CardDefinition(
     behavior=FunForOtherCardsWrittenCostBehavior(),
 )
 
+WAKEBOARD = CardDefinition(
+    slug="wakeboard",
+    title="Wakeboard",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=6,
+    base_fun=10,
+    behavior=WakeboardBehavior(),
+)
+
 TEACH_KID_TO_SKI = CardDefinition(
     slug="teach-kid-to-ski",
     title="Teach Kid to Ski",
@@ -803,5 +822,6 @@ FUN_EFFECT_CARDS = (
     ICE_WINE,
     EVENING_ON_THE_DOCK,
     COUCH_TUBE,
+    WAKEBOARD,
     TEACH_KID_TO_SKI,
 )
