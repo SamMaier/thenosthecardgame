@@ -142,4 +142,44 @@ CAMP_CROSSROADS_DESSERT = CardDefinition(
 )
 
 
-FOOD_CARDS = (DORITOS, WEIRD_CHIP_FLAVOR, BUBLY, CAMP_CROSSROADS_DESSERT)
+class PuddingChomeurBehavior(CardBehavior):
+    """Gain Energy, then discard one remaining card from hand if possible."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.gain_energy(player, 3, card)
+
+        if not player.hand:
+            return
+
+        player_index = game.players.index(player)
+        hand = tuple(player.hand)
+        choice = game.ais[player_index].choose_card_to_discard(
+            game, player_index, hand
+        )
+        if choice < 0 or choice >= len(hand):
+            raise ValueError(f"AI returned invalid hand discard index: {choice}")
+
+        game.discard_from_hand(player_index, choice)
+
+
+PUDDING_CHOMEUR = CardDefinition(
+    slug="pudding-chomeur",
+    title="Pudding Chômeur",
+    tags=frozenset({"Food"}),
+    cost=1,
+    behavior=PuddingChomeurBehavior(),
+)
+
+
+FOOD_CARDS = (
+    DORITOS,
+    WEIRD_CHIP_FLAVOR,
+    BUBLY,
+    CAMP_CROSSROADS_DESSERT,
+    PUDDING_CHOMEUR,
+)
