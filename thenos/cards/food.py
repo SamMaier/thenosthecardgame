@@ -387,6 +387,27 @@ AFTERNOON_COFFEE = CardDefinition(
 )
 
 
+class DecafBehavior(CardBehavior):
+    """Score two Fun for each Energy remaining at the end of the day."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        return card.effective_base_fun + 2 * player.energy
+
+
+DECAF = CardDefinition(
+    slug="decaf",
+    title="Decaf",
+    tags=frozenset({"Food"}),
+    cost=3,
+    behavior=DecafBehavior(),
+)
+
+
 KEEPER = CardDefinition(
     slug="keeper",
     title="Keeper",
@@ -409,5 +430,6 @@ FOOD_CARDS = (
     AFTERNOON_COFFEE,
     ICE_CREAM_SANDWICH,
     LEFTOVERS,
+    DECAF,
     KEEPER,
 )
