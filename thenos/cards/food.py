@@ -176,10 +176,40 @@ PUDDING_CHOMEUR = CardDefinition(
 )
 
 
+class MorningCoffeeBehavior(CardBehavior):
+    """Gain three Energy; this must be the first card played today."""
+
+    def can_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return not player.played_today
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.gain_energy(player, 3, card)
+
+
+MORNING_COFFEE = CardDefinition(
+    slug="morning-coffee",
+    title="Morning Coffee",
+    tags=frozenset({"Food"}),
+    cost=1,
+    behavior=MorningCoffeeBehavior(),
+)
+
+
 FOOD_CARDS = (
     DORITOS,
     WEIRD_CHIP_FLAVOR,
     BUBLY,
     CAMP_CROSSROADS_DESSERT,
     PUDDING_CHOMEUR,
+    MORNING_COFFEE,
 )
