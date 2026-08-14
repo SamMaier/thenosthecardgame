@@ -31,7 +31,7 @@ from thenos.cards.events import (
     SING_SONG,
     STAY_UP_LATE,
 )
-from thenos.cards.exercise import PLAY_WITH_THE_KIDS, ZUMBA
+from thenos.cards.exercise import PLAY_WITH_THE_KIDS, WRESTLE_THE_KIDS, ZUMBA
 from thenos.cards.energy_effects import ENERGY_EFFECT_CARDS
 from thenos.cards.fun_effects import FUN_EFFECT_CARDS
 from thenos.cards.pure_energy import PURE_ENERGY_CARDS
@@ -65,6 +65,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         PHOTO_SHOOT,
         ZUMBA,
         PLAY_WITH_THE_KIDS,
+        WRESTLE_THE_KIDS,
         *ENERGY_EFFECT_CARDS,
         *FUN_EFFECT_CARDS,
         *PURE_FUN_CARDS,

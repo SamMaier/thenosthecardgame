@@ -43,6 +43,18 @@ class PlayWithTheKidsBehavior(CardBehavior):
         return card.effective_base_fun + bonus
 
 
+class WrestleTheKidsBehavior(CardBehavior):
+    """Score one additional Fun for each card remaining in this player's hand."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        return card.effective_base_fun + len(player.hand)
+
+
 ZUMBA = CardDefinition(
     slug="zumba",
     title="Zumba",
@@ -59,4 +71,13 @@ PLAY_WITH_THE_KIDS = CardDefinition(
     cost=4,
     base_fun=3,
     behavior=PlayWithTheKidsBehavior(),
+)
+
+WRESTLE_THE_KIDS = CardDefinition(
+    slug="wrestle-the-kids",
+    title="Wrestle the Kids",
+    tags=frozenset({"Exercise"}),
+    cost=5,
+    base_fun=1,
+    behavior=WrestleTheKidsBehavior(),
 )
