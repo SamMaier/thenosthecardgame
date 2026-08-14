@@ -320,6 +320,8 @@ class Game:
         player.played_today.append(card)
         self.stats.card_plays[card.title] += 1
         card.effective_behavior.on_play(self, player, card)
+        for source in player.tomorrow_cards:
+            source.effective_behavior.on_card_play(self, player, source, card)
         return card
 
     def copy_card_effect(

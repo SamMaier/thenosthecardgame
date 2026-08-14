@@ -89,6 +89,21 @@ class StayUpLateBehavior(CardBehavior):
         player.energy -= 2
 
 
+class PhotoShootBehavior(CardBehavior):
+    """While active Tomorrow, pick a Suitcase card after each play."""
+
+    has_tomorrow_action = True
+
+    def on_card_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        played_card: CardInstance,
+    ) -> None:
+        game.pick_from_suitcase(game.players.index(player))
+
+
 SING_SONG = CardDefinition(
     slug="sing-song",
     title="Sing Song",
@@ -112,4 +127,13 @@ STAY_UP_LATE = CardDefinition(
     tags=frozenset({"Event", "Indoors"}),
     cost=0,
     behavior=StayUpLateBehavior(),
+)
+
+PHOTO_SHOOT = CardDefinition(
+    slug="photo-shoot",
+    title="Photo Shoot",
+    tags=frozenset({"Event", "Outdoors"}),
+    cost=4,
+    base_fun=-1,
+    behavior=PhotoShootBehavior(),
 )

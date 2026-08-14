@@ -63,6 +63,16 @@ class CardBehavior:
         """Resolve the Tomorrow action of an active card."""
         pass
 
+    def on_card_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        played_card: CardInstance,
+    ) -> None:
+        """Resolve an active card's reaction to one of its player's plays."""
+        pass
+
     def allows_extra_suitcase_pick(
         self,
         game: Game,
