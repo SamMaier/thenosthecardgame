@@ -25,6 +25,24 @@ class ZumbaBehavior(CardBehavior):
         player.energy += 3
 
 
+class PlayWithTheKidsBehavior(CardBehavior):
+    """Score a bonus when this player has the largest hand at day's end."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        has_more_cards = all(
+            len(player.hand) > len(opponent.hand)
+            for opponent in game.players
+            if opponent is not player
+        )
+        bonus = 3 if has_more_cards else 0
+        return card.effective_base_fun + bonus
+
+
 ZUMBA = CardDefinition(
     slug="zumba",
     title="Zumba",
@@ -32,4 +50,13 @@ ZUMBA = CardDefinition(
     cost=4,
     base_fun=2,
     behavior=ZumbaBehavior(),
+)
+
+PLAY_WITH_THE_KIDS = CardDefinition(
+    slug="play-with-the-kids",
+    title="Play With the Kids",
+    tags=frozenset({"Exercise"}),
+    cost=4,
+    base_fun=3,
+    behavior=PlayWithTheKidsBehavior(),
 )
