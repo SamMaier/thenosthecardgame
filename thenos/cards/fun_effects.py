@@ -130,6 +130,28 @@ class FunForTagTodayBehavior(CardBehavior):
         return current_fun
 
 
+class TomorrowFunForTagBehavior(CardBehavior):
+    """Add Fun to matching cards while this card is active Tomorrow."""
+
+    has_tomorrow_action = True
+
+    def __init__(self, tag: str, bonus: int) -> None:
+        self.tag = tag
+        self.bonus = bonus
+
+    def modify_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if source.is_tomorrow and self.tag in target.tags:
+            return current_fun + self.bonus
+        return current_fun
+
+
 class FunForTagAfterBehavior(CardBehavior):
     """Add Fun to each matching card played after this card today."""
 
@@ -683,6 +705,14 @@ EVENING_ON_THE_DOCK = CardDefinition(
     behavior=FunForAllCardsBeforeBehavior(1),
 )
 
+TEACH_KID_TO_SKI = CardDefinition(
+    slug="teach-kid-to-ski",
+    title="Teach Kid to Ski",
+    tags=frozenset({"Event", "Outdoors"}),
+    cost=3,
+    behavior=TomorrowFunForTagBehavior("Exercise", 1),
+)
+
 
 FUN_EFFECT_CARDS = (
     TREKKING_THROUGH_HISTORY,
@@ -713,4 +743,5 @@ FUN_EFFECT_CARDS = (
     CLIFF_CLIMBING,
     ICE_WINE,
     EVENING_ON_THE_DOCK,
+    TEACH_KID_TO_SKI,
 )
