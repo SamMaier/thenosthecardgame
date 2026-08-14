@@ -8,7 +8,7 @@ from thenos.game import DAYS_PER_GAME, Game, fractional_wins
 class GameTests(unittest.TestCase):
     def test_default_deck_has_fifty_copies_of_each_implemented_card(self) -> None:
         counts = Counter(card.title for card in create_default_deck())
-        self.assertEqual(len(counts), 20)
+        self.assertEqual(len(counts), 22)
         self.assertTrue(all(count == 50 for count in counts.values()))
 
     def test_complete_seeded_game_runs_six_days(self) -> None:

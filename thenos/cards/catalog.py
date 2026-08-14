@@ -6,11 +6,19 @@ from itertools import count
 
 from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.basic import BIOGRAPHY, FAJITAS, WATERSKI
+from thenos.cards.pure_energy import PURE_ENERGY_CARDS
 from thenos.cards.pure_fun import PURE_FUN_CARDS
 
 
 CARD_REGISTRY: dict[str, CardDefinition] = {
-    card.slug: card for card in (BIOGRAPHY, FAJITAS, WATERSKI, *PURE_FUN_CARDS)
+    card.slug: card
+    for card in (
+        BIOGRAPHY,
+        FAJITAS,
+        WATERSKI,
+        *PURE_FUN_CARDS,
+        *PURE_ENERGY_CARDS,
+    )
 }
 
 _instance_ids = count()
