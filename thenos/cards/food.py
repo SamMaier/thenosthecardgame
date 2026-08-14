@@ -168,6 +168,60 @@ ICE_CREAM_SANDWICH = CardDefinition(
 )
 
 
+class LeftoversBehavior(CardBehavior):
+    """Copy an earlier Food card's effects without copying its cost or tags."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        # A Leftovers effect copied from an otherwise unfulfilled Leftovers
+        # must terminate rather than recursively selecting itself.
+        if card.markers.get("_copying_effect"):
+            return
+
+        card_position = next(
+            (
+                position
+                for position, played_card in enumerate(player.played_today)
+                if played_card is card
+            ),
+            None,
+        )
+        if card_position is None:
+            return
+
+        player_index = game.players.index(player)
+        eligible_cards = [
+            candidate
+            for candidate in player.played_today[:card_position]
+            if "Food" in candidate.tags
+            and candidate.effective_behavior.can_play(game, player, card)
+        ]
+        if not eligible_cards:
+            return
+
+        target = game.choose_card_to_copy(player_index, eligible_cards)
+        target.markers["energy_cube"] = True
+        game.copy_card_effect(
+            player_index,
+            target,
+            card,
+            pay_source_cost=False,
+        )
+
+
+LEFTOVERS = CardDefinition(
+    slug="leftovers",
+    title="Leftovers",
+    tags=frozenset({"Food"}),
+    cost=2,
+    behavior=LeftoversBehavior(),
+)
+
+
 class BublyBehavior(CardBehavior):
     """Reward this card when an earlier card gave its player Energy today."""
 
@@ -343,4 +397,5 @@ FOOD_CARDS = (
     MORNING_COFFEE,
     AFTERNOON_COFFEE,
     ICE_CREAM_SANDWICH,
+    LEFTOVERS,
 )

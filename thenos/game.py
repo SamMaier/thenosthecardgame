@@ -360,19 +360,22 @@ class Game:
         player_index: int,
         source: CardInstance,
         destination: CardInstance,
+        *,
+        pay_source_cost: bool = True,
     ) -> None:
         """Resolve ``source``'s effect as a new play of ``destination``."""
         player = self.players[player_index]
-        source_cost = source.definition.cost
-        if source_cost > player.energy:
-            raise ValueError(f"Not enough Energy to copy {source.title}")
-        player.energy -= source_cost
+        copied_cost = source.definition.cost if pay_source_cost else destination.definition.cost
+        if pay_source_cost:
+            if copied_cost > player.energy:
+                raise ValueError(f"Not enough Energy to copy {source.title}")
+            player.energy -= copied_cost
 
         copied_definition = CardDefinition(
             slug=destination.definition.slug,
             title=destination.definition.title,
             tags=destination.definition.tags,
-            cost=source_cost,
+            cost=copied_cost,
             base_fun=source.effective_base_fun,
             behavior=source.effective_behavior,
         )
