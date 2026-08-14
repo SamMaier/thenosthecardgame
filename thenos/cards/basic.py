@@ -21,6 +21,18 @@ class FajitasBehavior(CardBehavior):
         player.energy += 4
 
 
+class WingspanBehavior(CardBehavior):
+    """Score this card immediately, in addition to its normal scoring."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player.fun += game.card_fun(game.players.index(player), card)
+
+
 class TheCrewBehavior(CardBehavior):
     """Remember whether enough opponents played Board Games before this."""
 
@@ -177,6 +189,15 @@ FAJITAS = CardDefinition(
     tags=frozenset({"Food"}),
     cost=3,
     behavior=FajitasBehavior(),
+)
+
+WINGSPAN = CardDefinition(
+    slug="wingspan",
+    title="Wingspan",
+    tags=frozenset({"Board Game"}),
+    cost=3,
+    base_fun=1,
+    behavior=WingspanBehavior(),
 )
 
 THE_CREW = CardDefinition(

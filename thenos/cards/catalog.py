@@ -13,6 +13,7 @@ from thenos.cards.basic import (
     SAN_JUAN,
     SOLO,
     THE_CREW,
+    WINGSPAN,
     WATERSKI,
 )
 from thenos.cards.energy_effects import ENERGY_EFFECT_CARDS
@@ -31,6 +32,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         SAN_JUAN,
         SOLO,
         THE_CREW,
+        WINGSPAN,
         WATERSKI,
         *ENERGY_EFFECT_CARDS,
         *FUN_EFFECT_CARDS,
