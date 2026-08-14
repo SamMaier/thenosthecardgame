@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
+from thenos.cards.pure_energy import GainOneEnergyBehavior
 
 if TYPE_CHECKING:
     from thenos.game import Game
@@ -386,6 +387,16 @@ AFTERNOON_COFFEE = CardDefinition(
 )
 
 
+KEEPER = CardDefinition(
+    slug="keeper",
+    title="Keeper",
+    tags=frozenset({"Food"}),
+    cost=2,
+    base_fun=2,
+    behavior=GainOneEnergyBehavior(),
+)
+
+
 FOOD_CARDS = (
     DORITOS,
     WEIRD_CHIP_FLAVOR,
@@ -398,4 +409,5 @@ FOOD_CARDS = (
     AFTERNOON_COFFEE,
     ICE_CREAM_SANDWICH,
     LEFTOVERS,
+    KEEPER,
 )
