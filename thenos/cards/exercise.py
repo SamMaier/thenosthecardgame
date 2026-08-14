@@ -55,6 +55,28 @@ class MorningBikeBehavior(CardBehavior):
         player.energy += 5
 
 
+class MorningRunBehavior(CardBehavior):
+    """Start the next day with seven additional Energy; play first today."""
+
+    has_tomorrow_action = True
+
+    def can_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return not player.played_today
+
+    def on_start_day(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player.energy += 7
+
+
 class ZumbaBehavior(CardBehavior):
     """Start the next day with three additional Energy."""
 
@@ -252,6 +274,14 @@ MORNING_BIKE = CardDefinition(
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=3,
     behavior=MorningBikeBehavior(),
+)
+
+MORNING_RUN = CardDefinition(
+    slug="morning-run",
+    title="Morning Run",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=5,
+    behavior=MorningRunBehavior(),
 )
 
 THROW_A_BASEBALL = CardDefinition(
