@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
+from thenos.cards.energy_effects import TomorrowEnergyForTagBehavior
 from thenos.cards.pure_energy import GainOneEnergyBehavior
 
 if TYPE_CHECKING:
@@ -408,6 +409,31 @@ DECAF = CardDefinition(
 )
 
 
+class CalzonesBehavior(TomorrowEnergyForTagBehavior):
+    """Gain Energy immediately and tax Exercise cards tomorrow."""
+
+    def __init__(self) -> None:
+        super().__init__("Exercise", 1)
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.gain_energy(player, 3, card)
+
+
+CALZONES = CardDefinition(
+    slug="calzones",
+    title="Calzones",
+    tags=frozenset({"Food"}),
+    cost=3,
+    base_fun=2,
+    behavior=CalzonesBehavior(),
+)
+
+
 KEEPER = CardDefinition(
     slug="keeper",
     title="Keeper",
@@ -431,5 +457,6 @@ FOOD_CARDS = (
     ICE_CREAM_SANDWICH,
     LEFTOVERS,
     DECAF,
+    CALZONES,
     KEEPER,
 )
