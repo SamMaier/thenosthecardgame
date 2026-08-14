@@ -77,6 +77,18 @@ class WrestleTheKidsBehavior(CardBehavior):
         return card.effective_base_fun + len(player.hand)
 
 
+class ThrowABaseballBehavior(CardBehavior):
+    """Pick one card from the Suitcase when this card is played."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.pick_from_suitcase(game.players.index(player))
+
+
 ZUMBA = CardDefinition(
     slug="zumba",
     title="Zumba",
@@ -110,4 +122,13 @@ MORNING_WALK = CardDefinition(
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=1,
     behavior=MorningWalkBehavior(),
+)
+
+THROW_A_BASEBALL = CardDefinition(
+    slug="throw-a-baseball",
+    title="Throw a Baseball",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=2,
+    base_fun=1,
+    behavior=ThrowABaseballBehavior(),
 )

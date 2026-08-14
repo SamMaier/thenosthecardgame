@@ -34,6 +34,7 @@ from thenos.cards.events import (
 from thenos.cards.exercise import (
     MORNING_WALK,
     PLAY_WITH_THE_KIDS,
+    THROW_A_BASEBALL,
     WRESTLE_THE_KIDS,
     ZUMBA,
 )
@@ -70,6 +71,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         PHOTO_SHOOT,
         ZUMBA,
         PLAY_WITH_THE_KIDS,
+        THROW_A_BASEBALL,
         WRESTLE_THE_KIDS,
         MORNING_WALK,
         *ENERGY_EFFECT_CARDS,
