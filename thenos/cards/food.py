@@ -13,6 +13,27 @@ if TYPE_CHECKING:
     from thenos.models import PlayerState
 
 
+class ButterTartsBehavior(CardBehavior):
+    """Double the player's remaining Energy after paying this card's cost."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player.energy *= 2
+
+
+BUTTER_TARTS = CardDefinition(
+    slug="butter-tarts",
+    title="Butter Tarts",
+    tags=frozenset({"Food"}),
+    cost=4,
+    behavior=ButterTartsBehavior(),
+)
+
+
 class DoritosBehavior(CardBehavior):
     """Gain Energy after playing at least two earlier Food cards today."""
 
@@ -466,6 +487,7 @@ KEEPER = CardDefinition(
 
 
 FOOD_CARDS = (
+    BUTTER_TARTS,
     DORITOS,
     WEIRD_CHIP_FLAVOR,
     CHARCUTERIE,
