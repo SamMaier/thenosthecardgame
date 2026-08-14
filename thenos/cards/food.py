@@ -476,6 +476,33 @@ WURSTCHEN = CardDefinition(
 )
 
 
+class TreatStoreRunBehavior(CardBehavior):
+    """Pick all Food cards visible in the Suitcase when played."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        targets = tuple(
+            suitcase_card
+            for suitcase_card in game.suitcase
+            if "Food" in suitcase_card.tags
+        )
+        if targets:
+            game.pick_suitcase_cards(game.players.index(player), targets)
+
+
+TREAT_STORE_RUN = CardDefinition(
+    slug="treat-store-run",
+    title="Treat Store Run",
+    tags=frozenset({"Food", "Event"}),
+    cost=2,
+    behavior=TreatStoreRunBehavior(),
+)
+
+
 KEEPER = CardDefinition(
     slug="keeper",
     title="Keeper",
@@ -502,5 +529,6 @@ FOOD_CARDS = (
     DECAF,
     CALZONES,
     WURSTCHEN,
+    TREAT_STORE_RUN,
     KEEPER,
 )
