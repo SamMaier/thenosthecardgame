@@ -36,6 +36,14 @@ class PlayerAI(Protocol):
     ) -> int:
         """Return an index into ``suitcase`` without taking that card."""
 
+    def choose_card_to_discard(
+        self,
+        game: Game,
+        player_index: int,
+        hand: Sequence[CardInstance],
+    ) -> int:
+        """Return an index into the player's hand to discard."""
+
     def choose_card_to_play(
         self,
         game: Game,
@@ -88,6 +96,16 @@ class RandomAI:
         if not suitcase:
             raise ValueError("Cannot choose a target from an empty Suitcase")
         return self.rng.randrange(len(suitcase))
+
+    def choose_card_to_discard(
+        self,
+        game: Game,
+        player_index: int,
+        hand: Sequence[CardInstance],
+    ) -> int:
+        if not hand:
+            raise ValueError("Cannot choose a card from an empty hand")
+        return self.rng.randrange(len(hand))
 
     def choose_card_to_play(
         self,

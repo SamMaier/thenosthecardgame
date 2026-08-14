@@ -189,6 +189,15 @@ class Game:
         player.acquired_cards[card.title] += 1
         self.stats.card_acquisitions[card.title] += 1
 
+    def discard_from_hand(self, player_index: int, hand_index: int) -> CardInstance:
+        """Remove one card from a player's hand and discard that copy."""
+        player = self.players[player_index]
+        if hand_index < 0 or hand_index >= len(player.hand):
+            raise ValueError(f"Invalid hand index: {hand_index}")
+        card = player.hand.pop(hand_index)
+        self.discard_card(card)
+        return card
+
     def choose_player(
         self,
         player_index: int,

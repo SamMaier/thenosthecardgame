@@ -207,6 +207,39 @@ class PuertoRicoBehavior(CardBehavior):
         return card.definition.base_fun + (3 if target_survived else 0)
 
 
+class SettlersCitiesAndKnightsBehavior(CardBehavior):
+    """Discard one card from hand to gain this card's Fun bonus."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        if not player.hand:
+            return
+
+        player_index = game.players.index(player)
+        hand = tuple(player.hand)
+        choice = game.ais[player_index].choose_card_to_discard(
+            game, player_index, hand
+        )
+        if choice < 0 or choice >= len(hand):
+            raise ValueError(f"AI returned invalid hand discard index: {choice}")
+
+        game.discard_from_hand(player_index, choice)
+        card.markers["discarded_card"] = True
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        bonus = 4 if card.markers.get("discarded_card") else 0
+        return card.definition.base_fun + bonus
+
+
 BIOGRAPHY = CardDefinition(
     slug="biography",
     title="Biography",
@@ -284,6 +317,15 @@ PUERTO_RICO = CardDefinition(
     cost=4,
     base_fun=3,
     behavior=PuertoRicoBehavior(),
+)
+
+SETTLERS_CITIES_AND_KNIGHTS = CardDefinition(
+    slug="settlers-cities-and-knights",
+    title="Settlers (Cities and Knights)",
+    tags=frozenset({"Board Game"}),
+    cost=5,
+    base_fun=4,
+    behavior=SettlersCitiesAndKnightsBehavior(),
 )
 
 WATERSKI = CardDefinition(
