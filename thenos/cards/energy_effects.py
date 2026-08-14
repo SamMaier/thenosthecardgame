@@ -164,6 +164,28 @@ class EnergyForAllCardsAfterBehavior(CardBehavior):
         return current_cost
 
 
+class TomorrowEnergyForTagBehavior(CardBehavior):
+    """Change the cost of matching cards while this card is active Tomorrow."""
+
+    has_tomorrow_action = True
+
+    def __init__(self, tag: str, energy_delta: int) -> None:
+        self.tag = tag
+        self.energy_delta = energy_delta
+
+    def modify_energy_cost(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_cost: int,
+    ) -> int:
+        if source.is_tomorrow and self.tag in target.tags:
+            return current_cost + self.energy_delta
+        return current_cost
+
+
 class MedicalAdviceBehavior(CardBehavior):
     """Pick three cards, penalize previous cards, and tax later cards."""
 
@@ -309,6 +331,14 @@ AFTER_DINNER_ENTERTAINMENT = CardDefinition(
     behavior=AfterDinnerEntertainmentBehavior(),
 )
 
+DISHWASHING = CardDefinition(
+    slug="dishwashing",
+    title="Dishwashing",
+    tags=frozenset({"Event"}),
+    cost=2,
+    behavior=TomorrowEnergyForTagBehavior("Food", -1),
+)
+
 
 ENERGY_EFFECT_CARDS = (
     FORCED_FAMILY_FUN,
@@ -322,4 +352,5 @@ ENERGY_EFFECT_CARDS = (
     BEND_THE_RULES,
     MEDICAL_ADVICE,
     AFTER_DINNER_ENTERTAINMENT,
+    DISHWASHING,
 )
