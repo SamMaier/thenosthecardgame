@@ -234,6 +234,33 @@ class PaddleboardBehavior(CardBehavior):
             game.pick_from_suitcase(player_index)
 
 
+class NavySEALingBehavior(CardBehavior):
+    """Discard any number of hand cards for three Fun per discarded card."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        hand = tuple(player.hand)
+        chooser = game.ais[player_index].choose_cards_to_discard
+        choices = tuple(chooser(game, player_index, hand)) if hand else ()
+        game.discard_cards_from_hand(player_index, choices)
+        card.markers["energy_cubes"] = len(choices)
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        return card.effective_base_fun + 3 * int(
+            card.markers.get("energy_cubes", 0)
+        )
+
+
 class KayakBehavior(CardBehavior):
     """Allow optional remaining Energy to increase this card's Fun."""
 
@@ -370,6 +397,15 @@ PADDLEBOARD = CardDefinition(
     cost=4,
     base_fun=6,
     behavior=PaddleboardBehavior(),
+)
+
+NAVY_SEALING = CardDefinition(
+    slug="navy-sealing",
+    title="Navy SEALing",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=6,
+    base_fun=4,
+    behavior=NavySEALingBehavior(),
 )
 
 KAYAK = CardDefinition(
