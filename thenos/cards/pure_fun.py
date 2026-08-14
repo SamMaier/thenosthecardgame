@@ -2,7 +2,30 @@
 
 from __future__ import annotations
 
-from thenos.cards.base import CardDefinition
+from typing import TYPE_CHECKING
+
+from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
+
+if TYPE_CHECKING:
+    from thenos.game import Game
+    from thenos.models import PlayerState
+
+
+class NewfangledTresFuteBehavior(CardBehavior):
+    """Score one Fun for each distinct tag played by this player today."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        unique_tags = {
+            tag
+            for played_card in player.played_today
+            for tag in played_card.definition.tags
+        }
+        return card.definition.base_fun + len(unique_tags)
 
 
 TRES_FUTE = CardDefinition(
@@ -11,6 +34,15 @@ TRES_FUTE = CardDefinition(
     tags=frozenset({"Board Game"}),
     cost=0,
     base_fun=1,
+)
+
+NEWFANGLED_TRES_FUTE = CardDefinition(
+    slug="newfangled-tres-fute",
+    title="Newfangled Tres Fute",
+    tags=frozenset({"Board Game"}),
+    cost=4,
+    base_fun=1,
+    behavior=NewfangledTresFuteBehavior(),
 )
 
 SPLENDOR = CardDefinition(
@@ -143,6 +175,7 @@ DOCK_FISHING = CardDefinition(
 
 
 PURE_FUN_CARDS = (
+    NEWFANGLED_TRES_FUTE,
     TRES_FUTE,
     SPLENDOR,
     SEVEN_WONDERS,
