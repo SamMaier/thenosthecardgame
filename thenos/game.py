@@ -286,6 +286,22 @@ class Game:
             raise ValueError(f"AI selected an invalid card index: {choice}")
         return eligible_cards[choice]
 
+    def choose_energy_to_spend(
+        self,
+        player_index: int,
+        card: CardInstance,
+        maximum: int,
+    ) -> int:
+        """Choose an optional amount of Energy for a card effect."""
+        if maximum < 0:
+            raise ValueError("Maximum optional Energy cannot be negative")
+        choice = self.ais[player_index].choose_energy_to_spend(
+            self, player_index, card, maximum
+        )
+        if choice < 0 or choice > maximum:
+            raise ValueError(f"AI returned invalid optional Energy amount: {choice}")
+        return choice
+
     def energy_cost(self, player_index: int, card: CardInstance) -> int:
         player = self.players[player_index]
         cost = card.effective_cost

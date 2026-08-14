@@ -84,6 +84,15 @@ class PlayerAI(Protocol):
     ) -> bool:
         """Whether to pay 1 Energy for a second pick during this selection."""
 
+    def choose_energy_to_spend(
+        self,
+        game: Game,
+        player_index: int,
+        card: CardInstance,
+        maximum: int,
+    ) -> int:
+        """Return how much optional Energy to spend on a card effect."""
+
 
 class RandomAI:
     """Pick uniformly and play until no legal affordable card remains."""
@@ -178,3 +187,12 @@ class RandomAI:
     ) -> bool:
         # The baseline AI does not take optional Unpack-like actions.
         return False
+
+    def choose_energy_to_spend(
+        self,
+        game: Game,
+        player_index: int,
+        card: CardInstance,
+        maximum: int,
+    ) -> int:
+        return self.rng.randrange(maximum + 1)

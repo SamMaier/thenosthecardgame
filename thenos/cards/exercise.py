@@ -89,6 +89,31 @@ class ThrowABaseballBehavior(CardBehavior):
         game.pick_from_suitcase(game.players.index(player))
 
 
+class KayakBehavior(CardBehavior):
+    """Allow optional remaining Energy to increase this card's Fun."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        additional_energy = game.choose_energy_to_spend(
+            player_index, card, player.energy
+        )
+        player.energy -= additional_energy
+        card.markers["energy_cubes"] = additional_energy
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        return card.effective_base_fun + int(card.markers.get("energy_cubes", 0))
+
+
 ZUMBA = CardDefinition(
     slug="zumba",
     title="Zumba",
@@ -131,4 +156,13 @@ THROW_A_BASEBALL = CardDefinition(
     cost=2,
     base_fun=1,
     behavior=ThrowABaseballBehavior(),
+)
+
+KAYAK = CardDefinition(
+    slug="kayak",
+    title="Kayak",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=2,
+    base_fun=2,
+    behavior=KayakBehavior(),
 )
