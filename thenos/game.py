@@ -154,6 +154,17 @@ class Game:
         self.suitcase.insert(choice, self._draw_from_trunk())
         return card
 
+    def choose_suitcase_target(self, player_index: int) -> CardInstance:
+        """Choose a physical Suitcase card without taking or discarding it."""
+        if not self.suitcase:
+            raise ValueError("Cannot choose a target from an empty Suitcase")
+        choice = self.ais[player_index].choose_suitcase_target(
+            self, player_index, tuple(self.suitcase)
+        )
+        if choice < 0 or choice >= len(self.suitcase):
+            raise ValueError(f"AI returned invalid Suitcase target index: {choice}")
+        return self.suitcase[choice]
+
     def unpack(self, player_index: int, fun_delta: int = -1) -> None:
         """Discard and refill the Suitcase, applying the action's Fun change.
 

@@ -175,6 +175,38 @@ class SanJuanBehavior(CardBehavior):
         return card.definition.base_fun
 
 
+class PuertoRicoBehavior(CardBehavior):
+    """Mark a Suitcase card and reward it surviving through end-of-day."""
+
+    def can_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return len(player.played_today) < 2
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        target = game.choose_suitcase_target(game.players.index(player))
+        card.markers["energy_cube"] = True
+        card.markers["suitcase_target"] = target
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        target = card.markers.get("suitcase_target")
+        target_survived = any(suitcase_card is target for suitcase_card in game.suitcase)
+        return card.definition.base_fun + (3 if target_survived else 0)
+
+
 BIOGRAPHY = CardDefinition(
     slug="biography",
     title="Biography",
@@ -243,6 +275,15 @@ SAN_JUAN = CardDefinition(
     cost=3,
     base_fun=2,
     behavior=SanJuanBehavior(),
+)
+
+PUERTO_RICO = CardDefinition(
+    slug="puerto-rico",
+    title="Puerto Rico",
+    tags=frozenset({"Board Game"}),
+    cost=4,
+    base_fun=3,
+    behavior=PuertoRicoBehavior(),
 )
 
 WATERSKI = CardDefinition(
