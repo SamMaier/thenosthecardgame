@@ -73,6 +73,16 @@ class CardBehavior:
         """Resolve an active card's reaction to one of its player's plays."""
         pass
 
+    def on_card_acquire(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        acquired_card: CardInstance,
+    ) -> None:
+        """Resolve an active card's reaction to one of its owner's acquisitions."""
+        pass
+
     def allows_extra_suitcase_pick(
         self,
         game: Game,

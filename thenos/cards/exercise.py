@@ -124,6 +124,30 @@ class ChuckAFrisbeeBehavior(CardBehavior):
         player.hand.append(card)
 
 
+class PaddleboatBehavior(CardBehavior):
+    """Gain two Fun for each card acquired after this card today."""
+
+    def on_card_acquire(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        acquired_card: CardInstance,
+    ) -> None:
+        energy_cubes = int(source.markers.get("energy_cubes", 0)) + 1
+        source.markers["energy_cubes"] = energy_cubes
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        return card.effective_base_fun + 2 * int(
+            card.markers.get("energy_cubes", 0)
+        )
+
+
 class KayakBehavior(CardBehavior):
     """Allow optional remaining Energy to increase this card's Fun."""
 
@@ -208,6 +232,14 @@ CHUCK_A_FRISBEE = CardDefinition(
     cost=3,
     base_fun=3,
     behavior=ChuckAFrisbeeBehavior(),
+)
+
+PADDLEBOAT = CardDefinition(
+    slug="paddleboat",
+    title="Paddleboat",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=4,
+    behavior=PaddleboatBehavior(),
 )
 
 KAYAK = CardDefinition(

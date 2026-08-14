@@ -212,6 +212,10 @@ class Game:
         player.hand.append(card)
         player.acquired_cards[card.title] += 1
         self.stats.card_acquisitions[card.title] += 1
+        for source in player.visible_cards:
+            source.effective_behavior.on_card_acquire(
+                self, player, source, card
+            )
 
     def discard_from_hand(self, player_index: int, hand_index: int) -> CardInstance:
         """Remove one card from a player's hand and discard that copy."""
