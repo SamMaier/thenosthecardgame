@@ -92,6 +92,44 @@ CHARCUTERIE = CardDefinition(
 )
 
 
+class SteakBehavior(CardBehavior):
+    """Gain Energy when an earlier card today had a high written cost."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        card_position = next(
+            (
+                position
+                for position, played_card in enumerate(player.played_today)
+                if played_card is card
+            ),
+            None,
+        )
+        if card_position is None:
+            return
+
+        has_high_cost_card = any(
+            played_card.effective_cost >= 5
+            for played_card in player.played_today[:card_position]
+        )
+        if has_high_cost_card:
+            game.gain_energy(player, 3, card)
+
+
+STEAK = CardDefinition(
+    slug="steak",
+    title="Steak",
+    tags=frozenset({"Food"}),
+    cost=2,
+    base_fun=1,
+    behavior=SteakBehavior(),
+)
+
+
 class BublyBehavior(CardBehavior):
     """Reward this card when an earlier card gave its player Energy today."""
 
@@ -260,6 +298,7 @@ FOOD_CARDS = (
     DORITOS,
     WEIRD_CHIP_FLAVOR,
     CHARCUTERIE,
+    STEAK,
     BUBLY,
     CAMP_CROSSROADS_DESSERT,
     PUDDING_CHOMEUR,
