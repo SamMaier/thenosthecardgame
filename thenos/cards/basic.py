@@ -50,6 +50,38 @@ class TheCrewBehavior(CardBehavior):
         return card.definition.base_fun + (2 if card.markers.get("energy_cube") else 0)
 
 
+class CarcassonneBehavior(CardBehavior):
+    """Score a bonus when directly between two Board Games played today."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        card_position = next(
+            (
+                position
+                for position, played_card in enumerate(player.played_today)
+                if played_card is card
+            ),
+            None,
+        )
+        if card_position is None or card_position == 0:
+            return card.definition.base_fun
+
+        if card_position + 1 >= len(player.played_today):
+            return card.definition.base_fun
+
+        neighbors = (
+            player.played_today[card_position - 1],
+            player.played_today[card_position + 1],
+        )
+        if all("Board Game" in neighbor.definition.tags for neighbor in neighbors):
+            return card.definition.base_fun + 4
+        return card.definition.base_fun
+
+
 BIOGRAPHY = CardDefinition(
     slug="biography",
     title="Biography",
@@ -73,6 +105,15 @@ THE_CREW = CardDefinition(
     cost=1,
     base_fun=1,
     behavior=TheCrewBehavior(),
+)
+
+CARCASSONNE = CardDefinition(
+    slug="carcassonne",
+    title="Carcassonne",
+    tags=frozenset({"Board Game"}),
+    cost=2,
+    base_fun=1,
+    behavior=CarcassonneBehavior(),
 )
 
 WATERSKI = CardDefinition(

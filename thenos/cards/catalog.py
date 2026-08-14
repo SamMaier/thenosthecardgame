@@ -5,7 +5,7 @@ from __future__ import annotations
 from itertools import count
 
 from thenos.cards.base import CardDefinition, CardInstance
-from thenos.cards.basic import BIOGRAPHY, FAJITAS, THE_CREW, WATERSKI
+from thenos.cards.basic import BIOGRAPHY, CARCASSONNE, FAJITAS, THE_CREW, WATERSKI
 from thenos.cards.energy_effects import ENERGY_EFFECT_CARDS
 from thenos.cards.fun_effects import FUN_EFFECT_CARDS
 from thenos.cards.pure_energy import PURE_ENERGY_CARDS
@@ -16,6 +16,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
     card.slug: card
     for card in (
         BIOGRAPHY,
+        CARCASSONNE,
         FAJITAS,
         THE_CREW,
         WATERSKI,
