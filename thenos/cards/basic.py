@@ -21,6 +21,35 @@ class FajitasBehavior(CardBehavior):
         player.energy += 4
 
 
+class TheCrewBehavior(CardBehavior):
+    """Remember whether enough opponents played Board Games before this."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        opponents = [opponent for opponent in game.players if opponent is not player]
+        board_game_opponents = sum(
+            any(
+                "Board Game" in played_card.definition.tags
+                for played_card in opponent.played_today
+            )
+            for opponent in opponents
+        )
+        if board_game_opponents * 2 >= len(opponents):
+            card.markers["energy_cube"] = True
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        return card.definition.base_fun + (2 if card.markers.get("energy_cube") else 0)
+
+
 BIOGRAPHY = CardDefinition(
     slug="biography",
     title="Biography",
@@ -37,6 +66,15 @@ FAJITAS = CardDefinition(
     behavior=FajitasBehavior(),
 )
 
+THE_CREW = CardDefinition(
+    slug="the-crew",
+    title="The Crew",
+    tags=frozenset({"Board Game"}),
+    cost=1,
+    base_fun=1,
+    behavior=TheCrewBehavior(),
+)
+
 WATERSKI = CardDefinition(
     slug="waterski",
     title="Waterski",
@@ -44,4 +82,3 @@ WATERSKI = CardDefinition(
     cost=5,
     base_fun=6,
 )
-
