@@ -11,6 +11,28 @@ if TYPE_CHECKING:
     from thenos.models import PlayerState
 
 
+class MorningWalkBehavior(CardBehavior):
+    """Start the next day with two additional Energy; play first today."""
+
+    has_tomorrow_action = True
+
+    def can_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return not player.played_today
+
+    def on_start_day(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player.energy += 2
+
+
 class ZumbaBehavior(CardBehavior):
     """Start the next day with three additional Energy."""
 
@@ -80,4 +102,12 @@ WRESTLE_THE_KIDS = CardDefinition(
     cost=5,
     base_fun=1,
     behavior=WrestleTheKidsBehavior(),
+)
+
+MORNING_WALK = CardDefinition(
+    slug="morning-walk",
+    title="Morning Walk",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=1,
+    behavior=MorningWalkBehavior(),
 )
