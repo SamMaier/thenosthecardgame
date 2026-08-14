@@ -106,4 +106,40 @@ BUBLY = CardDefinition(
 )
 
 
-FOOD_CARDS = (DORITOS, WEIRD_CHIP_FLAVOR, BUBLY)
+class CampCrossroadsDessertBehavior(CardBehavior):
+    """Gain one Energy for each earlier Exercise card played today."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        card_position = next(
+            (
+                position
+                for position, played_card in enumerate(player.played_today)
+                if played_card is card
+            ),
+            None,
+        )
+        if card_position is None:
+            return
+
+        exercise_cards_played = sum(
+            "Exercise" in played_card.tags
+            for played_card in player.played_today[:card_position]
+        )
+        game.gain_energy(player, exercise_cards_played, card)
+
+
+CAMP_CROSSROADS_DESSERT = CardDefinition(
+    slug="camp-crossroads-dessert",
+    title="Camp Crossroads Dessert",
+    tags=frozenset({"Food"}),
+    cost=1,
+    behavior=CampCrossroadsDessertBehavior(),
+)
+
+
+FOOD_CARDS = (DORITOS, WEIRD_CHIP_FLAVOR, BUBLY, CAMP_CROSSROADS_DESSERT)
