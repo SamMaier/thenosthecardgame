@@ -35,6 +35,7 @@ from thenos.cards.food import FOOD_CARDS
 from thenos.cards.items import (
     ASSORTED_CUTLERY,
     BOOBY_PRIZE,
+    BOUGIE_COFFEE_MACHINE,
     FANCY_FLOATIE,
     FISHING_BOAT,
     SKI_BOAT,
@@ -92,6 +93,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         *FOOD_CARDS,
         BOOBY_PRIZE,
         ASSORTED_CUTLERY,
+        BOUGIE_COFFEE_MACHINE,
         FANCY_FLOATIE,
         FISHING_BOAT,
         SKI_BOAT,

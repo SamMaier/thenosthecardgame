@@ -394,6 +394,18 @@ class Game:
         without a cost, as required for cards that play cards from the Trunk.
         """
         card = self._draw_from_trunk()
+        return self.play_card_for_effect(player_index, card)
+
+    def play_card_for_effect(
+        self,
+        player_index: int,
+        card: CardInstance,
+    ) -> CardInstance:
+        """Play an already-drawn card without paying its Energy cost.
+
+        A card that cannot legally be played is returned to the player's hand
+        without a cost. The caller owns removing ``card`` from its source zone.
+        """
         player = self.players[player_index]
         if not card.effective_behavior.can_play(self, player, card):
             self.give_card(player_index, card)

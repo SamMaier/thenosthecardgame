@@ -37,6 +37,23 @@ class AssortedCutleryBehavior(CardBehavior):
         game.play_card_from_trunk(game.players.index(player))
 
 
+class BougieCoffeeMachineBehavior(CardBehavior):
+    """Draw three cards and play each drawn Food card without paying Energy."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        for drawn_card in game.reveal_from_trunk(3):
+            if "Food" in drawn_card.tags:
+                game.play_card_for_effect(player_index, drawn_card)
+            else:
+                game.give_card(player_index, drawn_card)
+
+
 class FishingBoatBehavior(CardBehavior):
     """Reveal through the Trunk for an Outdoors card and reorder the misses."""
 
@@ -112,6 +129,15 @@ ASSORTED_CUTLERY = CardDefinition(
     tags=frozenset({"Item"}),
     cost=3,
     behavior=AssortedCutleryBehavior(),
+)
+
+
+BOUGIE_COFFEE_MACHINE = CardDefinition(
+    slug="bougie-coffee-machine",
+    title="Bougie Coffee Machine",
+    tags=frozenset({"Item"}),
+    cost=5,
+    behavior=BougieCoffeeMachineBehavior(),
 )
 
 
