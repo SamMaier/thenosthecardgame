@@ -476,6 +476,37 @@ WURSTCHEN = CardDefinition(
 )
 
 
+class GroupDinnerBehavior(CardBehavior):
+    """Give every player one Energy when played while everyone is awake."""
+
+    def can_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return not any(candidate.asleep for candidate in game.players)
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        for recipient in game.players:
+            game.gain_energy(recipient, 1, card)
+
+
+GROUP_DINNER = CardDefinition(
+    slug="group-dinner",
+    title="Group Dinner",
+    tags=frozenset({"Food", "Social", "Outdoors"}),
+    cost=3,
+    base_fun=4,
+    behavior=GroupDinnerBehavior(),
+)
+
+
 class TreatStoreRunBehavior(CardBehavior):
     """Pick all Food cards visible in the Suitcase when played."""
 
@@ -565,6 +596,7 @@ FOOD_CARDS = (
     DECAF,
     CALZONES,
     WURSTCHEN,
+    GROUP_DINNER,
     TREAT_STORE_RUN,
     GROCERY_STORE_RUN,
     KEEPER,
