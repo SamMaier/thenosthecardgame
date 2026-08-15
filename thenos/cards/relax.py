@@ -33,10 +33,48 @@ class EarlyBedtimeBehavior(CardBehavior):
         game.gain_energy(player, 3, card)
 
 
+class CheesyPhoneGameBehavior(CardBehavior):
+    """Remember whether enough opponents played Relax cards before this."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        opponents = [opponent for opponent in game.players if opponent is not player]
+        relax_opponents = sum(
+            any("Relax" in played_card.tags for played_card in opponent.played_today)
+            for opponent in opponents
+        )
+        if relax_opponents * 2 >= len(opponents):
+            card.markers["energy_cube"] = True
+            card.markers["_cheesy_phone_game_energy_cube"] = True
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        return card.effective_base_fun + (
+            3 if card.markers.get("_cheesy_phone_game_energy_cube") else 0
+        )
+
+
 EARLY_BEDTIME = CardDefinition(
     slug="early-bedtime",
     title="Early Bedtime",
     tags=frozenset({"Relax"}),
     cost=1,
     behavior=EarlyBedtimeBehavior(),
+)
+
+CHEESY_PHONE_GAME = CardDefinition(
+    slug="cheesy-phone-game",
+    title="Cheesy Phone Game",
+    tags=frozenset({"Relax"}),
+    cost=1,
+    base_fun=1,
+    behavior=CheesyPhoneGameBehavior(),
 )
