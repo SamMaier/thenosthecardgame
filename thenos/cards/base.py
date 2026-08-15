@@ -83,6 +83,16 @@ class CardBehavior:
         """Resolve an active card's reaction to one of its player's plays."""
         pass
 
+    def allows_energy_gain(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+        source: CardInstance | None,
+    ) -> bool:
+        """Whether this visible card permits an Energy gain for its player."""
+        return True
+
     def on_card_acquire(
         self,
         game: Game,

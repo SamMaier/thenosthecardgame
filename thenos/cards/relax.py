@@ -119,6 +119,35 @@ class SunriseBehavior(CardBehavior):
         return not player.played_today
 
 
+class SleepInBehavior(CardBehavior):
+    """Gain Energy as the first play, then prevent other Energy gains today."""
+
+    def can_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return not player.played_today
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.gain_energy(player, 2, card)
+
+    def allows_energy_gain(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+        source: CardInstance | None,
+    ) -> bool:
+        return source is card
+
+
 class ColouringBehavior(CardBehavior):
     """Draw one card from the Trunk into the player's hand."""
 
@@ -186,6 +215,14 @@ SUNRISE = CardDefinition(
     cost=2,
     base_fun=4,
     behavior=SunriseBehavior(),
+)
+
+SLEEP_IN = CardDefinition(
+    slug="sleep-in",
+    title="Sleep In",
+    tags=frozenset({"Relax", "Indoors"}),
+    cost=0,
+    behavior=SleepInBehavior(),
 )
 
 COLOURING = CardDefinition(

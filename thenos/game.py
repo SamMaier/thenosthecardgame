@@ -149,6 +149,13 @@ class Game:
         source: CardInstance | None = None,
     ) -> None:
         """Give Energy and remember the card that gave it, when applicable."""
+        if amount > 0 and not all(
+            card.effective_behavior.allows_energy_gain(
+                self, player, card, source
+            )
+            for card in player.visible_cards
+        ):
+            return
         player.energy += amount
         if amount > 0 and source is not None:
             source.markers["_gave_energy"] = True
