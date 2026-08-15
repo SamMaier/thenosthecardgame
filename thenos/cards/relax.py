@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
+from thenos.cards.fun_effects import FunForTagAfterBehavior
 
 if TYPE_CHECKING:
     from thenos.game import Game
@@ -141,6 +142,24 @@ class FishingEveningBehavior(CardBehavior):
         card: CardInstance,
     ) -> bool:
         return len(player.played_today) >= 3
+
+
+class TanningBehavior(FunForTagAfterBehavior):
+    """Score five Fun, then penalize later Outdoors cards today."""
+
+    def __init__(self) -> None:
+        super().__init__("Outdoors", -1)
+
+    def can_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return not any(
+            "Outdoors" in played_card.tags
+            for played_card in player.played_today
+        )
 
 
 class SleepInBehavior(CardBehavior):
@@ -306,6 +325,15 @@ FISHING_EVENING = CardDefinition(
     cost=3,
     base_fun=5,
     behavior=FishingEveningBehavior(),
+)
+
+TANNING = CardDefinition(
+    slug="tanning",
+    title="Tanning",
+    tags=frozenset({"Relax", "Outdoors"}),
+    cost=3,
+    base_fun=5,
+    behavior=TanningBehavior(),
 )
 
 SLEEP_IN = CardDefinition(

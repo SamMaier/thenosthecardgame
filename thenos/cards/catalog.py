@@ -74,6 +74,7 @@ from thenos.cards.relax import (
     FLOATING,
     PAINT,
     PAINT_ROCKS,
+    TANNING,
 )
 
 
@@ -118,6 +119,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         SUNRISE,
         FISHING_EVENING,
         FISHING_MORNING,
+        TANNING,
         SLEEP_IN,
         FLOATING,
         ZUMBA,
