@@ -28,6 +28,24 @@ class DeclineExtraPlayAI(FirstPlayableAI):
         return None
 
 
+class RecordTurnTypeAI(FirstPlayableAI):
+    def __init__(self, rng) -> None:
+        super().__init__(rng)
+        self.events = []
+
+    def choose_card_to_play(self, game, player_index, playable_hand_indices):
+        self.events.append("normal")
+        return super().choose_card_to_play(
+            game, player_index, playable_hand_indices
+        )
+
+    def choose_extra_card_to_play(
+        self, game, player_index, playable_hand_indices
+    ):
+        self.events.append("extra")
+        return playable_hand_indices[0]
+
+
 class EpicDuelsTests(unittest.TestCase):
     def test_printed_values_and_base_fun(self) -> None:
         card = make_card("epic-duels")
@@ -74,6 +92,25 @@ class EpicDuelsTests(unittest.TestCase):
         self.assertEqual(
             [card.title for card in player.played_today],
             ["Epic Duels", "Biography"],
+        )
+
+    def test_allows_extra_play_when_played_by_assorted_cutlery(self) -> None:
+        game = empty_game()
+        ai = RecordTurnTypeAI(game.rng)
+        game.ais[0] = ai
+        player = game.players[0]
+        player.energy = 4
+        player.hand.extend(
+            [make_card("assorted-cutlery"), make_card("biography")]
+        )
+        game.trunk.append(make_card("epic-duels"))
+
+        game.playing_phase()
+
+        self.assertEqual(ai.events, ["normal", "extra"])
+        self.assertEqual(
+            [card.title for card in player.played_today],
+            ["Assorted Cutlery", "Epic Duels", "Biography"],
         )
 
 

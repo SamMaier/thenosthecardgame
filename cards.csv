@@ -89,7 +89,7 @@ San Juan,Board Game,3,"2 Fun.
 Pick a player who has 2 or less cards played (place an energy cube to indicate). If they do not play a Board Game today, +3 Fun."
 Wingspan,Board Game,3,"1 Fun. Score fun for this card immediately, and score again as normal at end of day."
 Puerto Rico,Board Game,4,"3 Fun.
-Place an energy cube on a card in the suitcase. If that card is not taken or discarded by end of day, +3 Fun.
+Place an energy cube on a card in the suitcase. If that card is not taken or discarded by end of day, +4 Fun.
 Must be one of your first two cards you play today."
 Newfangled Tres Fute,Board Game,4,"1 Fun.
 At end of day, +1 Fun for every unique tag you've played today (including this card)."
@@ -217,7 +217,7 @@ Tomorrow: Every card you play scores +1 Fun."
 New Noz Book Entry,"Social, Event",2,"1 Fun.
 If you have played 5 or more cards previously today, +4 Fun."
 Campfire,"Social, Event, Outdoors",1,"+1 Fun for every active ""Tomorrow"" card you have today (played yesterday)"
-Scout the Other Cottages,"Social, Indoors",2,"Place an Energy cube on all cards in the Suitcase. When this card is scored at end of day, add all cards that remain with your Energy cube on them to your hand.
+Scout the Other Cottages,"Social, Indoors",2,"Place an Energy cube on all cards in the Suitcase. After all scoring at end of day, add all cards that remain with your Energy cube on them to your hand.
 All cards played previously today score -1 Fun."
 Evening Chat,"Social, Indoors",3,"5 Fun.
 Immediately go to bed.

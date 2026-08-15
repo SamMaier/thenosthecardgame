@@ -48,11 +48,11 @@ class PuertoRicoTests(unittest.TestCase):
         self.assertTrue(target.markers["energy_cube"])
         self.assertNotIn("energy_cube", card.markers)
         self.assertIs(card.markers["suitcase_target"], target)
-        self.assertEqual(game.card_fun(0, card), 6)
+        self.assertEqual(game.card_fun(0, card), 7)
 
         game.end_day()
 
-        self.assertEqual(player.fun, 6)
+        self.assertEqual(player.fun, 7)
 
     def test_taking_or_discarding_target_removes_bonus(self) -> None:
         for action in ("take", "discard"):

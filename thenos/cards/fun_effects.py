@@ -270,33 +270,28 @@ class FunForTagsBeforeAndAfterBehavior(CardBehavior):
         return current_fun
 
 
-class FunForOtherCardsWrittenCostBehavior(CardBehavior):
-    """Adjust each other card's Fun by its printed Energy cost."""
+class FunFromOtherCardsWrittenCostBehavior(CardBehavior):
+    """Adjust this card's Fun by the written costs of other cards today."""
 
     def __init__(self, multiplier: int = 1) -> None:
         self.multiplier = multiplier
 
-    def modify_fun(
+    def fun_value(
         self,
         game: Game,
         player: PlayerState,
-        source: CardInstance,
-        target: CardInstance,
-        current_fun: int,
+        card: CardInstance,
     ) -> int:
-        source_position = _today_position(player, source)
-        target_position = _today_position(player, target)
-        if (
-            source_position is not None
-            and target_position is not None
-            and target is not source
-        ):
-            return current_fun + self.multiplier * target.effective_cost
-        return current_fun
+        written_cost_total = sum(
+            other_card.effective_cost
+            for other_card in player.played_today
+            if other_card is not card
+        )
+        return card.effective_base_fun + self.multiplier * written_cost_total
 
 
-class WakeboardBehavior(FunForOtherCardsWrittenCostBehavior):
-    """Reduce other cards' Fun by their printed Energy costs."""
+class WakeboardBehavior(FunFromOtherCardsWrittenCostBehavior):
+    """Reduce this card's Fun by other cards' written Energy costs."""
 
     def __init__(self) -> None:
         super().__init__(multiplier=-1)
@@ -778,7 +773,7 @@ COUCH_TUBE = CardDefinition(
     title="Couch Tube",
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=4,
-    behavior=FunForOtherCardsWrittenCostBehavior(),
+    behavior=FunFromOtherCardsWrittenCostBehavior(),
 )
 
 WAKEBOARD = CardDefinition(

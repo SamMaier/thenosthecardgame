@@ -593,7 +593,8 @@ class Game:
                 )
                 if choice not in playable:
                     raise ValueError(f"AI selected unplayable hand index: {choice}")
-                played_card = self.play_card(player_index, choice)
+                turn_start = len(player.played_today)
+                self.play_card(player_index, choice)
 
                 if player.asleep:
                     if first_to_bed is None:
@@ -602,8 +603,12 @@ class Game:
 
                 # A normal turn ends after one card.  Some cards explicitly
                 # let their player continue playing during this same turn.
-                extra_plays = played_card.effective_behavior.allows_extra_card_plays(
-                    self, player, played_card
+                cards_played_this_turn = player.played_today[turn_start:]
+                extra_plays = any(
+                    played_card.effective_behavior.allows_extra_card_plays(
+                        self, player, played_card
+                    )
+                    for played_card in cards_played_this_turn
                 )
                 while extra_plays:
                     playable = self.playable_hand_indices(player_index)

@@ -219,7 +219,7 @@ class PuertoRicoBehavior(CardBehavior):
             and bool(target.markers.get(target_marker))
             and any(suitcase_card is target for suitcase_card in game.suitcase)
         )
-        return card.effective_base_fun + (3 if target_survived else 0)
+        return card.effective_base_fun + (4 if target_survived else 0)
 
 
 class SettlersCitiesAndKnightsBehavior(CardBehavior):

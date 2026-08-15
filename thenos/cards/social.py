@@ -101,7 +101,7 @@ class CampfireBehavior(CardBehavior):
 
 
 class ScoutTheOtherCottagesBehavior(FunForAllCardsBeforeBehavior):
-    """Mark the current Suitcase and acquire surviving cards when scored."""
+    """Mark the current Suitcase and acquire survivors after all scoring."""
 
     def __init__(self) -> None:
         super().__init__(-1)
@@ -117,7 +117,7 @@ class ScoutTheOtherCottagesBehavior(FunForAllCardsBeforeBehavior):
             suitcase_card.markers["energy_cube"] = True
             suitcase_card.markers[owner_marker] = True
 
-    def on_score(
+    def on_end_day(
         self,
         game: Game,
         player: PlayerState,

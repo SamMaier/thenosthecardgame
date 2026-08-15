@@ -28,11 +28,11 @@ class WakeboardTests(unittest.TestCase):
             wakeboard.definition.tags,
             frozenset({"Exercise", "Outdoors"}),
         )
-        self.assertEqual(game.card_fun(0, wakeboard), 10)
-        self.assertEqual(game.card_fun(0, before), 1)
-        self.assertEqual(game.card_fun(0, after), 1)
+        self.assertEqual(game.card_fun(0, wakeboard), 4)
+        self.assertEqual(game.card_fun(0, before), 2)
+        self.assertEqual(game.card_fun(0, after), 6)
 
-    def test_written_cost_is_used_before_later_fun_modifiers(self) -> None:
+    def test_cost_penalty_belongs_to_wakeboard_not_the_other_cards(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 12
@@ -48,8 +48,8 @@ class WakeboardTests(unittest.TestCase):
         game.play_card(0, 0)
         other = game.play_card(0, 0)
 
-        self.assertEqual(game.card_fun(0, wakeboard), 10)
-        self.assertEqual(game.card_fun(0, other), 2)
+        self.assertEqual(game.card_fun(0, wakeboard), 6)
+        self.assertEqual(game.card_fun(0, other), 6)
 
 
 if __name__ == "__main__":

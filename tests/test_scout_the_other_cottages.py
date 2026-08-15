@@ -131,6 +131,24 @@ class ScoutTheOtherCottagesTests(unittest.TestCase):
 
         self.assertEqual(player.fun, 3)
 
+    def test_acquires_marked_cards_only_after_every_player_scores(self) -> None:
+        game = empty_game()
+        scout_player = game.players[0]
+        hand_size_player = game.players[1]
+        scout = make_card("scout-the-other-cottages")
+        hand_size_card = make_card("play-with-the-kids")
+        scout_player.played_today.append(scout)
+        hand_size_player.played_today.append(hand_size_card)
+        hand_size_player.hand.append(make_card("biography"))
+        game.suitcase = [make_card("fajitas") for _ in range(4)]
+        game.trunk = [make_card("biography") for _ in range(4)]
+        scout.effective_behavior.on_play(game, scout_player, scout)
+
+        game.end_day()
+
+        self.assertEqual(hand_size_player.fun, 6)
+        self.assertEqual(len(scout_player.hand), 4)
+
 
 if __name__ == "__main__":
     unittest.main()
