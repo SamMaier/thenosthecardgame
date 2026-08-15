@@ -17,6 +17,7 @@ class PlayerState:
     energy: int = 0
     fun: int = 0
     asleep: bool = False
+    skipped_turns: int = 0
     picked_cards: Counter[str] = field(default_factory=Counter)
     acquired_cards: Counter[str] = field(default_factory=Counter)
 
@@ -32,3 +33,6 @@ class GameStats:
     suitcase_picks: Counter[str] = field(default_factory=Counter)
     card_acquisitions: Counter[str] = field(default_factory=Counter)
     card_plays: Counter[str] = field(default_factory=Counter)
+    card_plays_without_acquisition: Counter[str] = field(
+        default_factory=Counter
+    )

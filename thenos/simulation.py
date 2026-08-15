@@ -15,6 +15,7 @@ class CardStatistics:
     picks: int = 0
     acquisitions: int = 0
     plays: int = 0
+    plays_without_acquisition: int = 0
     win_credit_when_picked: float = 0.0
     win_credit_when_acquired: float = 0.0
 
@@ -24,7 +25,8 @@ class CardStatistics:
 
     @property
     def play_rate(self) -> float:
-        return self.plays / self.acquisitions if self.acquisitions else 0.0
+        denominator = self.acquisitions + self.plays_without_acquisition
+        return self.plays / denominator if denominator else 0.0
 
     @property
     def win_rate_when_picked(self) -> float:
@@ -76,12 +78,16 @@ def simulate_games(games: int, seed: int | None = None) -> SimulationReport:
         titles.update(game.stats.suitcase_picks)
         titles.update(game.stats.card_acquisitions)
         titles.update(game.stats.card_plays)
+        titles.update(game.stats.card_plays_without_acquisition)
         for title in titles:
             stats = report.cards.setdefault(title, CardStatistics())
             stats.offers += game.stats.suitcase_offers[title]
             stats.picks += game.stats.suitcase_picks[title]
             stats.acquisitions += game.stats.card_acquisitions[title]
             stats.plays += game.stats.card_plays[title]
+            stats.plays_without_acquisition += (
+                game.stats.card_plays_without_acquisition[title]
+            )
 
         for player, win_share in zip(game.players, result.win_shares, strict=True):
             for title, copies_picked in player.picked_cards.items():

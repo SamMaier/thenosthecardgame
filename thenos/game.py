@@ -153,6 +153,10 @@ class Game:
         if amount > 0 and source is not None:
             source.markers["_gave_energy"] = True
 
+    def skip_next_turn(self, player: PlayerState) -> None:
+        """Queue one skipped playing-phase turn for ``player``."""
+        player.skipped_turns += 1
+
     def draw_phase(self) -> None:
         for _ in range(DAILY_PICKS):
             for player_index in self.player_order():
@@ -421,6 +425,7 @@ class Game:
 
         player.played_today.append(card)
         self.stats.card_plays[card.title] += 1
+        self.stats.card_plays_without_acquisition[card.title] += 1
         card.effective_behavior.on_play(self, player, card)
         for source in player.visible_cards:
             source.effective_behavior.on_card_play(self, player, source, card)
@@ -463,6 +468,9 @@ class Game:
             for player_index in order:
                 player = self.players[player_index]
                 if player.asleep:
+                    continue
+                if player.skipped_turns:
+                    player.skipped_turns -= 1
                     continue
                 playable = self.playable_hand_indices(player_index)
                 if not playable:

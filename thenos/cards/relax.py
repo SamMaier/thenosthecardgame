@@ -133,6 +133,18 @@ class ColouringBehavior(CardBehavior):
         game.give_card(player_index, drawn_card)
 
 
+class PaintBehavior(CardBehavior):
+    """Score four Fun and skip the player's next playing-phase turn."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.skip_next_turn(player)
+
+
 EARLY_BEDTIME = CardDefinition(
     slug="early-bedtime",
     title="Early Bedtime",
@@ -183,4 +195,13 @@ COLOURING = CardDefinition(
     cost=3,
     base_fun=2,
     behavior=ColouringBehavior(),
+)
+
+PAINT = CardDefinition(
+    slug="paint",
+    title="Paint",
+    tags=frozenset({"Relax"}),
+    cost=3,
+    base_fun=4,
+    behavior=PaintBehavior(),
 )
