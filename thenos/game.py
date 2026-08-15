@@ -7,7 +7,7 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Sequence
 
-from thenos.ai import PlayerAI, RandomAI
+from thenos.ais import PlayerAI, RandomAI
 from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.catalog import create_default_deck
 from thenos.models import GameStats, PlayerState
@@ -66,7 +66,10 @@ class Game:
     @classmethod
     def default(cls, seed: int | None = None) -> Game:
         rng = random.Random(seed)
-        ais = [RandomAI(rng) for _ in range(PLAYER_COUNT)]
+        ais = [
+            RandomAI(random.Random(rng.getrandbits(64)))
+            for _ in range(PLAYER_COUNT)
+        ]
         return cls(create_default_deck(), ais, rng)
 
     def setup(self) -> None:
