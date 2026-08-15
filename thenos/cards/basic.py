@@ -353,6 +353,20 @@ class EuchreTournamentAwardsCeremonyBehavior(CardBehavior):
             game.pick_from_suitcase(player_index)
 
 
+class MakePlansBehavior(CardBehavior):
+    """Pick two cards from the Suitcase, with each slot refilled immediately."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        for _ in range(2):
+            game.pick_from_suitcase(player_index)
+
+
 class ScrabbleBehavior(CardBehavior):
     """Trade any number of hand cards for the same number of Suitcase picks."""
 
@@ -501,6 +515,14 @@ EUCHRE_TOURNAMENT_AWARDS_CEREMONY = CardDefinition(
     tags=frozenset({"Event", "Outdoors"}),
     cost=4,
     behavior=EuchreTournamentAwardsCeremonyBehavior(),
+)
+
+MAKE_PLANS = CardDefinition(
+    slug="make-plans",
+    title="Make Plans",
+    tags=frozenset({"Social"}),
+    cost=3,
+    behavior=MakePlansBehavior(),
 )
 
 SCRABBLE = CardDefinition(
