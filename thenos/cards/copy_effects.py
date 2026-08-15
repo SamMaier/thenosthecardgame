@@ -60,16 +60,14 @@ class LastYearsShortsBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        # A copied Last Year's Shorts must not recursively copy another Item.
-        if card.markers.get("_copying_effect"):
-            return
-
         player_index = game.players.index(player)
+        copy_chain = card.markers.get("_copy_chain", ())
         eligible_cards = [
             candidate
             for candidate_player in game.players
             for candidate in candidate_player.played_today
             if candidate is not card
+            and candidate.instance_id not in copy_chain
             and "Item" in candidate.tags
             and candidate.effective_behavior.can_play(game, player, card)
         ]

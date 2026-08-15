@@ -130,7 +130,7 @@ You may choose to spend any number of additional Energy, gain that amount of +Fu
 Morning Bike,"Exercise, Outdoors",3,"Tomorrow: Start the day with +5 Energy.
 Must be the first card you play today."
 Chuck a Frisbee,"Exercise, Outdoors",3,"3 Fun.
-After scoring this card at end of day, return to your hand."
+After end of day scoring is completed, return to your hand."
 Paddleboat,"Exercise, Outdoors",4,"Whenever you pick or draw a card after this today, gain 2 Fun (place an energy cube on this card to track)."
 Paddleboard,"Exercise, Outdoors",4,"6 Fun.
 Discard your hand, and pick that many cards from the Suitcase."
@@ -217,7 +217,7 @@ Tomorrow: Every card you play scores +1 Fun."
 New Noz Book Entry,"Social, Event",2,"1 Fun.
 If you have played 5 or more cards previously today, +4 Fun."
 Campfire,"Social, Event, Outdoors",1,"+1 Fun for every active ""Tomorrow"" card you have today (played yesterday)"
-Scout the Other Cottages,"Social, Indoors",2,"Place an Energy cube on all cards in the Suitcase. At end of day, add all cards that remain with your Energy cube on them to your hand.
+Scout the Other Cottages,"Social, Indoors",2,"Place an Energy cube on all cards in the Suitcase. When this card is scored at end of day, add all cards that remain with your Energy cube on them to your hand.
 All cards played previously today score -1 Fun."
 Evening Chat,"Social, Indoors",3,"5 Fun.
 Immediately go to bed.

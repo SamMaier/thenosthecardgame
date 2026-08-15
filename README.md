@@ -1,7 +1,7 @@
 # The Nos card-game simulator
 
-A headless Python rules engine for AI balance testing. The initial scaffold
-implements 50 copies each of Biography, Fajitas, and Waterski.
+A headless Python rules engine for AI balance testing. The default deck contains
+one copy of every implemented card.
 
 Run the tests:
 

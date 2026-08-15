@@ -22,7 +22,7 @@ class MorningWalkBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return not player.played_today
+        return not game.cards_played_before(player, card)
 
     def on_start_day(
         self,
@@ -44,7 +44,7 @@ class MorningBikeBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return not player.played_today
+        return not game.cards_played_before(player, card)
 
     def on_start_day(
         self,
@@ -66,7 +66,7 @@ class MorningRunBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return not player.played_today
+        return not game.cards_played_before(player, card)
 
     def on_start_day(
         self,
@@ -156,8 +156,9 @@ class SkiOnCousinsShouldersBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
+        player_fun = game.fun_at_start_of_scoring(player)
         opponents_with_higher_scores = sum(
-            player.fun < opponent.fun
+            player_fun < game.fun_at_start_of_scoring(opponent)
             for opponent in game.players
             if opponent is not player
         )
@@ -182,22 +183,26 @@ class ThrowABaseballBehavior(CardBehavior):
 
 
 class ChuckAFrisbeeBehavior(CardBehavior):
-    """Return this card to its owner's hand after it scores."""
+    """Return this card to its owner's hand after all scoring finishes."""
 
-    def on_score(
+    def on_end_day(
         self,
         game: Game,
         player: PlayerState,
         card: CardInstance,
     ) -> None:
         player.played_today.remove(card)
+        # A copier that became Chuck must revert to its printed card before it
+        # can be played again from hand. Ordinary discard cleanup does this for
+        # copied cards, but Chuck bypasses the discard pile.
+        card.markers.clear()
         game.give_card(game.players.index(player), card)
 
 
 class PaddleboatBehavior(CardBehavior):
-    """Gain two Fun for each card acquired after this card today."""
+    """Gain two Fun for each card picked or drawn after this card today."""
 
-    def on_card_acquire(
+    def on_card_pick_or_draw(
         self,
         game: Game,
         player: PlayerState,

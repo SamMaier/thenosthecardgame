@@ -86,6 +86,114 @@ class WeddingAnniversaryTests(unittest.TestCase):
         self.assertIs(card.effective_behavior, card.definition.behavior)
         self.assertNotIn("energy_cube", target.markers)
 
+    def test_first_slot_can_copy_a_must_be_first_card(self) -> None:
+        game = empty_game()
+        target = make_card("morning-coffee")
+        game.ais[0] = TargetCopyAI(target.title, game.rng)
+        player = game.players[0]
+        player.energy = 7
+        player.hand.append(make_card("wedding-anniversary"))
+        game.players[1].played_today.append(target)
+
+        card = game.play_card(0, 0)
+
+        self.assertIs(card.effective_behavior, target.effective_behavior)
+        self.assertEqual(player.energy, 9)
+
+    def test_second_slot_can_copy_puerto_rico(self) -> None:
+        game = empty_game()
+        target = make_card("puerto-rico")
+        game.ais[0] = TargetCopyAI(target.title, game.rng)
+        player = game.players[0]
+        player.energy = 7
+        player.played_today.append(make_card("biography"))
+        player.hand.append(make_card("wedding-anniversary"))
+        game.players[1].played_today.append(target)
+        game.suitcase = [make_card("fajitas") for _ in range(4)]
+
+        card = game.play_card(0, 0)
+
+        self.assertIs(card.effective_behavior, target.effective_behavior)
+        self.assertEqual(player.energy, 3)
+
+    def test_third_slot_can_copy_early_bedtime(self) -> None:
+        game = empty_game()
+        target = make_card("early-bedtime")
+        game.ais[0] = TargetCopyAI(target.title, game.rng)
+        player = game.players[0]
+        player.energy = 7
+        player.played_today.extend(
+            [make_card("biography"), make_card("biography")]
+        )
+        player.hand.append(make_card("wedding-anniversary"))
+        game.players[1].played_today.append(target)
+
+        card = game.play_card(0, 0)
+
+        self.assertIs(card.effective_behavior, target.effective_behavior)
+        self.assertEqual(player.energy, 6)
+
+    def test_copying_chuck_reverts_to_wedding_after_returning_to_hand(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 7
+        wedding = make_card("wedding-anniversary")
+        player.hand.append(wedding)
+        game.players[1].played_today.append(make_card("chuck-a-frisbee"))
+
+        game.play_card(0, 0)
+        game.end_day()
+
+        self.assertIn(wedding, player.hand)
+        self.assertIs(wedding.effective_behavior, wedding.definition.behavior)
+        self.assertEqual(wedding.effective_cost, 0)
+
+        player.energy = 7
+        target = make_card("fajitas")
+        game.players[1].played_today.append(target)
+        replayed = game.play_card(0, player.hand.index(wedding))
+
+        self.assertIs(replayed.effective_behavior, target.effective_behavior)
+        self.assertEqual(player.energy, 8)
+
+    def test_copying_leftovers_resolves_its_nested_food_copy(self) -> None:
+        game = empty_game()
+        game.ais[0] = TargetCopyAI("Leftovers", game.rng)
+        player = game.players[0]
+        player.energy = 10
+        food = make_card("fajitas")
+        player.played_today.append(food)
+        player.hand.append(make_card("wedding-anniversary"))
+        game.players[1].played_today.append(make_card("leftovers"))
+
+        wedding = game.play_card(0, 0)
+
+        self.assertIs(wedding.effective_behavior, food.effective_behavior)
+        self.assertEqual(wedding.effective_cost, 2)
+        self.assertEqual(player.energy, 12)
+        self.assertTrue(food.markers["energy_cube"])
+
+    def test_copying_last_years_shorts_can_copy_a_different_item(self) -> None:
+        game = empty_game()
+        game.ais[0] = TargetCopyAI("Last Year's Shorts", game.rng)
+        player = game.players[0]
+        player.energy = 10
+        item = make_card("booby-prize")
+        player.played_today.append(item)
+        player.hand.append(make_card("wedding-anniversary"))
+        source = make_card("last-years-shorts")
+        game.players[1].played_today.append(source)
+        drawn = make_card("biography")
+        game.trunk.append(drawn)
+
+        wedding = game.play_card(0, 0)
+
+        self.assertIs(wedding.effective_behavior, item.effective_behavior)
+        self.assertEqual(wedding.effective_cost, 3)
+        self.assertIn(drawn, player.hand)
+        self.assertTrue(item.markers["energy_cube"])
+        self.assertTrue(source.markers["energy_cube"])
+
 
 if __name__ == "__main__":
     unittest.main()

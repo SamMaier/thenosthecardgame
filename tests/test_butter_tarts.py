@@ -33,6 +33,29 @@ class ButterTartsTests(unittest.TestCase):
 
         self.assertEqual(player.energy, 0)
 
+    def test_sleep_in_blocks_the_energy_increase(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 7
+        player.hand.extend([make_card("sleep-in"), make_card("butter-tarts")])
+
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+
+        self.assertEqual(player.energy, 5)
+
+    def test_counts_as_giving_energy_for_bubly(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 10
+        player.hand.extend([make_card("butter-tarts"), make_card("bubly")])
+
+        butter = game.play_card(0, 0)
+        bubly = game.play_card(0, 0)
+
+        self.assertTrue(butter.markers["_gave_energy"])
+        self.assertEqual(game.card_fun(0, bubly), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

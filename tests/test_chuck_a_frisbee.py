@@ -32,6 +32,22 @@ class ChuckAFrisbeeTests(unittest.TestCase):
         self.assertNotIn(card, game.discard)
         self.assertEqual(player.played_today, [])
 
+    def test_return_waits_until_every_players_scoring_is_complete(self) -> None:
+        for fit_player_index in (0, 1):
+            with self.subTest(fit_player_index=fit_player_index):
+                game = empty_game()
+                chuck_player_index = 1 - fit_player_index
+                game.players[fit_player_index].played_today.append(
+                    make_card("fit-to-print")
+                )
+                game.players[chuck_player_index].played_today.append(
+                    make_card("chuck-a-frisbee")
+                )
+
+                game.end_day()
+
+                self.assertEqual(game.players[fit_player_index].fun, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

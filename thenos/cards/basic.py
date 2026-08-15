@@ -190,7 +190,7 @@ class PuertoRicoBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return len(player.played_today) < 2
+        return len(game.cards_played_before(player, card)) < 2
 
     def on_play(
         self,
@@ -199,8 +199,11 @@ class PuertoRicoBehavior(CardBehavior):
         card: CardInstance,
     ) -> None:
         target = game.choose_suitcase_target(game.players.index(player))
-        card.markers["energy_cube"] = True
+        target_marker = f"_puerto_rico_target_{card.instance_id}"
+        target.markers["energy_cube"] = True
+        target.markers[target_marker] = True
         card.markers["suitcase_target"] = target
+        card.markers["suitcase_target_marker"] = target_marker
 
     def fun_value(
         self,
@@ -209,7 +212,13 @@ class PuertoRicoBehavior(CardBehavior):
         card: CardInstance,
     ) -> int:
         target = card.markers.get("suitcase_target")
-        target_survived = any(suitcase_card is target for suitcase_card in game.suitcase)
+        target_marker = card.markers.get("suitcase_target_marker")
+        target_survived = (
+            isinstance(target, CardInstance)
+            and isinstance(target_marker, str)
+            and bool(target.markers.get(target_marker))
+            and any(suitcase_card is target for suitcase_card in game.suitcase)
+        )
         return card.effective_base_fun + (3 if target_survived else 0)
 
 

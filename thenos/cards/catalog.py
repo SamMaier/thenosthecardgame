@@ -176,11 +176,5 @@ def make_card(slug: str) -> CardInstance:
     return CardInstance(next(_instance_ids), definition)
 
 
-def create_default_deck(copies_per_card: int = 50) -> list[CardInstance]:
-    if copies_per_card < 1:
-        raise ValueError("copies_per_card must be positive")
-    return [
-        make_card(slug)
-        for slug in CARD_REGISTRY
-        for _ in range(copies_per_card)
-    ]
+def create_default_deck() -> list[CardInstance]:
+    return [make_card(slug) for slug in CARD_REGISTRY]

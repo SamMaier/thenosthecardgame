@@ -291,7 +291,7 @@ class FunForOtherCardsWrittenCostBehavior(CardBehavior):
             and target_position is not None
             and target is not source
         ):
-            return current_fun + self.multiplier * target.definition.cost
+            return current_fun + self.multiplier * target.effective_cost
         return current_fun
 
 

@@ -22,7 +22,7 @@ class ButterTartsBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player.energy *= 2
+        game.gain_energy(player, player.energy, card)
 
 
 BUTTER_TARTS = CardDefinition(
@@ -200,11 +200,6 @@ class LeftoversBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        # A Leftovers effect copied from an otherwise unfulfilled Leftovers
-        # must terminate rather than recursively selecting itself.
-        if card.markers.get("_copying_effect"):
-            return
-
         card_position = next(
             (
                 position
@@ -217,10 +212,12 @@ class LeftoversBehavior(CardBehavior):
             return
 
         player_index = game.players.index(player)
+        copy_chain = card.markers.get("_copy_chain", ())
         eligible_cards = [
             candidate
             for candidate in player.played_today[:card_position]
             if "Food" in candidate.tags
+            and candidate.instance_id not in copy_chain
             and candidate.effective_behavior.can_play(game, player, card)
         ]
         if not eligible_cards:
@@ -360,7 +357,7 @@ class MorningCoffeeBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return not player.played_today
+        return not game.cards_played_before(player, card)
 
     def on_play(
         self,
@@ -389,7 +386,7 @@ class AfternoonCoffeeBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return len(player.played_today) >= 2
+        return len(game.cards_played_before(player, card)) >= 2
 
     def on_play(
         self,
@@ -582,7 +579,7 @@ class GroceryStoreRunBehavior(CardBehavior):
         card: CardInstance,
     ) -> None:
         player_index = game.players.index(player)
-        revealed = game.reveal_from_trunk(5)
+        revealed = game.draw_from_trunk(player_index, 5)
         food_cards = [
             revealed_card
             for revealed_card in revealed

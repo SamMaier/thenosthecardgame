@@ -52,6 +52,23 @@ class CouchTubeTests(unittest.TestCase):
         self.assertEqual(game.card_fun(0, bring_a_friend), 2)
         self.assertEqual(game.card_fun(0, other), 10)
 
+    def test_copied_card_uses_its_effective_written_cost(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 20
+        player.hand.extend(
+            [make_card("couch-tube"), make_card("wedding-anniversary")]
+        )
+        target = make_card("adventure-race")
+        game.players[1].played_today.append(target)
+
+        game.play_card(0, 0)
+        copied_card = game.play_card(0, 0)
+
+        self.assertEqual(copied_card.definition.cost, 0)
+        self.assertEqual(copied_card.effective_cost, 12)
+        self.assertEqual(game.card_fun(0, copied_card), 32)
+
 
 if __name__ == "__main__":
     unittest.main()

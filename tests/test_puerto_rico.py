@@ -45,7 +45,8 @@ class PuertoRicoTests(unittest.TestCase):
 
         self.assertIn(target, game.suitcase)
         self.assertEqual(sum(player.picked_cards.values()), 0)
-        self.assertTrue(card.markers["energy_cube"])
+        self.assertTrue(target.markers["energy_cube"])
+        self.assertNotIn("energy_cube", card.markers)
         self.assertIs(card.markers["suitcase_target"], target)
         self.assertEqual(game.card_fun(0, card), 6)
 
@@ -80,6 +81,28 @@ class PuertoRicoTests(unittest.TestCase):
                     self.assertIn(target, game.discard)
 
                 self.assertEqual(game.card_fun(0, card), 3)
+
+    def test_discarded_target_does_not_regain_bonus_if_recycled(self) -> None:
+        game = empty_game()
+        game.ais[0] = TargetSuitcaseAI(1, game.rng)
+        player = game.players[0]
+        player.energy = 7
+        player.hand.append(make_card("puerto-rico"))
+        target = make_card("biography")
+        game.suitcase = [
+            make_card("fajitas"),
+            target,
+            make_card("solo"),
+            make_card("nap"),
+        ]
+        game.trunk = []
+
+        card = game.play_card(0, 0)
+        game.unpack(0)
+
+        self.assertIn(target, game.suitcase)
+        self.assertNotIn("energy_cube", target.markers)
+        self.assertEqual(game.card_fun(0, card), 3)
 
     def test_must_be_one_of_first_two_cards_played_today(self) -> None:
         game = empty_game()

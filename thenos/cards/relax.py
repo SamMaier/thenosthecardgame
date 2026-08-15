@@ -23,7 +23,7 @@ class EarlyBedtimeBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return len(player.played_today) < 3
+        return len(game.cards_played_before(player, card)) < 3
 
     def on_start_day(
         self,
@@ -117,7 +117,7 @@ class SunriseBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return not player.played_today
+        return not game.cards_played_before(player, card)
 
 
 class FishingMorningBehavior(CardBehavior):
@@ -129,7 +129,7 @@ class FishingMorningBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return not player.played_today
+        return not game.cards_played_before(player, card)
 
 
 class FishingEveningBehavior(CardBehavior):
@@ -141,7 +141,7 @@ class FishingEveningBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return len(player.played_today) >= 3
+        return len(game.cards_played_before(player, card)) >= 3
 
 
 class TanningBehavior(FunForTagAfterBehavior):
@@ -158,7 +158,7 @@ class TanningBehavior(FunForTagAfterBehavior):
     ) -> bool:
         return not any(
             "Outdoors" in played_card.tags
-            for played_card in player.played_today
+            for played_card in game.cards_played_before(player, card)
         )
 
 
@@ -171,7 +171,7 @@ class SleepInBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return not player.played_today
+        return not game.cards_played_before(player, card)
 
     def on_play(
         self,
@@ -223,7 +223,7 @@ class ColouringBehavior(CardBehavior):
         card: CardInstance,
     ) -> None:
         player_index = game.players.index(player)
-        drawn_card = game.reveal_from_trunk(1)[0]
+        drawn_card = game.draw_from_trunk(player_index, 1)[0]
         game.give_card(player_index, drawn_card)
 
 

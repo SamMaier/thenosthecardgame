@@ -6,10 +6,10 @@ from thenos.game import DAILY_PICKS, DAYS_PER_GAME, PLAYER_COUNT, Game, fraction
 
 
 class GameTests(unittest.TestCase):
-    def test_default_deck_has_fifty_copies_of_each_implemented_card(self) -> None:
+    def test_default_deck_has_one_copy_of_each_implemented_card(self) -> None:
         counts = Counter(card.title for card in create_default_deck())
         self.assertEqual(len(counts), len(CARD_REGISTRY))
-        self.assertTrue(all(count == 50 for count in counts.values()))
+        self.assertTrue(all(count == 1 for count in counts.values()))
 
     def test_complete_seeded_game_runs_six_days(self) -> None:
         game = Game.default(seed=12345)

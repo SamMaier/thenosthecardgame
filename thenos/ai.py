@@ -76,6 +76,14 @@ class PlayerAI(Protocol):
     ) -> int:
         """Return one of ``playable_hand_indices``."""
 
+    def choose_extra_card_to_play(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> int | None:
+        """Return one playable index for an extra play, or ``None`` to stop."""
+
     def choose_extra_suitcase_pick(
         self,
         game: Game,
@@ -194,6 +202,17 @@ class RandomAI:
         if not playable_hand_indices:
             raise ValueError("No playable card was supplied")
         return self.rng.choice(playable_hand_indices)
+
+    def choose_extra_card_to_play(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> int | None:
+        # The baseline AI never voluntarily stops while it can afford a card.
+        return self.choose_card_to_play(
+            game, player_index, playable_hand_indices
+        )
 
     def choose_extra_suitcase_pick(
         self,

@@ -61,6 +61,7 @@ class Game:
         self.day = 0
         self.starting_player = 0
         self._is_setup = False
+        self._fun_at_start_of_scoring: tuple[int, ...] | None = None
 
     @classmethod
     def default(cls, seed: int | None = None) -> Game:
@@ -96,6 +97,17 @@ class Game:
         if count < 0:
             raise ValueError("Cannot reveal a negative number of cards")
         return [self._draw_from_trunk() for _ in range(count)]
+
+    def draw_from_trunk(
+        self,
+        player_index: int,
+        count: int,
+    ) -> list[CardInstance]:
+        """Draw cards for a player and resolve visible pick-or-draw reactions."""
+        cards = self.reveal_from_trunk(count)
+        for card in cards:
+            self.record_card_pick_or_draw(player_index, card)
+        return cards
 
     def return_cards_to_trunk_top(
         self,
@@ -229,6 +241,7 @@ class Game:
             card = self.suitcase.pop(choice)
             player = self.players[player_index]
             self.give_card(player_index, card)
+            self.record_card_pick_or_draw(player_index, card)
             player.picked_cards[card.title] += 1
             self.stats.suitcase_picks[card.title] += 1
             # Refill the emptied spot immediately, as required by the rules.
@@ -296,6 +309,35 @@ class Game:
             source.effective_behavior.on_card_acquire(
                 self, player, source, card
             )
+
+    def record_card_pick_or_draw(
+        self,
+        player_index: int,
+        card: CardInstance,
+    ) -> None:
+        """Notify visible cards that their owner picked or drew ``card``."""
+        player = self.players[player_index]
+        for source in player.visible_cards:
+            source.effective_behavior.on_card_pick_or_draw(
+                self, player, source, card
+            )
+
+    def cards_played_before(
+        self,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> list[CardInstance]:
+        """Return today's cards before ``card`` or every play if it is in hand."""
+        for position, played_card in enumerate(player.played_today):
+            if played_card is card:
+                return player.played_today[:position]
+        return player.played_today
+
+    def fun_at_start_of_scoring(self, player: PlayerState) -> int:
+        """Return a stable total for comparisons made during end-day scoring."""
+        if self._fun_at_start_of_scoring is None:
+            return player.fun
+        return self._fun_at_start_of_scoring[self.players.index(player)]
 
     def discard_from_hand(self, player_index: int, hand_index: int) -> CardInstance:
         """Remove one card from a player's hand and discard that copy."""
@@ -501,7 +543,11 @@ class Game:
     ) -> None:
         """Resolve ``source``'s effect as a new play of ``destination``."""
         player = self.players[player_index]
-        copied_cost = source.definition.cost if pay_source_cost else destination.definition.cost
+        copied_cost = (
+            source.definition.cost
+            if pay_source_cost
+            else destination.effective_cost
+        )
         if pay_source_cost:
             if copied_cost > player.energy:
                 raise ValueError(f"Not enough Energy to copy {source.title}")
@@ -517,6 +563,10 @@ class Game:
         )
         destination.markers["_copied_definition"] = copied_definition
         destination.markers["_copying_effect"] = True
+        previous_chain = destination.markers.get("_copy_chain", ())
+        if not isinstance(previous_chain, tuple):
+            previous_chain = ()
+        destination.markers["_copy_chain"] = (*previous_chain, source.instance_id)
         source.effective_behavior.on_play(self, player, destination)
 
     def playing_phase(self) -> None:
@@ -559,9 +609,11 @@ class Game:
                     playable = self.playable_hand_indices(player_index)
                     if not playable:
                         break
-                    choice = self.ais[player_index].choose_card_to_play(
+                    choice = self.ais[player_index].choose_extra_card_to_play(
                         self, player_index, tuple(playable)
                     )
+                    if choice is None:
+                        break
                     if choice not in playable:
                         raise ValueError(
                             f"AI selected unplayable hand index: {choice}"
@@ -582,11 +634,15 @@ class Game:
         return value
 
     def end_day(self) -> None:
+        self._fun_at_start_of_scoring = tuple(
+            player.fun for player in self.players
+        )
         for player_index, player in enumerate(self.players):
             # visible_cards orders active Tomorrow cards before today's cards.
             for card in player.visible_cards:
                 player.fun += self.card_fun(player_index, card)
                 card.effective_behavior.on_score(self, player, card)
+        self._fun_at_start_of_scoring = None
 
         for player in self.players:
             for card in player.visible_cards:

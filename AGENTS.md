@@ -4,8 +4,8 @@ This repository is a headless Python simulator for four pre-programmed AIs. The
 source of truth for card wording is `cards.csv`; `rules.md` is the source of
 truth for general rules.
 
-Only Biography, Fajitas, and Waterski are currently implemented. The default
-deck contains 50 copies of each registered card.
+All cards in `cards.csv` are currently implemented. The default deck contains
+one copy of each registered card.
 
 ## Project map
 
@@ -31,7 +31,7 @@ deck contains 50 copies of each registered card.
    exact tags, printed Energy cost, and printed base Fun. Use a dedicated
    `CardBehavior` subclass for rules text.
 4. Register the definition in `thenos/cards/catalog.py`. Registration
-   automatically adds 50 copies to the default deck.
+   automatically adds one copy to the default deck.
 5. Add a focused `tests/test_<slug>.py`. Test printed cost, printed Fun, tags,
    restrictions, immediate effects, left-to-right interactions, and boundary
    cases that are present in the card text.

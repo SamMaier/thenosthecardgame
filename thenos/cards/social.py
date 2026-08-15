@@ -101,7 +101,7 @@ class CampfireBehavior(CardBehavior):
 
 
 class ScoutTheOtherCottagesBehavior(FunForAllCardsBeforeBehavior):
-    """Mark the current Suitcase and acquire surviving cards at day's end."""
+    """Mark the current Suitcase and acquire surviving cards when scored."""
 
     def __init__(self) -> None:
         super().__init__(-1)
@@ -112,20 +112,22 @@ class ScoutTheOtherCottagesBehavior(FunForAllCardsBeforeBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
+        owner_marker = f"_scout_energy_cube_{card.instance_id}"
         for suitcase_card in game.suitcase:
             suitcase_card.markers["energy_cube"] = True
-            suitcase_card.markers["_scout_energy_cube"] = True
+            suitcase_card.markers[owner_marker] = True
 
-    def on_end_day(
+    def on_score(
         self,
         game: Game,
         player: PlayerState,
         card: CardInstance,
     ) -> None:
+        owner_marker = f"_scout_energy_cube_{card.instance_id}"
         targets = tuple(
             suitcase_card
             for suitcase_card in game.suitcase
-            if suitcase_card.markers.get("_scout_energy_cube")
+            if suitcase_card.markers.get(owner_marker)
         )
         if targets:
             game.acquire_suitcase_cards(game.players.index(player), targets)

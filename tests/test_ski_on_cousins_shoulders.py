@@ -45,6 +45,18 @@ class SkiOnCousinsShouldersTests(unittest.TestCase):
 
                 self.assertEqual(game.card_fun(0, card), 3)
 
+    def test_end_day_comparison_uses_scores_before_any_card_scoring(self) -> None:
+        game = empty_game()
+        for player in game.players[:3]:
+            player.played_today.append(make_card("biography"))
+        game.players[3].played_today.append(
+            make_card("ski-on-cousins-shoulders")
+        )
+
+        game.end_day()
+
+        self.assertEqual([player.fun for player in game.players], [2, 2, 2, 3])
+
 
 if __name__ == "__main__":
     unittest.main()

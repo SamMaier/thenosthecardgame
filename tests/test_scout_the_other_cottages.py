@@ -29,11 +29,12 @@ class ScoutTheOtherCottagesTests(unittest.TestCase):
         ]
 
         scout = game.play_card(0, 0)
+        owner_marker = f"_scout_energy_cube_{scout.instance_id}"
 
         self.assertEqual(player.energy, 5)
         self.assertTrue(all(card.markers["energy_cube"] for card in game.suitcase))
         self.assertTrue(
-            all(card.markers["_scout_energy_cube"] for card in game.suitcase)
+            all(card.markers[owner_marker] for card in game.suitcase)
         )
         self.assertNotIn("energy_cube", scout.markers)
 
@@ -68,6 +69,41 @@ class ScoutTheOtherCottagesTests(unittest.TestCase):
         self.assertEqual(sum(player.picked_cards.values()), 1)
         self.assertEqual(sum(game.stats.suitcase_picks.values()), 1)
         self.assertEqual(sum(player.acquired_cards.values()), 4)
+
+    def test_wedding_copy_only_acquires_cards_marked_by_that_copy(self) -> None:
+        game = empty_game()
+        scout_player = game.players[0]
+        wedding_player = game.players[1]
+        scout_player.energy = 2
+        wedding_player.energy = 2
+        scout_player.hand.append(make_card("scout-the-other-cottages"))
+        wedding_player.hand.append(make_card("wedding-anniversary"))
+        originals = [
+            make_card("biography"),
+            make_card("fajitas"),
+            make_card("waterski"),
+            make_card("nap"),
+        ]
+        refills = [
+            make_card("splendor"),
+            make_card("azul"),
+            make_card("risk"),
+            make_card("kneeboard"),
+            make_card("chalk-art"),
+        ]
+        game.suitcase = list(originals)
+        game.trunk = list(refills)
+
+        game.play_card(0, 0)
+        game.pick_suitcase_cards(2, (originals[0],))
+        wedding_only_target = refills[-1]
+        game.play_card(1, 0)
+
+        game.end_day()
+
+        self.assertNotIn(wedding_only_target, scout_player.hand)
+        self.assertIn(wedding_only_target, wedding_player.hand)
+        self.assertTrue(all(card in scout_player.hand for card in originals[1:]))
 
     def test_penalizes_only_cards_played_before_scout(self) -> None:
         game = empty_game()

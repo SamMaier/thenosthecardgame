@@ -21,7 +21,7 @@ class BoobyPrizeBehavior(CardBehavior):
         card: CardInstance,
     ) -> None:
         player_index = game.players.index(player)
-        drawn_card = game.reveal_from_trunk(1)[0]
+        drawn_card = game.draw_from_trunk(player_index, 1)[0]
         game.give_card(player_index, drawn_card)
 
 
@@ -47,7 +47,7 @@ class BougieCoffeeMachineBehavior(CardBehavior):
         card: CardInstance,
     ) -> None:
         player_index = game.players.index(player)
-        for drawn_card in game.reveal_from_trunk(3):
+        for drawn_card in game.draw_from_trunk(player_index, 3):
             if "Food" in drawn_card.tags:
                 game.play_card_for_effect(player_index, drawn_card)
             else:

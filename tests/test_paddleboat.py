@@ -51,7 +51,7 @@ class PaddleboatTests(unittest.TestCase):
 
         self.assertNotIn("energy_cubes", paddleboat.markers)
 
-    def test_card_acquired_after_play_triggers_even_when_not_picked(self) -> None:
+    def test_non_pick_or_draw_acquisition_does_not_trigger(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
@@ -61,8 +61,38 @@ class PaddleboatTests(unittest.TestCase):
         game.play_card(0, 0)
         game.give_card(0, make_card("biography"))
 
+        self.assertNotIn("energy_cubes", paddleboat.markers)
+        self.assertEqual(game.card_fun(0, paddleboat), 0)
+
+    def test_drawn_card_after_play_adds_two_fun(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 7
+        paddleboat = make_card("paddleboat")
+        player.hand.append(paddleboat)
+        game.trunk = [make_card("biography")]
+
+        game.play_card(0, 0)
+        drawn_card = game.draw_from_trunk(0, 1)[0]
+        game.give_card(0, drawn_card)
+
         self.assertEqual(paddleboat.markers["energy_cubes"], 1)
         self.assertEqual(game.card_fun(0, paddleboat), 2)
+
+    def test_card_returned_by_play_effect_does_not_trigger(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 7
+        paddleboat = make_card("paddleboat")
+        player.hand.extend([paddleboat, make_card("assorted-cutlery")])
+        game.trunk = [make_card("sunrise")]
+
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+
+        self.assertEqual([card.title for card in player.hand], ["Sunrise"])
+        self.assertNotIn("energy_cubes", paddleboat.markers)
+        self.assertEqual(game.card_fun(0, paddleboat), 0)
 
 
 if __name__ == "__main__":
