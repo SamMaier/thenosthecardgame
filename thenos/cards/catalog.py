@@ -64,6 +64,7 @@ from thenos.cards.pure_fun import PURE_FUN_CARDS
 from thenos.cards.relax import (
     CHEESY_PHONE_GAME,
     CLASSIC_BOOK,
+    COLOURING,
     EARLY_BEDTIME,
     FANCY_CRAFT,
     SUNRISE,
@@ -127,6 +128,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         *FUN_EFFECT_CARDS,
         *PURE_FUN_CARDS,
         *PURE_ENERGY_CARDS,
+        COLOURING,
     )
 }
 

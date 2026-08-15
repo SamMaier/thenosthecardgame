@@ -119,6 +119,20 @@ class SunriseBehavior(CardBehavior):
         return not player.played_today
 
 
+class ColouringBehavior(CardBehavior):
+    """Draw one card from the Trunk into the player's hand."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        drawn_card = game.reveal_from_trunk(1)[0]
+        game.give_card(player_index, drawn_card)
+
+
 EARLY_BEDTIME = CardDefinition(
     slug="early-bedtime",
     title="Early Bedtime",
@@ -160,4 +174,13 @@ SUNRISE = CardDefinition(
     cost=2,
     base_fun=4,
     behavior=SunriseBehavior(),
+)
+
+COLOURING = CardDefinition(
+    slug="colouring",
+    title="Colouring",
+    tags=frozenset({"Relax"}),
+    cost=3,
+    base_fun=2,
+    behavior=ColouringBehavior(),
 )
