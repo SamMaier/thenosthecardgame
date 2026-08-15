@@ -62,6 +62,21 @@ class CheesyPhoneGameBehavior(CardBehavior):
         )
 
 
+class FancyCraftBehavior(CardBehavior):
+    """Perform Unpack for +1 Fun, with an optional second Unpack."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        game.unpack(player_index, fun_delta=1)
+        if game.choose_optional_action(player_index, "unpack"):
+            game.unpack(player_index, fun_delta=1)
+
+
 EARLY_BEDTIME = CardDefinition(
     slug="early-bedtime",
     title="Early Bedtime",
@@ -77,4 +92,12 @@ CHEESY_PHONE_GAME = CardDefinition(
     cost=1,
     base_fun=1,
     behavior=CheesyPhoneGameBehavior(),
+)
+
+FANCY_CRAFT = CardDefinition(
+    slug="fancy-craft",
+    title="Fancy Craft",
+    tags=frozenset({"Relax"}),
+    cost=2,
+    behavior=FancyCraftBehavior(),
 )

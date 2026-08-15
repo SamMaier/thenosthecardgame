@@ -349,6 +349,12 @@ class Game:
             raise ValueError(f"AI returned invalid optional Energy amount: {choice}")
         return choice
 
+    def choose_optional_action(self, player_index: int, action: str) -> bool:
+        """Ask whether a player wants to take an optional rules action."""
+        return self.ais[player_index].choose_optional_action(
+            self, player_index, action
+        )
+
     def energy_cost(self, player_index: int, card: CardInstance) -> int:
         player = self.players[player_index]
         cost = card.effective_cost

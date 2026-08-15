@@ -84,6 +84,14 @@ class PlayerAI(Protocol):
     ) -> bool:
         """Whether to pay 1 Energy for a second pick during this selection."""
 
+    def choose_optional_action(
+        self,
+        game: Game,
+        player_index: int,
+        action: str,
+    ) -> bool:
+        """Whether to take an optional rules action after seeing its setup."""
+
     def choose_energy_to_spend(
         self,
         game: Game,
@@ -194,6 +202,15 @@ class RandomAI:
         suitcase: Sequence[CardInstance],
     ) -> bool:
         # The baseline AI does not take optional Unpack-like actions.
+        return False
+
+    def choose_optional_action(
+        self,
+        game: Game,
+        player_index: int,
+        action: str,
+    ) -> bool:
+        # The baseline AI does not take optional actions.
         return False
 
     def choose_energy_to_spend(
