@@ -419,20 +419,43 @@ class Game:
         self,
         player_index: int,
         card: CardInstance,
+        *,
+        cost_adjustment: int = 0,
+        pay_energy: bool = False,
     ) -> CardInstance:
-        """Play an already-drawn card without paying its Energy cost.
+        """Play a card for an effect, optionally adjusting its Energy cost.
 
         A card that cannot legally be played is returned to the player's hand
-        without a cost. The caller owns removing ``card`` from its source zone.
+        without a cost. If ``card`` is already in the player's hand, it is
+        removed when successfully played; otherwise the caller owns removing
+        it from its source zone. When ``pay_energy`` is true, an adjustment is
+        applied after the normal visible-card cost modifiers and the result is
+        clamped at zero.
         """
         player = self.players[player_index]
         if not card.effective_behavior.can_play(self, player, card):
-            self.give_card(player_index, card)
+            if card not in player.hand:
+                self.give_card(player_index, card)
             return card
 
+        cost = (
+            max(0, self.energy_cost(player_index, card) + cost_adjustment)
+            if pay_energy
+            else 0
+        )
+        if cost > player.energy:
+            if card not in player.hand:
+                self.give_card(player_index, card)
+            return card
+
+        acquired_from_effect = card not in player.hand
+        if card in player.hand:
+            player.hand.remove(card)
+        player.energy -= cost
         player.played_today.append(card)
         self.stats.card_plays[card.title] += 1
-        self.stats.card_plays_without_acquisition[card.title] += 1
+        if acquired_from_effect:
+            self.stats.card_plays_without_acquisition[card.title] += 1
         card.effective_behavior.on_play(self, player, card)
         for source in player.visible_cards:
             source.effective_behavior.on_card_play(self, player, source, card)

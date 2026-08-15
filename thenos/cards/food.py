@@ -534,6 +534,44 @@ TREAT_STORE_RUN = CardDefinition(
 )
 
 
+class AddressTheFoodBehavior(CardBehavior):
+    """Pick a Food card and play it for one less Energy."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        eligible_cards = tuple(
+            suitcase_card
+            for suitcase_card in game.suitcase
+            if "Food" in suitcase_card.tags
+        )
+        if not eligible_cards:
+            return
+
+        target = game.choose_card_target(player_index, eligible_cards)
+
+        picked_card = game.pick_suitcase_cards(player_index, (target,))[0]
+        game.play_card_for_effect(
+            player_index,
+            picked_card,
+            cost_adjustment=-1,
+            pay_energy=True,
+        )
+
+
+ADDRESS_THE_FOOD = CardDefinition(
+    slug="address-the-food",
+    title="Address the Food",
+    tags=frozenset({"Social"}),
+    cost=1,
+    behavior=AddressTheFoodBehavior(),
+)
+
+
 class GroceryStoreRunBehavior(CardBehavior):
     """Acquire revealed Food cards and reorder the other revealed cards."""
 
@@ -600,4 +638,5 @@ FOOD_CARDS = (
     TREAT_STORE_RUN,
     GROCERY_STORE_RUN,
     KEEPER,
+    ADDRESS_THE_FOOD,
 )
