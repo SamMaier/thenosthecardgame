@@ -107,6 +107,18 @@ class ClassicBookBehavior(CardBehavior):
         return current_cost - relax_cards
 
 
+class SunriseBehavior(CardBehavior):
+    """Score four Fun; this must be the first card played today."""
+
+    def can_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return not player.played_today
+
+
 EARLY_BEDTIME = CardDefinition(
     slug="early-bedtime",
     title="Early Bedtime",
@@ -139,4 +151,13 @@ CLASSIC_BOOK = CardDefinition(
     cost=2,
     base_fun=2,
     behavior=ClassicBookBehavior(),
+)
+
+SUNRISE = CardDefinition(
+    slug="sunrise",
+    title="Sunrise",
+    tags=frozenset({"Relax"}),
+    cost=2,
+    base_fun=4,
+    behavior=SunriseBehavior(),
 )

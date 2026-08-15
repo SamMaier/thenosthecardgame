@@ -66,6 +66,7 @@ from thenos.cards.relax import (
     CLASSIC_BOOK,
     EARLY_BEDTIME,
     FANCY_CRAFT,
+    SUNRISE,
 )
 
 
@@ -107,6 +108,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         CHEESY_PHONE_GAME,
         FANCY_CRAFT,
         CLASSIC_BOOK,
+        SUNRISE,
         ZUMBA,
         PLAY_WITH_THE_KIDS,
         THROW_A_BASEBALL,
