@@ -77,7 +77,11 @@ from thenos.cards.relax import (
     PAINT_ROCKS,
     TANNING,
 )
-from thenos.cards.social import DATES_FIRST_NOZ, TELL_A_STORY
+from thenos.cards.social import (
+    DATES_FIRST_NOZ,
+    NEW_NOZ_BOOK_ENTRY,
+    TELL_A_STORY,
+)
 
 
 CARD_REGISTRY: dict[str, CardDefinition] = {
@@ -96,6 +100,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         PUERTO_RICO,
         SAN_JUAN,
         SCRABBLE,
+        NEW_NOZ_BOOK_ENTRY,
         SETTLERS_CITIES_AND_KNIGHTS,
         SOLO,
         THE_CREW,

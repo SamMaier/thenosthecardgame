@@ -67,6 +67,23 @@ class TellAStoryBehavior(CardBehavior):
         return card.effective_base_fun + (3 if has_previous_event else 0)
 
 
+class NewNozBookEntryBehavior(CardBehavior):
+    """Score a bonus when at least five cards were played earlier today."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        card_position = _today_position(player, card)
+        if card_position is None:
+            return card.effective_base_fun
+
+        bonus = 4 if card_position >= 5 else 0
+        return card.effective_base_fun + bonus
+
+
 TELL_A_STORY = CardDefinition(
     slug="tell-a-story",
     title="Tell a Story",
@@ -74,6 +91,15 @@ TELL_A_STORY = CardDefinition(
     cost=3,
     base_fun=2,
     behavior=TellAStoryBehavior(),
+)
+
+NEW_NOZ_BOOK_ENTRY = CardDefinition(
+    slug="new-noz-book-entry",
+    title="New Noz Book Entry",
+    tags=frozenset({"Social", "Event"}),
+    cost=2,
+    base_fun=1,
+    behavior=NewNozBookEntryBehavior(),
 )
 
 DATES_FIRST_NOZ = CardDefinition(
