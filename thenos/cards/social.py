@@ -131,6 +131,28 @@ class ScoutTheOtherCottagesBehavior(FunForAllCardsBeforeBehavior):
             game.acquire_suitcase_cards(game.players.index(player), targets)
 
 
+class EveningChatBehavior(CardBehavior):
+    """Go to bed immediately and reduce the next day's starting Energy."""
+
+    has_tomorrow_action = True
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.go_to_bed(game.players.index(player))
+
+    def on_start_day(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player.energy -= 1
+
+
 TELL_A_STORY = CardDefinition(
     slug="tell-a-story",
     title="Tell a Story",
@@ -171,4 +193,13 @@ SCOUT_THE_OTHER_COTTAGES = CardDefinition(
     tags=frozenset({"Social", "Indoors"}),
     cost=2,
     behavior=ScoutTheOtherCottagesBehavior(),
+)
+
+EVENING_CHAT = CardDefinition(
+    slug="evening-chat",
+    title="Evening Chat",
+    tags=frozenset({"Social", "Indoors"}),
+    cost=3,
+    base_fun=5,
+    behavior=EveningChatBehavior(),
 )

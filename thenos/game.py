@@ -164,6 +164,10 @@ class Game:
         """Queue one skipped playing-phase turn for ``player``."""
         player.skipped_turns += 1
 
+    def go_to_bed(self, player_index: int) -> None:
+        """End a player's remaining turns in the current playing phase."""
+        self.players[player_index].asleep = True
+
     def draw_phase(self) -> None:
         for _ in range(DAILY_PICKS):
             for player_index in self.player_order():
@@ -401,6 +405,8 @@ class Game:
 
     def playable_hand_indices(self, player_index: int) -> list[int]:
         player = self.players[player_index]
+        if player.asleep:
+            return []
         return [
             index
             for index, card in enumerate(player.hand)
@@ -410,6 +416,8 @@ class Game:
 
     def play_card(self, player_index: int, hand_index: int) -> CardInstance:
         player = self.players[player_index]
+        if player.asleep:
+            raise ValueError(f"{player.name} has already gone to bed")
         if hand_index < 0 or hand_index >= len(player.hand):
             raise ValueError(f"Invalid hand index: {hand_index}")
         card = player.hand[hand_index]
@@ -513,10 +521,9 @@ class Game:
 
     def playing_phase(self) -> None:
         first_to_bed: int | None = None
-        awake = PLAYER_COUNT
         order = self.player_order()
 
-        while awake:
+        while any(not player.asleep for player in self.players):
             for player_index in order:
                 player = self.players[player_index]
                 if player.asleep:
@@ -526,8 +533,7 @@ class Game:
                     continue
                 playable = self.playable_hand_indices(player_index)
                 if not playable:
-                    player.asleep = True
-                    awake -= 1
+                    self.go_to_bed(player_index)
                     if first_to_bed is None:
                         first_to_bed = player_index
                     continue
@@ -538,6 +544,11 @@ class Game:
                 if choice not in playable:
                     raise ValueError(f"AI selected unplayable hand index: {choice}")
                 played_card = self.play_card(player_index, choice)
+
+                if player.asleep:
+                    if first_to_bed is None:
+                        first_to_bed = player_index
+                    continue
 
                 # A normal turn ends after one card.  Some cards explicitly
                 # let their player continue playing during this same turn.
