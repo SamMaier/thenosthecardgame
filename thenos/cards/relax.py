@@ -196,6 +196,33 @@ class PaintBehavior(CardBehavior):
         game.skip_next_turn(player)
 
 
+class PaintRocksBehavior(CardBehavior):
+    """Score an additional two Fun after two earlier Outdoors cards today."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        card_position = next(
+            (
+                position
+                for position, played_card in enumerate(player.played_today)
+                if played_card is card
+            ),
+            None,
+        )
+        if card_position is None:
+            return card.effective_base_fun
+
+        previous_outdoors = sum(
+            "Outdoors" in played_card.tags
+            for played_card in player.played_today[:card_position]
+        )
+        return card.effective_base_fun + (2 if previous_outdoors >= 2 else 0)
+
+
 EARLY_BEDTIME = CardDefinition(
     slug="early-bedtime",
     title="Early Bedtime",
@@ -271,4 +298,13 @@ PAINT = CardDefinition(
     cost=3,
     base_fun=4,
     behavior=PaintBehavior(),
+)
+
+PAINT_ROCKS = CardDefinition(
+    slug="paint-rocks",
+    title="Paint Rocks",
+    tags=frozenset({"Relax", "Outdoors"}),
+    cost=2,
+    base_fun=2,
+    behavior=PaintRocksBehavior(),
 )

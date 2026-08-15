@@ -71,6 +71,7 @@ from thenos.cards.relax import (
     SLEEP_IN,
     FLOATING,
     PAINT,
+    PAINT_ROCKS,
 )
 
 
@@ -135,6 +136,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         *PURE_ENERGY_CARDS,
         COLOURING,
         PAINT,
+        PAINT_ROCKS,
     )
 }
 
