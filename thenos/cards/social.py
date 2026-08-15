@@ -5,7 +5,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
-from thenos.cards.fun_effects import _is_after, _today_position
+from thenos.cards.fun_effects import (
+    FunForAllCardsBeforeBehavior,
+    _is_after,
+    _today_position,
+)
 
 if TYPE_CHECKING:
     from thenos.game import Game
@@ -96,6 +100,37 @@ class CampfireBehavior(CardBehavior):
         return card.effective_base_fun + len(player.tomorrow_cards)
 
 
+class ScoutTheOtherCottagesBehavior(FunForAllCardsBeforeBehavior):
+    """Mark the current Suitcase and acquire surviving cards at day's end."""
+
+    def __init__(self) -> None:
+        super().__init__(-1)
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        for suitcase_card in game.suitcase:
+            suitcase_card.markers["energy_cube"] = True
+            suitcase_card.markers["_scout_energy_cube"] = True
+
+    def on_end_day(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        targets = tuple(
+            suitcase_card
+            for suitcase_card in game.suitcase
+            if suitcase_card.markers.get("_scout_energy_cube")
+        )
+        if targets:
+            game.acquire_suitcase_cards(game.players.index(player), targets)
+
+
 TELL_A_STORY = CardDefinition(
     slug="tell-a-story",
     title="Tell a Story",
@@ -128,4 +163,12 @@ CAMPFIRE = CardDefinition(
     tags=frozenset({"Social", "Event", "Outdoors"}),
     cost=1,
     behavior=CampfireBehavior(),
+)
+
+SCOUT_THE_OTHER_COTTAGES = CardDefinition(
+    slug="scout-the-other-cottages",
+    title="Scout the Other Cottages",
+    tags=frozenset({"Social", "Indoors"}),
+    cost=2,
+    behavior=ScoutTheOtherCottagesBehavior(),
 )

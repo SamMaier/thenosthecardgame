@@ -81,6 +81,7 @@ from thenos.cards.social import (
     CAMPFIRE,
     DATES_FIRST_NOZ,
     NEW_NOZ_BOOK_ENTRY,
+    SCOUT_THE_OTHER_COTTAGES,
     TELL_A_STORY,
 )
 
@@ -155,6 +156,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         COLOURING,
         PAINT,
         PAINT_ROCKS,
+        SCOUT_THE_OTHER_COTTAGES,
     )
 }
 

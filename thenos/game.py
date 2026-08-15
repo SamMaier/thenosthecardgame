@@ -232,6 +232,28 @@ class Game:
             picked_cards.append(card)
         return picked_cards
 
+    def acquire_suitcase_cards(
+        self,
+        player_index: int,
+        cards: Sequence[CardInstance],
+    ) -> list[CardInstance]:
+        """Move specified Suitcase cards to a hand without counting picks."""
+        if len({id(card) for card in cards}) != len(cards):
+            raise ValueError("Cannot acquire the same Suitcase card more than once")
+        if any(card not in self.suitcase for card in cards):
+            raise ValueError(
+                "Every acquired card must be currently visible in the Suitcase"
+            )
+
+        acquired_cards: list[CardInstance] = []
+        for target in cards:
+            choice = self.suitcase.index(target)
+            card = self.suitcase.pop(choice)
+            self.give_card(player_index, card)
+            self.suitcase.insert(choice, self._draw_from_trunk())
+            acquired_cards.append(card)
+        return acquired_cards
+
     def choose_suitcase_target(self, player_index: int) -> CardInstance:
         """Choose a physical Suitcase card without taking or discarding it."""
         if not self.suitcase:
@@ -554,6 +576,10 @@ class Game:
             for card in player.visible_cards:
                 player.fun += self.card_fun(player_index, card)
                 card.effective_behavior.on_score(self, player, card)
+
+        for player in self.players:
+            for card in player.visible_cards:
+                card.effective_behavior.on_end_day(self, player, card)
 
         for player in self.players:
             previous_tomorrow = player.tomorrow_cards
