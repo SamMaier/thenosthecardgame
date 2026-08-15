@@ -93,6 +93,14 @@ class PlayerAI(Protocol):
     ) -> int:
         """Return how much optional Energy to spend on a card effect."""
 
+    def order_cards_for_trunk(
+        self,
+        game: Game,
+        player_index: int,
+        cards: Sequence[CardInstance],
+    ) -> Sequence[int]:
+        """Return card indices in the desired top-to-bottom Trunk order."""
+
 
 class RandomAI:
     """Pick uniformly and play until no legal affordable card remains."""
@@ -196,3 +204,12 @@ class RandomAI:
         maximum: int,
     ) -> int:
         return self.rng.randrange(maximum + 1)
+
+    def order_cards_for_trunk(
+        self,
+        game: Game,
+        player_index: int,
+        cards: Sequence[CardInstance],
+    ) -> Sequence[int]:
+        """Choose uniformly among all possible orderings."""
+        return self.rng.sample(range(len(cards)), len(cards))

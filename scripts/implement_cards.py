@@ -69,6 +69,14 @@ def slugify(value: str) -> str:
     return "".join(pieces).strip("-")
 
 
+def normalized_title(value: str) -> str:
+    """Return a punctuation-, accent-, and case-insensitive title key."""
+    normalized = unicodedata.normalize("NFKD", value)
+    return "".join(
+        character for character in normalized.casefold() if character.isalnum()
+    )
+
+
 def read_card_rows(repo: Path) -> list[CardRow]:
     path = repo / "cards.csv"
     try:
@@ -205,7 +213,14 @@ def select_jobs(
 
 
 def pending_cards(job: Job, registry: dict[str, str]) -> tuple[CardRow, ...]:
-    return tuple(card for card in job.cards if card.title not in registry)
+    implemented_titles = {normalized_title(title) for title in registry}
+    implemented_slugs = set(registry.values())
+    return tuple(
+        card
+        for card in job.cards
+        if normalized_title(card.title) not in implemented_titles
+        and slugify(card.title) not in implemented_slugs
+    )
 
 
 def format_card(card: CardRow) -> str:

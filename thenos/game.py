@@ -91,6 +91,38 @@ class Game:
             self.rng.shuffle(self.trunk)
         return self.trunk.pop()
 
+    def reveal_from_trunk(self, count: int) -> list[CardInstance]:
+        """Remove and return ``count`` cards from the top of the Trunk."""
+        if count < 0:
+            raise ValueError("Cannot reveal a negative number of cards")
+        return [self._draw_from_trunk() for _ in range(count)]
+
+    def return_cards_to_trunk_top(
+        self,
+        player_index: int,
+        cards: Sequence[CardInstance],
+    ) -> list[CardInstance]:
+        """Let an AI order cards and return them to the top of the Trunk.
+
+        AI order indices are interpreted top to bottom. Internally the Trunk's
+        top is the end of the list, so cards are appended in reverse order.
+        """
+        cards = tuple(cards)
+        if not cards:
+            return []
+        order = tuple(
+            self.ais[player_index].order_cards_for_trunk(
+                self, player_index, cards
+            )
+        )
+        if sorted(order) != list(range(len(cards))):
+            raise ValueError(
+                "AI must return every Trunk-order index exactly once"
+            )
+        ordered_cards = [cards[index] for index in order]
+        self.trunk.extend(reversed(ordered_cards))
+        return ordered_cards
+
     def discard_card(self, card: CardInstance) -> None:
         """Discard one card and clear state that must not survive recycling."""
         card.is_tomorrow = False

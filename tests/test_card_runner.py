@@ -8,6 +8,7 @@ from scripts.implement_cards import (
     build_jobs,
     build_prompt,
     codex_command,
+    normalized_title,
     pending_cards,
     read_card_rows,
     select_jobs,
@@ -46,6 +47,18 @@ class CardRunnerTests(unittest.TestCase):
         self.assertEqual(len(pending), 17)
         self.assertNotIn("Biography", {card.title for card in pending})
 
+    def test_implemented_card_is_skipped_despite_title_formatting(self) -> None:
+        unique_card = self.jobs[5]
+        registry = {"THE-CREW!": "unrelated-slug"}
+
+        self.assertEqual(pending_cards(unique_card, registry), ())
+
+    def test_implemented_card_is_skipped_by_registered_slug(self) -> None:
+        unique_card = self.jobs[5]
+        registry = {"A display title that differs": "the-crew"}
+
+        self.assertEqual(pending_cards(unique_card, registry), ())
+
     def test_can_select_group_or_unique_card(self) -> None:
         self.assertEqual(select_jobs(self.jobs, "pure-energy", None)[0].key, "pure-energy")
         selected = select_jobs(self.jobs, None, "The Crew")
@@ -69,7 +82,10 @@ class CardRunnerTests(unittest.TestCase):
         self.assertEqual(slugify("M&Ms"), "m-ms")
         self.assertEqual(slugify("Pudding Chômeur"), "pudding-chomeur")
 
+    def test_normalized_title_ignores_case_punctuation_and_accents(self) -> None:
+        self.assertEqual(normalized_title("Pudding Chômeur"), "puddingchomeur")
+        self.assertEqual(normalized_title("THE-CREW!"), "thecrew")
+
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -503,6 +503,42 @@ TREAT_STORE_RUN = CardDefinition(
 )
 
 
+class GroceryStoreRunBehavior(CardBehavior):
+    """Acquire revealed Food cards and reorder the other revealed cards."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player_index = game.players.index(player)
+        revealed = game.reveal_from_trunk(5)
+        food_cards = [
+            revealed_card
+            for revealed_card in revealed
+            if "Food" in revealed_card.tags
+        ]
+        other_cards = [
+            revealed_card
+            for revealed_card in revealed
+            if "Food" not in revealed_card.tags
+        ]
+
+        for food_card in food_cards:
+            game.give_card(player_index, food_card)
+        game.return_cards_to_trunk_top(player_index, other_cards)
+
+
+GROCERY_STORE_RUN = CardDefinition(
+    slug="grocery-store-run",
+    title="Grocery Store Run",
+    tags=frozenset({"Food", "Event"}),
+    cost=4,
+    behavior=GroceryStoreRunBehavior(),
+)
+
+
 KEEPER = CardDefinition(
     slug="keeper",
     title="Keeper",
@@ -530,5 +566,6 @@ FOOD_CARDS = (
     CALZONES,
     WURSTCHEN,
     TREAT_STORE_RUN,
+    GROCERY_STORE_RUN,
     KEEPER,
 )
