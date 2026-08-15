@@ -148,6 +148,28 @@ class SleepInBehavior(CardBehavior):
         return source is card
 
 
+class FloatingBehavior(CardBehavior):
+    """Gain Energy now, then reduce the next day's starting Energy."""
+
+    has_tomorrow_action = True
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.gain_energy(player, 3, card)
+
+    def on_start_day(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        player.energy -= 1
+
+
 class ColouringBehavior(CardBehavior):
     """Draw one card from the Trunk into the player's hand."""
 
@@ -223,6 +245,14 @@ SLEEP_IN = CardDefinition(
     tags=frozenset({"Relax", "Indoors"}),
     cost=0,
     behavior=SleepInBehavior(),
+)
+
+FLOATING = CardDefinition(
+    slug="floating",
+    title="Floating",
+    tags=frozenset({"Relax", "Outdoors"}),
+    cost=1,
+    behavior=FloatingBehavior(),
 )
 
 COLOURING = CardDefinition(
