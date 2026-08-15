@@ -67,6 +67,24 @@ class SkiBoatBehavior(CardBehavior):
         game.return_cards_to_trunk_top(player_index, revealed)
 
 
+class FancyFloatieBehavior(CardBehavior):
+    """Pick the Relax cards currently visible in the Suitcase."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        targets = tuple(
+            suitcase_card
+            for suitcase_card in game.suitcase
+            if "Relax" in suitcase_card.tags
+        )
+        if targets:
+            game.pick_suitcase_cards(game.players.index(player), targets)
+
+
 BOOBY_PRIZE = CardDefinition(
     slug="booby-prize",
     title="Booby Prize",
@@ -91,4 +109,13 @@ SKI_BOAT = CardDefinition(
     tags=frozenset({"Item"}),
     cost=2,
     behavior=SkiBoatBehavior(),
+)
+
+
+FANCY_FLOATIE = CardDefinition(
+    slug="fancy-floatie",
+    title="Fancy Floatie",
+    tags=frozenset({"Item"}),
+    cost=2,
+    behavior=FancyFloatieBehavior(),
 )
