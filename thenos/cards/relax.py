@@ -77,6 +77,36 @@ class FancyCraftBehavior(CardBehavior):
             game.unpack(player_index, fun_delta=1)
 
 
+class ClassicBookBehavior(CardBehavior):
+    """Reduce this card's cost for each earlier Relax card played today."""
+
+    def modify_own_energy_cost(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+        current_cost: int,
+    ) -> int:
+        card_position = next(
+            (
+                position
+                for position, played_card in enumerate(player.played_today)
+                if played_card is card
+            ),
+            None,
+        )
+        previous_cards = (
+            player.played_today
+            if card_position is None
+            else player.played_today[:card_position]
+        )
+
+        relax_cards = sum(
+            "Relax" in played_card.tags for played_card in previous_cards
+        )
+        return current_cost - relax_cards
+
+
 EARLY_BEDTIME = CardDefinition(
     slug="early-bedtime",
     title="Early Bedtime",
@@ -100,4 +130,13 @@ FANCY_CRAFT = CardDefinition(
     tags=frozenset({"Relax"}),
     cost=2,
     behavior=FancyCraftBehavior(),
+)
+
+CLASSIC_BOOK = CardDefinition(
+    slug="classic-book",
+    title="Classic Book",
+    tags=frozenset({"Relax"}),
+    cost=2,
+    base_fun=2,
+    behavior=ClassicBookBehavior(),
 )

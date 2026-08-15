@@ -61,7 +61,12 @@ from thenos.cards.energy_effects import ENERGY_EFFECT_CARDS
 from thenos.cards.fun_effects import FUN_EFFECT_CARDS
 from thenos.cards.pure_energy import PURE_ENERGY_CARDS
 from thenos.cards.pure_fun import PURE_FUN_CARDS
-from thenos.cards.relax import CHEESY_PHONE_GAME, EARLY_BEDTIME, FANCY_CRAFT
+from thenos.cards.relax import (
+    CHEESY_PHONE_GAME,
+    CLASSIC_BOOK,
+    EARLY_BEDTIME,
+    FANCY_CRAFT,
+)
 
 
 CARD_REGISTRY: dict[str, CardDefinition] = {
@@ -101,6 +106,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         EARLY_BEDTIME,
         CHEESY_PHONE_GAME,
         FANCY_CRAFT,
+        CLASSIC_BOOK,
         ZUMBA,
         PLAY_WITH_THE_KIDS,
         THROW_A_BASEBALL,

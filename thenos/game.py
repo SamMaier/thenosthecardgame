@@ -357,7 +357,9 @@ class Game:
 
     def energy_cost(self, player_index: int, card: CardInstance) -> int:
         player = self.players[player_index]
-        cost = card.effective_cost
+        cost = card.effective_behavior.modify_own_energy_cost(
+            self, player, card, card.effective_cost
+        )
         for source in player.visible_cards:
             cost = source.effective_behavior.modify_energy_cost(
                 self, player, source, card, cost

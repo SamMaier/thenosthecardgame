@@ -37,6 +37,16 @@ class CardBehavior:
         """Modify ``target`` while ``source`` is visible."""
         return current_cost
 
+    def modify_own_energy_cost(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+        current_cost: int,
+    ) -> int:
+        """Modify this card's own cost before visible sources are applied."""
+        return current_cost
+
     def on_play(
         self,
         game: Game,
