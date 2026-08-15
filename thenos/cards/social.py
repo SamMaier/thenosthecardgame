@@ -153,6 +153,22 @@ class EveningChatBehavior(CardBehavior):
         player.energy -= 1
 
 
+class BeachConversationBehavior(CardBehavior):
+    """Gain Energy when the immediately preceding play was Outdoors."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        if (
+            len(player.played_today) >= 2
+            and "Outdoors" in player.played_today[-2].tags
+        ):
+            game.gain_energy(player, 2, card)
+
+
 TELL_A_STORY = CardDefinition(
     slug="tell-a-story",
     title="Tell a Story",
@@ -202,4 +218,13 @@ EVENING_CHAT = CardDefinition(
     cost=3,
     base_fun=5,
     behavior=EveningChatBehavior(),
+)
+
+BEACH_CONVERSATION = CardDefinition(
+    slug="beach-conversation",
+    title="Beach Conversation",
+    tags=frozenset({"Social", "Outdoors"}),
+    cost=2,
+    base_fun=2,
+    behavior=BeachConversationBehavior(),
 )

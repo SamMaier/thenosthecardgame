@@ -78,6 +78,7 @@ from thenos.cards.relax import (
     TANNING,
 )
 from thenos.cards.social import (
+    BEACH_CONVERSATION,
     CAMPFIRE,
     DATES_FIRST_NOZ,
     EVENING_CHAT,
@@ -113,6 +114,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         WEDDING_ANNIVERSARY,
         EVENING_CHAT,
         LAST_YEARS_SHORTS,
+        BEACH_CONVERSATION,
         SING_SONG,
         CHRISTMAS_NAME_DRAW,
         STAY_UP_LATE,
