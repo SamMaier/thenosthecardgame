@@ -84,6 +84,18 @@ class NewNozBookEntryBehavior(CardBehavior):
         return card.effective_base_fun + bonus
 
 
+class CampfireBehavior(CardBehavior):
+    """Score one Fun for each active Tomorrow card this player has."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        return card.effective_base_fun + len(player.tomorrow_cards)
+
+
 TELL_A_STORY = CardDefinition(
     slug="tell-a-story",
     title="Tell a Story",
@@ -108,4 +120,12 @@ DATES_FIRST_NOZ = CardDefinition(
     tags=frozenset({"Social"}),
     cost=7,
     behavior=DatesFirstNozBehavior(),
+)
+
+CAMPFIRE = CardDefinition(
+    slug="campfire",
+    title="Campfire",
+    tags=frozenset({"Social", "Event", "Outdoors"}),
+    cost=1,
+    behavior=CampfireBehavior(),
 )

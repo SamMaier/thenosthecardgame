@@ -78,6 +78,7 @@ from thenos.cards.relax import (
     TANNING,
 )
 from thenos.cards.social import (
+    CAMPFIRE,
     DATES_FIRST_NOZ,
     NEW_NOZ_BOOK_ENTRY,
     TELL_A_STORY,
@@ -115,6 +116,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         PHOTO_SHOOT,
         DATES_FIRST_NOZ,
         TELL_A_STORY,
+        CAMPFIRE,
         *FOOD_CARDS,
         BOOBY_PRIZE,
         ASSORTED_CUTLERY,
