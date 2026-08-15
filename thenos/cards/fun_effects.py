@@ -707,6 +707,14 @@ JOHNNY_APPLESEED = CardDefinition(
     behavior=FunForNextTagBehavior("Event", 2),
 )
 
+AUNTERVIEW = CardDefinition(
+    slug="aunterview",
+    title="Aunterview",
+    tags=frozenset({"Social"}),
+    cost=2,
+    behavior=TomorrowFunForTagBehavior("Social", 1),
+)
+
 BRING_A_FRIEND = CardDefinition(
     slug="bring-a-friend",
     title="Bring a Friend",
@@ -814,6 +822,7 @@ FUN_EFFECT_CARDS = (
     BRACELET_MAKING,
     MOVIE,
     JOHNNY_APPLESEED,
+    AUNTERVIEW,
     BRING_A_FRIEND,
     DOXOLOGY,
     LONG_DISTANCE_VISITORS,
