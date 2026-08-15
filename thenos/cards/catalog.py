@@ -77,6 +77,7 @@ from thenos.cards.relax import (
     PAINT_ROCKS,
     TANNING,
 )
+from thenos.cards.social import TELL_A_STORY
 
 
 CARD_REGISTRY: dict[str, CardDefinition] = {
@@ -107,6 +108,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         CHRISTMAS_NAME_DRAW,
         STAY_UP_LATE,
         PHOTO_SHOOT,
+        TELL_A_STORY,
         *FOOD_CARDS,
         BOOBY_PRIZE,
         ASSORTED_CUTLERY,
