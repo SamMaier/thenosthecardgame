@@ -119,6 +119,18 @@ class SunriseBehavior(CardBehavior):
         return not player.played_today
 
 
+class FishingMorningBehavior(CardBehavior):
+    """Score five Fun; this must be the first card played today."""
+
+    def can_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> bool:
+        return not player.played_today
+
+
 class SleepInBehavior(CardBehavior):
     """Gain Energy as the first play, then prevent other Energy gains today."""
 
@@ -264,6 +276,15 @@ SUNRISE = CardDefinition(
     cost=2,
     base_fun=4,
     behavior=SunriseBehavior(),
+)
+
+FISHING_MORNING = CardDefinition(
+    slug="fishing-morning",
+    title="Fishing Morning",
+    tags=frozenset({"Relax", "Outdoors"}),
+    cost=3,
+    base_fun=5,
+    behavior=FishingMorningBehavior(),
 )
 
 SLEEP_IN = CardDefinition(
