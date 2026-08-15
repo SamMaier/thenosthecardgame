@@ -32,7 +32,13 @@ from thenos.cards.events import (
     STAY_UP_LATE,
 )
 from thenos.cards.food import FOOD_CARDS
-from thenos.cards.items import BOOBY_PRIZE, FANCY_FLOATIE, FISHING_BOAT, SKI_BOAT
+from thenos.cards.items import (
+    ASSORTED_CUTLERY,
+    BOOBY_PRIZE,
+    FANCY_FLOATIE,
+    FISHING_BOAT,
+    SKI_BOAT,
+)
 from thenos.cards.exercise import (
     CHUCK_A_FRISBEE,
     KAYAK,
@@ -85,6 +91,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         PHOTO_SHOOT,
         *FOOD_CARDS,
         BOOBY_PRIZE,
+        ASSORTED_CUTLERY,
         FANCY_FLOATIE,
         FISHING_BOAT,
         SKI_BOAT,

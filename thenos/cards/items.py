@@ -25,6 +25,18 @@ class BoobyPrizeBehavior(CardBehavior):
         game.give_card(player_index, drawn_card)
 
 
+class AssortedCutleryBehavior(CardBehavior):
+    """Play the top card of the Trunk without paying its Energy cost."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.play_card_from_trunk(game.players.index(player))
+
+
 class FishingBoatBehavior(CardBehavior):
     """Reveal through the Trunk for an Outdoors card and reorder the misses."""
 
@@ -91,6 +103,15 @@ BOOBY_PRIZE = CardDefinition(
     tags=frozenset({"Item"}),
     cost=0,
     behavior=BoobyPrizeBehavior(),
+)
+
+
+ASSORTED_CUTLERY = CardDefinition(
+    slug="assorted-cutlery",
+    title="Assorted Cutlery",
+    tags=frozenset({"Item"}),
+    cost=3,
+    behavior=AssortedCutleryBehavior(),
 )
 
 

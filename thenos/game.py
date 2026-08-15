@@ -387,6 +387,25 @@ class Game:
             source.effective_behavior.on_card_play(self, player, source, card)
         return card
 
+    def play_card_from_trunk(self, player_index: int) -> CardInstance:
+        """Play the Trunk's top card for an effect without paying Energy.
+
+        A card that cannot legally be played is returned to the player's hand
+        without a cost, as required for cards that play cards from the Trunk.
+        """
+        card = self._draw_from_trunk()
+        player = self.players[player_index]
+        if not card.effective_behavior.can_play(self, player, card):
+            self.give_card(player_index, card)
+            return card
+
+        player.played_today.append(card)
+        self.stats.card_plays[card.title] += 1
+        card.effective_behavior.on_play(self, player, card)
+        for source in player.visible_cards:
+            source.effective_behavior.on_card_play(self, player, source, card)
+        return card
+
     def copy_card_effect(
         self,
         player_index: int,
