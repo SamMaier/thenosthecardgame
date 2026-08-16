@@ -33,6 +33,30 @@ class GameTests(unittest.TestCase):
         second = Game.default(seed=77).run()
         self.assertEqual(first, second)
 
+    def test_free_pick_statistics_only_record_presented_choices(self) -> None:
+        class ChooseSecondAI:
+            def choose_suitcase_card(self, game, player_index, suitcase):
+                return 1
+
+        game = Game.default(seed=17)
+        game.setup()
+        game.ais[0] = ChooseSecondAI()
+        offered = tuple(game.suitcase)
+
+        game.pick_from_suitcase(0)
+
+        self.assertEqual(
+            game.stats.free_pick_offers,
+            Counter(card.title for card in offered),
+        )
+        self.assertEqual(game.stats.free_picks, Counter({offered[1].title: 1}))
+
+        free_pick_offers = game.stats.free_pick_offers.copy()
+        free_picks = game.stats.free_picks.copy()
+        game.pick_suitcase_cards(0, (game.suitcase[0],))
+        self.assertEqual(game.stats.free_pick_offers, free_pick_offers)
+        self.assertEqual(game.stats.free_picks, free_picks)
+
     def test_unpack_costs_fun_discards_and_refills_four_cards(self) -> None:
         game = Game.default(seed=8)
         game.setup()

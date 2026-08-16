@@ -1,7 +1,13 @@
 import unittest
+from collections import Counter
 
 from thenos.cards import CARD_REGISTRY
 from thenos.simulation import (
+    CardStatistics,
+    SimulationReport,
+    _GameOutcome,
+    _PlayerOutcome,
+    _merge_outcome,
     simulate_genius_vs_planner,
     simulate_games,
     simulate_greedy_vs_random,
@@ -16,10 +22,17 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(report.games, 10)
         self.assertEqual(set(report.cards), {card.title for card in CARD_REGISTRY.values()})
         self.assertGreaterEqual(sum(card.picks for card in report.cards.values()), 750)
+        self.assertEqual(
+            sum(card.free_pick_offers for card in report.cards.values()),
+            4 * sum(card.free_picks for card in report.cards.values()),
+        )
         for card in report.cards.values():
             self.assertGreater(card.offers, 0)
             self.assertGreater(card.picks, 0)
             self.assertGreaterEqual(card.offers, card.picks)
+            self.assertGreaterEqual(card.free_pick_offers, card.free_picks)
+            self.assertGreaterEqual(card.free_pick_rate, 0.0)
+            self.assertLessEqual(card.free_pick_rate, 1.0)
             self.assertGreaterEqual(card.acquisitions, card.picks)
             self.assertGreaterEqual(card.plays, 0)
             self.assertLessEqual(card.play_rate, 1.0)
@@ -27,6 +40,49 @@ class SimulationTests(unittest.TestCase):
             self.assertLessEqual(card.win_rate_when_picked, 1.0)
             self.assertGreaterEqual(card.win_rate_when_acquired, 0.0)
             self.assertLessEqual(card.win_rate_when_acquired, 1.0)
+
+    def test_card_outcomes_use_player_game_exposure_and_fun_difference(self) -> None:
+        report = SimulationReport(
+            games=1,
+            cards={"Biography": CardStatistics(), "Fajitas": CardStatistics()},
+        )
+        outcome = _GameOutcome(
+            free_pick_offers=Counter({"Biography": 2, "Fajitas": 1}),
+            free_picks=Counter({"Biography": 1}),
+            suitcase_offers=Counter(),
+            suitcase_picks=Counter(),
+            card_acquisitions=Counter({"Biography": 2, "Fajitas": 1}),
+            card_plays=Counter(),
+            card_plays_without_acquisition=Counter(),
+            players=(
+                _PlayerOutcome(
+                    "Player 1",
+                    "Test AI",
+                    10,
+                    1.0,
+                    Counter(),
+                    Counter({"Biography": 2}),
+                ),
+                _PlayerOutcome(
+                    "Player 2",
+                    "Test AI",
+                    4,
+                    0.0,
+                    Counter(),
+                    Counter({"Fajitas": 1}),
+                ),
+            ),
+        )
+
+        _merge_outcome(report, outcome)
+
+        biography = report.cards["Biography"]
+        self.assertEqual(biography.acquisitions, 2)
+        self.assertEqual(biography.player_games_with_card, 1)
+        self.assertEqual(biography.free_pick_rate, 0.5)
+        self.assertEqual(biography.win_rate, 1.0)
+        self.assertEqual(biography.fun_added, 6.0)
+        self.assertEqual(report.cards["Fajitas"].fun_added, -6.0)
 
     def test_matchup_aggregates_named_ai_results(self) -> None:
         report = simulate_greedy_vs_random(1, seed=99)

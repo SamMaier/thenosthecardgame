@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Sequence
 
 from thenos.ais import GeniusAI, GreedyAI, PlannerAI, PlayerAI, RandomAI
-from thenos.cards.catalog import create_default_deck
+from thenos.cards.catalog import CARD_REGISTRY, create_default_deck
 from thenos.game import Game, PLAYER_COUNT
 
 
@@ -44,6 +44,8 @@ class AIStatistics:
 
 @dataclass(slots=True)
 class CardStatistics:
+    free_pick_offers: int = 0
+    free_picks: int = 0
     offers: int = 0
     picks: int = 0
     acquisitions: int = 0
@@ -51,6 +53,18 @@ class CardStatistics:
     plays_without_acquisition: int = 0
     win_credit_when_picked: float = 0.0
     win_credit_when_acquired: float = 0.0
+    player_games_with_card: int = 0
+    fun_total_with_card: int = 0
+    player_games_without_card: int = 0
+    fun_total_without_card: int = 0
+
+    @property
+    def free_pick_rate(self) -> float:
+        return (
+            self.free_picks / self.free_pick_offers
+            if self.free_pick_offers
+            else 0.0
+        )
 
     @property
     def pick_rate(self) -> float:
@@ -68,10 +82,24 @@ class CardStatistics:
     @property
     def win_rate_when_acquired(self) -> float:
         return (
-            self.win_credit_when_acquired / self.acquisitions
-            if self.acquisitions
+            self.win_credit_when_acquired / self.player_games_with_card
+            if self.player_games_with_card
             else 0.0
         )
+
+    @property
+    def win_rate(self) -> float:
+        """Fractional win rate among player-games that acquired this card."""
+        return self.win_rate_when_acquired
+
+    @property
+    def fun_added(self) -> float:
+        """Final-Fun difference for player-games with versus without the card."""
+        if not self.player_games_with_card or not self.player_games_without_card:
+            return 0.0
+        fun_with = self.fun_total_with_card / self.player_games_with_card
+        fun_without = self.fun_total_without_card / self.player_games_without_card
+        return fun_with - fun_without
 
 
 @dataclass(slots=True)
@@ -85,6 +113,9 @@ class SimulationReport:
         return [
             {
                 "card": title,
+                "free_pick_rate": stats.free_pick_rate,
+                "win_rate": stats.win_rate,
+                "fun_added": stats.fun_added,
                 "offers": stats.offers,
                 "picks": stats.picks,
                 "pick_rate": stats.pick_rate,
@@ -116,6 +147,8 @@ class _PlayerOutcome:
 
 @dataclass(frozen=True, slots=True)
 class _GameOutcome:
+    free_pick_offers: Counter[str]
+    free_picks: Counter[str]
     suitcase_offers: Counter[str]
     suitcase_picks: Counter[str]
     card_acquisitions: Counter[str]
@@ -134,6 +167,8 @@ def _run_game(job: _GameJob) -> _GameOutcome:
     game = Game(create_default_deck(), ais, game_rng)
     result = game.run()
     return _GameOutcome(
+        free_pick_offers=game.stats.free_pick_offers,
+        free_picks=game.stats.free_picks,
         suitcase_offers=game.stats.suitcase_offers,
         suitcase_picks=game.stats.suitcase_picks,
         card_acquisitions=game.stats.card_acquisitions,
@@ -161,13 +196,17 @@ def _run_game(job: _GameJob) -> _GameOutcome:
 
 
 def _merge_outcome(report: SimulationReport, outcome: _GameOutcome) -> None:
-    titles = set(outcome.suitcase_offers)
+    titles = set(outcome.free_pick_offers)
+    titles.update(outcome.free_picks)
+    titles.update(outcome.suitcase_offers)
     titles.update(outcome.suitcase_picks)
     titles.update(outcome.card_acquisitions)
     titles.update(outcome.card_plays)
     titles.update(outcome.card_plays_without_acquisition)
     for title in titles:
         stats = report.cards.setdefault(title, CardStatistics())
+        stats.free_pick_offers += outcome.free_pick_offers[title]
+        stats.free_picks += outcome.free_picks[title]
         stats.offers += outcome.suitcase_offers[title]
         stats.picks += outcome.suitcase_picks[title]
         stats.acquisitions += outcome.card_acquisitions[title]
@@ -181,10 +220,19 @@ def _merge_outcome(report: SimulationReport, outcome: _GameOutcome) -> None:
             report.cards[title].win_credit_when_picked += (
                 player.win_share * copies_picked
             )
-        for title, copies_acquired in player.acquired_cards.items():
-            report.cards[title].win_credit_when_acquired += (
-                player.win_share * copies_acquired
-            )
+        acquired_titles = {
+            title
+            for title, copies in player.acquired_cards.items()
+            if copies > 0
+        }
+        for title, stats in report.cards.items():
+            if title in acquired_titles:
+                stats.player_games_with_card += 1
+                stats.win_credit_when_acquired += player.win_share
+                stats.fun_total_with_card += player.fun
+            else:
+                stats.player_games_without_card += 1
+                stats.fun_total_without_card += player.fun
 
         ai_stats = report.ais.setdefault(player.competitor_name, AIStatistics())
         ai_stats.games += 1
@@ -201,7 +249,7 @@ def simulate_games(
     competitors: Sequence[Competitor] | None = None,
     *,
     rotate_seats: bool = False,
-    workers: int = 1,
+    workers: int = 16,
 ) -> SimulationReport:
     """Run games and aggregate card and AI results.
 
@@ -228,7 +276,13 @@ def simulate_games(
         raise ValueError("workers must be positive")
 
     master_rng = random.Random(seed)
-    report = SimulationReport(games=games)
+    report = SimulationReport(
+        games=games,
+        cards={
+            card.title: CardStatistics()
+            for card in CARD_REGISTRY.values()
+        },
+    )
     jobs: list[_GameJob] = []
     for game_number in range(games):
         if rotate_seats:
@@ -260,7 +314,7 @@ def simulate_greedy_vs_random(
     games: int,
     seed: int | None = None,
     *,
-    workers: int = 1,
+    workers: int = 16,
 ) -> SimulationReport:
     """Run a seat-balanced match of one Greedy AI against three Random AIs."""
     return simulate_games(
@@ -281,7 +335,7 @@ def simulate_planner_vs_greedy(
     games: int,
     seed: int | None = None,
     *,
-    workers: int = 1,
+    workers: int = 16,
 ) -> SimulationReport:
     """Run a seat-balanced match of one Planner against three Greedy AIs."""
     return simulate_games(
@@ -302,7 +356,7 @@ def simulate_genius_vs_planner(
     games: int,
     seed: int | None = None,
     *,
-    workers: int = 1,
+    workers: int = 16,
 ) -> SimulationReport:
     """Run a seat-balanced match of one Genius against three Planners."""
     return simulate_games(

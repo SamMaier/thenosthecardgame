@@ -210,13 +210,20 @@ class Game:
         )
 
     def pick_from_suitcase(self, player_index: int) -> CardInstance:
+        offered_cards = tuple(self.suitcase)
         choice = self.ais[player_index].choose_suitcase_card(
-            self, player_index, tuple(self.suitcase)
+            self, player_index, offered_cards
         )
-        if choice < 0 or choice >= len(self.suitcase):
+        if choice < 0 or choice >= len(offered_cards):
             raise ValueError(f"AI returned invalid Suitcase index: {choice}")
 
-        return self.pick_suitcase_cards(player_index, (self.suitcase[choice],))[0]
+        # A free-pick opportunity assigns one observation to every visible
+        # physical card: 1.0 to the selected card and 0.0 to the others.
+        # Bulk and restricted card effects call ``pick_suitcase_cards``
+        # directly, so they intentionally do not enter this metric.
+        self.stats.free_pick_offers.update(card.title for card in offered_cards)
+        self.stats.free_picks[offered_cards[choice].title] += 1
+        return self.pick_suitcase_cards(player_index, (offered_cards[choice],))[0]
 
     def pick_suitcase_cards(
         self,

@@ -19,8 +19,8 @@ def main() -> None:
     parser.add_argument(
         "--workers",
         type=int,
-        default=1,
-        help="worker processes to use (try 8 on an 8-core CPU)",
+        default=16,
+        help="worker processes to use (default: 16)",
     )
     parser.add_argument(
         "--greedy-vs-random",
@@ -67,18 +67,16 @@ def main() -> None:
                 f"{name:<12} {stats.games:>5} "
                 f"{stats.average_score:>10.2f} {stats.win_rate:>9.1%}"
             )
-        return
+        print()
+    rows = report.rows()
+    card_width = max(len(str(row["card"])) for row in rows)
     print(
-        "Card                 Offers   Picks  Pick%  Owned   Plays  Play%  "
-        "Pick Win%  Owned Win%"
+        f"{'Card':<{card_width}}  Free pick rate   Win rate   Fun added"
     )
-    for row in report.rows():
+    for row in rows:
         print(
-            f"{row['card']:<20} {row['offers']:>6} {row['picks']:>7} "
-            f"{row['pick_rate']:>6.1%} {row['acquisitions']:>6} "
-            f"{row['plays']:>7} {row['play_rate']:>6.1%} "
-            f"{row['win_rate_when_picked']:>9.1%} "
-            f"{row['win_rate_when_acquired']:>10.1%}"
+            f"{row['card']:<{card_width}} {row['free_pick_rate']:>14.1%} "
+            f"{row['win_rate']:>10.1%} {row['fun_added']:>+11.2f}"
         )
 
 

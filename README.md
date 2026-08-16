@@ -18,13 +18,15 @@ python -m thenos 1000 --seed 1
 Run the standard seat-balanced AI benchmark:
 
 ```console
-python -m thenos 1000 --seed 1 --greedy-vs-random --workers 8
+python -m thenos 1000 --seed 1 --greedy-vs-random --workers 16
 ```
 
 Games are distributed across worker processes so CPU-bound AI lookahead can use
-all eight cores. Seeded output is identical for one or multiple workers.
+all sixteen cores. Seeded output is identical for one or multiple workers.
 
-The report separates Suitcase pick rate from acquisition-based play and win
-rates, so cards dealt in opening hands are represented correctly. Matchup mode
-also reports each named AI's average score and fractional win rate. See
-`AGENTS.md` for the competitive-AI development workflow.
+The default card table reports free pick rate, win rate after acquiring a card,
+and the difference between average final Fun with and without that card. Free
+pick rate only includes unconstrained Suitcase choices; card-effect bulk picks
+do not count as free choices. Matchup mode reports each named AI's average score
+and fractional win rate. See `AGENTS.md` for the competitive-AI development
+workflow.

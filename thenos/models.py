@@ -29,6 +29,8 @@ class PlayerState:
 
 @dataclass(slots=True)
 class GameStats:
+    free_pick_offers: Counter[str] = field(default_factory=Counter)
+    free_picks: Counter[str] = field(default_factory=Counter)
     suitcase_offers: Counter[str] = field(default_factory=Counter)
     suitcase_picks: Counter[str] = field(default_factory=Counter)
     card_acquisitions: Counter[str] = field(default_factory=Counter)

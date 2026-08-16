@@ -1,179 +1,208 @@
-# The Nos Simulator: Building Competitive AIs
+# The Nos Simulator: Card Data Simulations
 
-This repository is a headless Python simulator for four AI players. The card
-catalog and rules engine are complete enough to serve as the competition
-environment; current development should prioritize player policies, fair
-matchups, reproducible experiments, and useful strategy measurements.
+This repository is a headless Python simulator for four AI players. The rules
+engine and card catalog primarily support reproducible card-strength studies.
+Current work should prioritize trustworthy card metrics, long four-Genius
+batches, reproducible seeds, and clear reporting over adding more policies.
 
 `cards.csv` is the source of truth for card wording and `rules.md` is the source
-of truth for general rules. An AI may use any information exposed by the game
-state, but it must not inspect hidden card order or another AI's private state.
+of truth for general rules. Daily Conditions are not modeled; ask before adding
+that system.
 
 ## Project map
 
-- `thenos/ais/interface.py`: the stable `PlayerAI` protocol. Every AI must
-  implement all decisions in this interface.
-- `thenos/ais/random_ai.py`: the baseline random policy.
-- `thenos/ais/greedy.py`: one-step, end-of-day score maximization.
-- `thenos/ai.py`: compatibility imports for older callers; put no new AI logic
-  here.
-- `thenos/simulation.py`: named competitors, seat rotation, batch execution,
-  and card/AI statistics.
-- `thenos/game.py`: rules, zones, turn order, delegated decisions, and scoring.
-- `thenos/cards/`: card definitions and behavior hooks an AI may need to model.
-- `tests/test_greedy_ai.py`: focused policy-decision examples.
-- `tests/test_simulation.py`: batch and matchup reporting tests.
+- `thenos/simulation.py`: competitors, process-based batch execution, seat
+  rotation, card statistics, and `SimulationReport.rows()`.
+- `thenos/game.py` and `thenos/models.py`: rules and the low-level statistics
+  hooks for free choices, acquisitions, plays, scores, and wins.
+- `thenos/ais/genius.py`: the preferred policy for meaningful card-data runs.
+- `thenos/ais/random_ai.py`: a plumbing baseline, not a card-ranking policy.
+- `thenos/ais/interface.py`: the stable `PlayerAI` decision protocol.
+- `thenos/cards/`: stateless card behaviors; per-copy state belongs in
+  `CardInstance.markers`.
+- `tests/test_simulation.py` and `tests/test_game.py`: metric semantics,
+  reproducibility, process parity, and engine integration.
 
-## Workflow for adding an AI
+## The three primary card metrics
 
-1. State the policy's objective and information horizon. Be explicit about
-   whether it is myopic, searches future plays, models opponents, or values
-   cards for later days.
-2. Create one module under `thenos/ais/`, named after the strategy. Implement
-   `PlayerAI` directly or subclass a policy only when inherited fallback
-   choices are intentional and documented.
-3. Keep strategy in the AI. Do not add card-name checks or policy-specific
-   branches to `Game`; add a generic observation or decision interface only
-   when the existing protocol cannot express the strategy.
-4. Use only observable state. In particular, do not read the order of
-   `game.trunk`, random-generator state, or opponents' hands to gain an unfair
-   advantage. Simulation code may control seeds but policies may not exploit
-   them.
-5. Make stochastic policies accept an injected `random.Random`. Break equally
-   valued choices without positional bias, and ensure a seeded matchup is
-   reproducible. Keep policy RNGs independent from the game RNG so AI tie
-   breaking cannot change future deck shuffles.
-6. Add focused `tests/test_<strategy>_ai.py` cases for its distinctive choices,
-   tie handling, non-mutation during lookahead, and any stopping rule. Also add
-   a whole-game smoke test through the competition runner.
-7. Benchmark against named baselines with seat rotation. Report game count,
-   seed, fractional win rate, and average score; do not present a tiny batch as
-   a stable strength estimate.
-8. Run `python -m unittest discover -v`, then run at least one seeded default
-   batch and the relevant seeded matchup. A policy change is incomplete until
-   all three complete successfully.
+Every card report must include these columns. Keep their definitions stable so
+results from different seeds and code revisions remain comparable.
 
-### Windows Python command
+### Free pick rate
 
-The project requires Python 3.11 or newer. On Windows, if the native
-`python` command is unavailable or `py` resolves to an older interpreter, run
-the checks through the persistent WSL installation instead:
+Measure only unrestricted choices presented through `Game.pick_from_suitcase`.
+For each choice, every visible physical Suitcase card receives one offer: the
+selected card receives `1.0` and every unselected card receives `0.0`. Aggregate
+by title as:
 
-```powershell
-wsl.exe python3 -m unittest discover -v
-wsl.exe python3 -m thenos 200 --seed 1 --workers 8
-wsl.exe python3 -m thenos 200 --seed 1 --genius-vs-planner --workers 8
+```text
+free pick rate = free picks / free pick offers
 ```
 
-Do not use a Python 3.8 interpreter for this repository; the engine relies on
-Python 3.11 features such as slotted dataclasses. Keep the WSL prefix on both
-test and simulation commands so results are reproducible across Codex chats.
+Thus a card always taken by the second player who sees it approaches `0.5`.
+Duplicate titles count once per visible physical copy. Bulk, automatic, or
+restricted card-effect pickups that call `pick_suitcase_cards` directly are not
+free choices and must not enter this metric.
 
-## AI-versus-AI evaluation workflow
+Always retain the offer denominator. A displayed `0.0` can mean either many
+rejections or no observations, which are not equivalent.
 
-Every new policy should be evaluated as a named competitor against the policies
-it is intended to beat. Use the competition runner rather than calling
-`Game.run()` in an ad-hoc loop:
+### Win rate
+
+Use one observation per player-game in which that player had the card added to
+their hand by any mechanism, including the starting deal, Suitcase picks, and
+card effects. Acquiring multiple copies in the same player-game must not
+double-weight the final result. Cards played directly from another zone without
+entering the hand are not acquisitions.
+
+Use the engine's fractional win credit: outright wins are `1.0`, losses are
+`0.0`, and tied winners divide one win. Report:
+
+```text
+win rate = total win credit / player-games with card
+```
+
+### Fun added
+
+Compare final scores for player-games that acquired the card with player-games
+that did not:
+
+```text
+fun added = mean final Fun with card - mean final Fun without card
+```
+
+This is an observational association, not a causal card value. Strong AIs may
+select cards that fit already-good hands, cards can be acquired together, and
+rare-card estimates can be noisy. Preserve both with-card and without-card
+sample counts and do not rank cards from tiny denominators.
+
+## Standard four-Genius card-data run
+
+Use four copies of `GeniusAI` for card-strength data. The default
+`python -m thenos` command uses four Random AIs; it is useful for fast plumbing
+checks, but its free pick rates should converge toward 25% and are not strategic
+rankings.
+
+Use the competition runner rather than an ad-hoc `Game.run()` loop:
 
 ```python
-from thenos.ais import GeniusAI, PlannerAI
+from thenos.ais import GeniusAI
 from thenos.simulation import Competitor, simulate_games
 
 report = simulate_games(
-    200,
+    32,
     seed=20260816,
-    competitors=(
-        Competitor("Genius", GeniusAI),
-        Competitor("Planner", PlannerAI),
-        Competitor("Planner", PlannerAI),
-        Competitor("Planner", PlannerAI),
-    ),
+    competitors=tuple(Competitor("Genius", GeniusAI) for _ in range(4)),
     rotate_seats=True,
-    workers=8,
+    workers=16,
 )
+
+print("Card | Free pick rate | Win rate | Fun added")
+for row in report.rows():
+    print(
+        f"{row['card']} | {row['free_pick_rate']:.1%} | "
+        f"{row['win_rate']:.1%} | {row['fun_added']:+.2f}"
+    )
 ```
 
-Use the dedicated CLI matchup when one exists, for example:
-`python -m thenos 200 --seed 20260816 --genius-vs-planner --workers 8`.
-`workers` uses independent processes through `ProcessPoolExecutor`; it is not
-threaded execution. Keep the game count divisible by four so every competitor
-gets every seat equally often.
+`workers` uses independent processes through `ProcessPoolExecutor`, not
+threads. Genius lookahead is expensive: a 32-game, 16-worker run has taken
+about nine minutes on the current development machine. A many-hundred-game run
+may take hours, so run it only when requested and leave an ample command
+timeout.
 
-For each matchup:
+### Batch sizes and seeds
 
-- Use distinct seeds for tuning and final evaluation. Record the exact seed,
-  game count, competitor composition, seat rotation, and worker count.
-- Report both each named AI's average score and fractional win rate. In a
-  one-versus-three matchup, the three repeated opponents are aggregated, so
-  their displayed win rate is per opponent appearance; also state the combined
-  opponent win credit when it clarifies the result.
-- Treat fractional wins as one win split evenly among tied winners. Do not
-  count a tie as a full win for every tied AI.
-- Use at least 100--200 games for a headline comparison when runtime permits;
-  label smaller smoke batches as preliminary and do not call them stable
-  strength estimates.
-- Keep tuning batches separate from the final seed. A policy that reaches a
-  target on one convenient seed must be checked on a fresh seat-balanced batch.
-- Compare against relevant baselines and against copies of the strongest
-  available policy, not only against RandomAI. A policy's objective is its
-  matchup win rate, but average score and card statistics help diagnose why it
-  wins or loses.
+- Use 8 games for a quick four-Genius wiring smoke test.
+- Use 32 games only as a preliminary metric check; do not call it stable.
+- Use many hundreds of games for a serious card ranking.
+- Keep game counts divisible by four and enable seat rotation.
+- Use distinct seeds for tuning, smoke checks, and final evaluation.
+- Record the exact seed, game count, competitor composition, seat rotation,
+  worker count, code revision, and elapsed time.
+- Never select or discard a result because its seed is inconvenient.
 
-## Competition conventions
+## Reporting and interpretation
 
-- Exactly four AIs play each game. Use `Competitor` entries and
-  `simulate_games(..., competitors=..., rotate_seats=True)` for general
-  experiments.
-- Repeated competitor names are aggregated. This is useful for one policy
-  against three copies of a baseline.
-- `simulate_greedy_vs_random(games, seed)` is the standard first benchmark and
-  rotates seats automatically. Pass `workers=8` to use eight CPU cores; this is
-  process-based because Python threads do not speed up CPU-bound game search.
-- Win rate uses fractional wins: tied winners divide one win equally. A
-  four-player random baseline should approach 25% per seat over a large sample.
-- Rotate seats unless measuring a deliberate seat effect. Multiples of four
-  games give every policy equal exposure to each starting seat.
-- Compare average score alongside win rate. Record the exact seed and number of
-  games so results can be reproduced.
-- Keep training/tuning games separate from the final evaluation seeds when a
-  policy has learned parameters.
+The main output is one table containing every registered card and all three
+primary metrics. For analysis, also retain these denominators and diagnostics:
 
-## AI interface and evaluation notes
+- free-pick offers and free picks;
+- player-games with and without the card;
+- total acquisitions and plays;
+- average final score and fractional win rate for each named policy.
 
-The engine delegates Suitcase picks, plays, targets, discards, optional actions,
-Energy spending, and Trunk ordering through `PlayerAI`. Engine methods validate
-all returned indices and choices. New optional game decisions must be added to
-the protocol and every built-in policy, with validation in `Game`.
+Repeated competitor names are aggregated. With four Genius entries, the
+`Genius` result contains four player appearances per game and should have about
+a 25% per-appearance win rate. Tied winners must split one win rather than each
+receiving a full win.
 
-Lookahead must not mutate the live game. A policy can evaluate copied state, a
-purpose-built immutable observation, or a tested reversible simulation. Bound
-search depth and branching explicitly so batch simulations remain practical.
-Document approximations for decisions whose context is not fully represented by
-the generic interface.
+When identifying best and worst cards:
+
+- show sample counts alongside rates;
+- separate free-choice preference from outcome association;
+- flag surprising disagreements between the metrics for investigation;
+- avoid causal language for Fun added;
+- label smoke results preliminary; and
+- compare fresh seeds before making balance recommendations.
+
+## Statistics implementation rules
+
+- Record genuine free-choice offers at the point the AI is presented with the
+  full Suitcase, before the selected card is removed or its slot refilled.
+- Keep legacy Suitcase pickup counters separate from free-choice counters;
+  automatic or multi-card effects still matter diagnostically.
+- Route every card that enters a hand through `Game.give_card` so acquisitions
+  from all mechanisms are captured consistently.
+- Aggregate acquisition outcomes once per card title per player-game, not once
+  per physical copy.
+- Prepopulate reports from `CARD_REGISTRY` so cards with zero observations still
+  appear in the table.
+- Preserve exact equality between seeded serial and parallel reports. Policy
+  RNGs must remain independent from the game RNG.
+- Statistics gathering must not change game decisions, shuffle order, or live
+  state observed by an AI.
+
+Metric changes require focused tests for exact numerator and denominator
+semantics, duplicate acquisitions, forced versus free picks, tied wins, and Fun
+baselines. Also retain a whole-game smoke test and serial-versus-parallel parity
+test.
+
+## Required verification
+
+The project requires Python 3.11 or newer. On this Windows workspace, use the
+persistent WSL Python so results are reproducible across Codex chats:
+
+```powershell
+wsl.exe python3 -m unittest discover -v
+wsl.exe python3 -m thenos 32 --seed 20260815 --workers 16
+wsl.exe python3 -c "from thenos.ais import GeniusAI; from thenos.simulation import Competitor, simulate_games; r=simulate_games(8, seed=20260816, competitors=tuple(Competitor('Genius', GeniusAI) for _ in range(4)), rotate_seats=True, workers=16); print(len(r.cards), r.ais['Genius'])"
+```
+
+Do not use Python 3.8; the engine relies on Python 3.11 features such as slotted
+dataclasses. For statistics changes, complete the full tests, a seeded Random
+plumbing batch, and a seeded four-Genius smoke batch before considering the
+work finished.
+
+## Policy and engine constraints
+
+An AI may use only observable game state. It must not inspect hidden Trunk
+order, another player's hand, or RNG state. Lookahead must not mutate the live
+game, and stochastic policies must accept an injected `random.Random` without
+positional tie bias. Keep policy logic out of `Game`; add only generic,
+validated observation or decision interfaces when required.
+
+Preserve these core invariants:
+
+- exactly four players, six days, seven starting cards, seven Energy per day,
+  three Suitcase selections per player per day, and four Suitcase slots;
+- immediate refill of a selected Suitcase slot;
+- nonnegative Energy costs and unlimited hand size;
+- discard after scoring unless a card moves to Tomorrow, followed by discard
+  after its active Tomorrow day; and
+- one total win credit split across tied winners.
 
 Only visible cards affect Energy cost and scoring. Visibility order is active
-Tomorrow cards first, then today's cards from left to right. Use
-`Game.energy_cost`, `Game.playable_hand_indices`, and `Game.card_fun` rather than
-duplicating those rules in an AI. Card effects that add cards, alter markers,
-or score immediately are reasons to prefer engine-backed evaluation over raw
-printed Fun.
-
-## Engine invariants to preserve
-
-- Four players, six days, seven starting cards, seven Energy per day, three
-  Suitcase selections per player per day, and four visible Suitcase slots.
-- Taking a Suitcase card refills that position immediately.
-- The random baseline never Unpacks or voluntarily goes to bed, uniformly
-  chooses Suitcase cards, and uniformly plays legal affordable cards until none
-  remain.
-- Energy cost cannot be negative; hand size is unlimited.
-- Played cards are discarded after scoring unless they move to Tomorrow. Active
-  Tomorrow cards are discarded after their active day.
-- Tied winners split one win. Card reports distinguish Suitcase-picked copies
-  from all acquired copies.
-- Daily Conditions are not modeled. Ask before adding that system.
-
-When rules-engine work is genuinely required for an AI, keep it generic and
-retain the card implementation workflow in the existing tests and card modules:
-behaviors remain stateless, per-copy state stays in `CardInstance.markers`, and
-all rules and card tests must continue to pass.
+Tomorrow cards first, then today's cards from left to right. Use generic engine
+helpers such as `Game.energy_cost`, `Game.playable_hand_indices`, and
+`Game.card_fun` instead of duplicating rules in policies or reports.
