@@ -1,5 +1,8 @@
 import unittest
+from csv import DictReader
 from collections import Counter
+from tempfile import TemporaryDirectory
+from pathlib import Path
 
 from thenos.cards import CARD_REGISTRY
 from thenos.simulation import (
@@ -12,6 +15,7 @@ from thenos.simulation import (
     simulate_games,
     simulate_greedy_vs_random,
     simulate_planner_vs_greedy,
+    write_report_csv,
 )
 
 
@@ -116,6 +120,45 @@ class SimulationTests(unittest.TestCase):
     def test_worker_count_must_be_positive(self) -> None:
         with self.assertRaisesRegex(ValueError, "workers must be positive"):
             simulate_games(1, workers=0)
+
+    def test_csv_report_preserves_metrics_denominators_and_metadata(self) -> None:
+        report = SimulationReport(
+            games=1,
+            cards={
+                "Biography": CardStatistics(
+                    free_pick_offers=4,
+                    free_picks=1,
+                    acquisitions=2,
+                    plays=1,
+                    win_credit_when_acquired=0.5,
+                    player_games_with_card=2,
+                    fun_total_with_card=18,
+                    player_games_without_card=2,
+                    fun_total_without_card=10,
+                )
+            },
+        )
+        with TemporaryDirectory() as directory:
+            output = Path(directory) / "nested" / "report.csv"
+            written = write_report_csv(
+                report,
+                output,
+                metadata={"seed": 123, "workers": 16},
+            )
+            with written.open(encoding="utf-8", newline="") as stream:
+                rows = list(DictReader(stream))
+
+        self.assertEqual(len(rows), 1)
+        row = rows[0]
+        self.assertEqual(row["seed"], "123")
+        self.assertEqual(row["workers"], "16")
+        self.assertEqual(row["card"], "Biography")
+        self.assertEqual(row["free_pick_offers"], "4")
+        self.assertEqual(row["free_picks"], "1")
+        self.assertEqual(row["player_games_with_card"], "2")
+        self.assertEqual(row["player_games_without_card"], "2")
+        self.assertEqual(row["fun_total_with_card"], "18")
+        self.assertEqual(row["fun_total_without_card"], "10")
 
 
 if __name__ == "__main__":

@@ -3,13 +3,42 @@
 from __future__ import annotations
 
 import argparse
+import subprocess
+import time
+from pathlib import Path
 
 from thenos.simulation import (
+    simulate_four_genius,
     simulate_genius_vs_planner,
     simulate_games,
     simulate_greedy_vs_random,
     simulate_planner_vs_greedy,
+    write_report_csv,
 )
+
+
+def _code_revision() -> str:
+    """Return a best-effort revision label without making output depend on Git."""
+    try:
+        revision = subprocess.run(
+            ("git", "rev-parse", "HEAD"),
+            check=False,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        dirty = bool(
+            subprocess.run(
+                ("git", "status", "--porcelain"),
+                check=False,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+        )
+    except OSError:
+        return "unknown"
+    if not revision:
+        return "unknown"
+    return f"{revision}+dirty" if dirty else revision
 
 
 def main() -> None:
@@ -37,28 +66,85 @@ def main() -> None:
         action="store_true",
         help="seat-balance one Genius AI against three Planner AIs",
     )
+    parser.add_argument(
+        "--four-genius",
+        action="store_true",
+        help="run the standard seat-rotated four-Genius card-data batch",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=None,
+        help="atomically write the complete card report to this CSV file",
+    )
     args = parser.parse_args()
 
     matchup_modes = sum(
-        (args.greedy_vs_random, args.planner_vs_greedy, args.genius_vs_planner)
+        (
+            args.greedy_vs_random,
+            args.planner_vs_greedy,
+            args.genius_vs_planner,
+            args.four_genius,
+        )
     )
     if matchup_modes > 1:
         parser.error("choose only one matchup mode")
+    if args.four_genius and args.output is None:
+        parser.error("--four-genius requires --output so card stats are preserved")
 
-    if args.genius_vs_planner:
+    revision = _code_revision()
+    started = time.perf_counter()
+    if args.four_genius:
+        report = simulate_four_genius(
+            args.games, args.seed, workers=args.workers
+        )
+        run_mode = "four-genius"
+        competitors = "Genius,Genius,Genius,Genius"
+        rotate_seats = True
+    elif args.genius_vs_planner:
         report = simulate_genius_vs_planner(
             args.games, args.seed, workers=args.workers
         )
+        run_mode = "genius-vs-planner"
+        competitors = "Genius,Planner,Planner,Planner"
+        rotate_seats = True
     elif args.planner_vs_greedy:
         report = simulate_planner_vs_greedy(
             args.games, args.seed, workers=args.workers
         )
+        run_mode = "planner-vs-greedy"
+        competitors = "Planner,Greedy,Greedy,Greedy"
+        rotate_seats = True
     elif args.greedy_vs_random:
         report = simulate_greedy_vs_random(
             args.games, args.seed, workers=args.workers
         )
+        run_mode = "greedy-vs-random"
+        competitors = "Greedy,Random,Random,Random"
+        rotate_seats = True
     else:
         report = simulate_games(args.games, args.seed, workers=args.workers)
+        run_mode = "four-random"
+        competitors = "Random,Random,Random,Random"
+        rotate_seats = False
+    elapsed_seconds = time.perf_counter() - started
+
+    if args.output is not None:
+        output = write_report_csv(
+            report,
+            args.output,
+            metadata={
+                "run_games": report.games,
+                "seed": "" if args.seed is None else args.seed,
+                "run_mode": run_mode,
+                "competitors": competitors,
+                "rotate_seats": rotate_seats,
+                "workers": args.workers,
+                "code_revision": revision,
+                "elapsed_seconds": f"{elapsed_seconds:.3f}",
+            },
+        )
+        print(f"Output file: {output.resolve()}")
     print(f"Games: {report.games}")
     if matchup_modes:
         print("AI          Games  Avg score  Win rate")

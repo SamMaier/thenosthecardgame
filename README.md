@@ -12,7 +12,14 @@ python -m unittest discover -v
 Run a reproducible batch simulation:
 
 ```console
-python -m thenos 1000 --seed 1
+python -m thenos 1000 --seed 1 --output results/random-1000-seed-1.csv
+```
+
+Run the standard four-Genius card-data simulation. Four-Genius mode requires an
+output path so a long run cannot finish without persisting its report:
+
+```console
+python -m thenos 4096 --seed 20260817 --four-genius --workers 16 --output results/four-genius-4096-seed-20260817.csv
 ```
 
 Run the standard seat-balanced AI benchmark:

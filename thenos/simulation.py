@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import csv
+import os
 import random
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, field
-from typing import Callable, Sequence
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from typing import Callable, Mapping, Sequence
 
 from thenos.ais import GeniusAI, GreedyAI, PlannerAI, PlayerAI, RandomAI
 from thenos.cards.catalog import CARD_REGISTRY, create_default_deck
@@ -114,19 +118,73 @@ class SimulationReport:
             {
                 "card": title,
                 "free_pick_rate": stats.free_pick_rate,
+                "free_pick_offers": stats.free_pick_offers,
+                "free_picks": stats.free_picks,
                 "win_rate": stats.win_rate,
+                "win_credit_when_acquired": stats.win_credit_when_acquired,
+                "player_games_with_card": stats.player_games_with_card,
                 "fun_added": stats.fun_added,
+                "fun_total_with_card": stats.fun_total_with_card,
+                "player_games_without_card": stats.player_games_without_card,
+                "fun_total_without_card": stats.fun_total_without_card,
                 "offers": stats.offers,
                 "picks": stats.picks,
                 "pick_rate": stats.pick_rate,
                 "acquisitions": stats.acquisitions,
                 "plays": stats.plays,
+                "plays_without_acquisition": stats.plays_without_acquisition,
                 "play_rate": stats.play_rate,
                 "win_rate_when_picked": stats.win_rate_when_picked,
                 "win_rate_when_acquired": stats.win_rate_when_acquired,
             }
             for title, stats in sorted(self.cards.items())
         ]
+
+
+def write_report_csv(
+    report: SimulationReport,
+    output: str | Path,
+    *,
+    metadata: Mapping[str, object] | None = None,
+) -> Path:
+    """Atomically persist a complete card report as a self-contained CSV."""
+    destination = Path(output)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    rows = report.rows()
+    if not rows:
+        raise ValueError("simulation report contains no card rows")
+
+    run_metadata = dict(metadata or {})
+    duplicate_fields = set(run_metadata).intersection(rows[0])
+    if duplicate_fields:
+        duplicates = ", ".join(sorted(duplicate_fields))
+        raise ValueError(f"metadata duplicates report fields: {duplicates}")
+    fieldnames = [*run_metadata, *rows[0]]
+
+    temporary_path: Path | None = None
+    try:
+        with NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            newline="",
+            dir=destination.parent,
+            prefix=f".{destination.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as stream:
+            temporary_path = Path(stream.name)
+            writer = csv.DictWriter(stream, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in rows:
+                writer.writerow({**run_metadata, **row})
+            stream.flush()
+            os.fsync(stream.fileno())
+        temporary_path.replace(destination)
+    except BaseException:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
+        raise
+    return destination
 
 
 @dataclass(frozen=True, slots=True)
@@ -326,6 +384,22 @@ def simulate_greedy_vs_random(
             Competitor("Random", RandomAI),
             Competitor("Random", RandomAI),
         ),
+        rotate_seats=True,
+        workers=workers,
+    )
+
+
+def simulate_four_genius(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 16,
+) -> SimulationReport:
+    """Run the standard seat-rotated four-Genius card-data batch."""
+    return simulate_games(
+        games,
+        seed,
+        tuple(Competitor("Genius", GeniusAI) for _ in range(PLAYER_COUNT)),
         rotate_seats=True,
         workers=workers,
     )
