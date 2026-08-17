@@ -168,7 +168,7 @@ class Game:
             card.effective_behavior.allows_energy_gain(
                 self, player, card, source
             )
-            for card in player.visible_cards
+            for card in player.played_today
         ):
             return
         player.energy += amount
@@ -315,7 +315,7 @@ class Game:
         player.hand.append(card)
         player.acquired_cards[card.title] += 1
         self.stats.card_acquisitions[card.title] += 1
-        for source in player.visible_cards:
+        for source in player.played_today:
             source.effective_behavior.on_card_acquire(
                 self, player, source, card
             )
@@ -327,7 +327,7 @@ class Game:
     ) -> None:
         """Notify visible cards that their owner picked or drew ``card``."""
         player = self.players[player_index]
-        for source in player.visible_cards:
+        for source in player.played_today:
             source.effective_behavior.on_card_pick_or_draw(
                 self, player, source, card
             )
@@ -449,7 +449,11 @@ class Game:
         cost = card.effective_behavior.modify_own_energy_cost(
             self, player, card, card.effective_cost
         )
-        for source in player.visible_cards:
+        for source in player.tomorrow_cards:
+            cost = source.effective_behavior.modify_tomorrow_energy_cost(
+                self, player, source, card, cost
+            )
+        for source in player.played_today:
             cost = source.effective_behavior.modify_energy_cost(
                 self, player, source, card, cost
             )
@@ -484,7 +488,11 @@ class Game:
         player.played_today.append(card)
         self.stats.card_plays[card.title] += 1
         card.effective_behavior.on_play(self, player, card)
-        for source in player.visible_cards:
+        for source in tuple(player.tomorrow_cards):
+            source.effective_behavior.on_tomorrow_card_play(
+                self, player, source, card
+            )
+        for source in tuple(player.played_today):
             source.effective_behavior.on_card_play(self, player, source, card)
         return card
 
@@ -539,7 +547,11 @@ class Game:
         if acquired_from_effect:
             self.stats.card_plays_without_acquisition[card.title] += 1
         card.effective_behavior.on_play(self, player, card)
-        for source in player.visible_cards:
+        for source in tuple(player.tomorrow_cards):
+            source.effective_behavior.on_tomorrow_card_play(
+                self, player, source, card
+            )
+        for source in tuple(player.played_today):
             source.effective_behavior.on_card_play(self, player, source, card)
         return card
 
@@ -598,6 +610,14 @@ class Game:
                         first_to_bed = player_index
                     continue
 
+                if self.ais[player_index].choose_to_go_to_bed(
+                    self, player_index, tuple(playable)
+                ):
+                    self.go_to_bed(player_index)
+                    if first_to_bed is None:
+                        first_to_bed = player_index
+                    continue
+
                 choice = self.ais[player_index].choose_card_to_play(
                     self, player_index, tuple(playable)
                 )
@@ -634,15 +654,27 @@ class Game:
                             f"AI selected unplayable hand index: {choice}"
                         )
                     self.play_card(player_index, choice)
+                    if player.asleep:
+                        if first_to_bed is None:
+                            first_to_bed = player_index
+                        break
 
         if first_to_bed is None:
             raise RuntimeError("Playing phase ended without a first player going to bed")
         self.starting_player = first_to_bed
 
     def card_fun(self, player_index: int, target: CardInstance) -> int:
+        # Active Tomorrow cards apply only their Tomorrow text. Their printed
+        # Fun and ordinary scoring effects do not trigger again.
+        if target.is_tomorrow:
+            return 0
         player = self.players[player_index]
         value = target.effective_behavior.fun_value(self, player, target)
-        for source in player.visible_cards:
+        for source in player.tomorrow_cards:
+            value = source.effective_behavior.modify_tomorrow_fun(
+                self, player, source, target, value
+            )
+        for source in player.played_today:
             value = source.effective_behavior.modify_fun(
                 self, player, source, target, value
             )
@@ -653,14 +685,17 @@ class Game:
             player.fun for player in self.players
         )
         for player_index, player in enumerate(self.players):
-            # visible_cards orders active Tomorrow cards before today's cards.
-            for card in player.visible_cards:
+            # Active Tomorrow cards remain visible as sources for their
+            # Tomorrow modifiers, but only cards played today score.
+            for card in player.played_today:
                 player.fun += self.card_fun(player_index, card)
                 card.effective_behavior.on_score(self, player, card)
         self._fun_at_start_of_scoring = None
 
         for player in self.players:
-            for card in player.visible_cards:
+            # Ordinary end-of-day effects likewise belong only to cards
+            # played today, never to cards resolving Tomorrow text.
+            for card in tuple(player.played_today):
                 card.effective_behavior.on_end_day(self, player, card)
 
         for player in self.players:

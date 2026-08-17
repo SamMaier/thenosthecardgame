@@ -6,6 +6,7 @@ import copy
 from collections import Counter
 import math
 import random
+from statistics import median
 from typing import Sequence, TYPE_CHECKING
 
 from thenos.ais.planner import PlannerAI
@@ -13,7 +14,7 @@ from thenos.cards.basic import (
     EpicPrankBehavior,
     SettlersCitiesAndKnightsBehavior,
 )
-from thenos.cards.base import CardInstance
+from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.cards.catalog import CARD_REGISTRY
 from thenos.cards.copy_effects import WeddingAnniversaryBehavior
 from thenos.cards.exercise import NavySEALingBehavior
@@ -21,6 +22,19 @@ from thenos.cards.food import AddressTheFoodBehavior, PuddingChomeurBehavior
 
 if TYPE_CHECKING:
     from thenos.game import Game
+
+
+_PROJECTED_PLAY_DEFINITION = CardDefinition(
+    slug="__genius_projected_play__",
+    title="Projected opponent play",
+    tags=frozenset(),
+    cost=0,
+    behavior=CardBehavior(),
+)
+_TYPICAL_CARD_COST = max(
+    1,
+    int(median(definition.cost for definition in CARD_REGISTRY.values())),
+)
 
 
 class GeniusAI(PlannerAI):
@@ -31,7 +45,10 @@ class GeniusAI(PlannerAI):
     removing this player's hand and public zones. The live Trunk order,
     opponent card identities, and game RNG therefore cannot influence a
     decision. Opponent evaluation uses only scores, visible cards, asleep
-    state, and hand sizes.
+    state, hand sizes, and remaining Energy. A conservative estimate of
+    opponents' remaining play capacity is included so relative-play bonuses
+    are not awarded merely because opponents have not taken their later turns
+    yet.
 
     Ordinary play search retains six partial plans for four plies. The final
     day expands to sixteen plans over six plies, when every leaf can be scored
@@ -45,17 +62,53 @@ class GeniusAI(PlannerAI):
     BRANCH_WIDTH = 7
     ROOT_WIDTH = 12
     FUTURE_WEIGHT = 0.55
+    SAME_DAY_VALUE_WEIGHT = 0.75
     DETERMINIZATIONS = 1
-    CARD_PRIORS = {
-        "navy-sealing": 5.0,
-        "evening-chat": 3.0,
-    }
 
-    def _card_value(self, card: CardInstance) -> float:
-        return (
-            super()._card_value(card)
-            + self.CARD_PRIORS.get(card.definition.slug, 0.0)
+    @staticmethod
+    def _projected_opponent_plays(
+        game: Game,
+        player_index: int,
+        opponent_index: int,
+    ) -> int:
+        """Estimate future opponent plays from public state only.
+
+        Opponent card identities are hidden. Their hand size and remaining
+        Energy are public, so use the catalog's median card cost as a stable,
+        card-agnostic capacity estimate. Rounding up is intentional: a cheap
+        card in an unknown hand is plausible, and relative-play bonuses should
+        not assume opponents stop before their remaining turns.
+        """
+        if opponent_index == player_index:
+            return 0
+        opponent = game.players[opponent_index]
+        if opponent.asleep or not opponent.hand or opponent.energy <= 0:
+            return 0
+        return min(
+            len(opponent.hand),
+            (opponent.energy + _TYPICAL_CARD_COST - 1) // _TYPICAL_CARD_COST,
         )
+
+    @classmethod
+    def _add_projected_opponent_plays(
+        cls,
+        game: Game,
+        player_index: int,
+    ) -> None:
+        """Add no-op plays to a scoring copy for observable future pressure."""
+        for opponent_index, opponent in enumerate(game.players):
+            projected_count = cls._projected_opponent_plays(
+                game, player_index, opponent_index
+            )
+            for offset in range(projected_count):
+                opponent.played_today.append(
+                    CardInstance(
+                        -1_000_000
+                        - opponent_index * 1_000
+                        - offset,
+                        _PROJECTED_PLAY_DEFINITION,
+                    )
+                )
 
     def _portfolio_synergy(self, game: Game, player_index: int) -> float:
         """Estimate future pair value from this player's own known cards."""
@@ -148,9 +201,110 @@ class GeniusAI(PlannerAI):
     def __init__(self, rng: random.Random | None = None) -> None:
         super().__init__(rng)
 
+    def _same_day_hand_value(self, game: Game, player_index: int) -> float:
+        """Value remaining plays, including generic on-play Energy gains."""
+        player = game.players[player_index]
+        if player.asleep or player.energy <= 0 or not player.hand:
+            return 0.0
+
+        best_value = self._future_hand_value(game, player_index)
+        has_energy_bottleneck = any(
+            card.effective_behavior.can_play(game, player, card)
+            and game.energy_cost(player_index, card) > player.energy
+            for card in player.hand
+        )
+        if not has_energy_bottleneck:
+            return best_value
+
+        for card in tuple(player.hand):
+            if not card.effective_behavior.can_play(game, player, card):
+                continue
+            cost = game.energy_cost(player_index, card)
+            if cost > player.energy:
+                continue
+
+            simulation = copy.deepcopy(game)
+            simulated_ai = simulation.ais[player_index]
+            if isinstance(simulated_ai, PlannerAI):
+                simulated_ai._evaluation_depth = self._evaluation_depth + 1
+            simulated_player = simulation.players[player_index]
+            simulated_card = next(
+                candidate
+                for candidate in simulated_player.hand
+                if candidate.instance_id == card.instance_id
+            )
+            hand_index = simulated_player.hand.index(simulated_card)
+            energy_before = simulated_player.energy
+            payment = simulation.energy_cost(player_index, simulated_card)
+            fun_before = simulated_player.fun
+            simulation.play_card(player_index, hand_index)
+            energy_after = simulated_player.energy
+            energy_gained = energy_after - (energy_before - payment)
+            if energy_gained <= 0:
+                continue
+
+            projected_fun = simulation.card_fun(
+                player_index, simulated_card
+            )
+            immediate_fun = simulated_player.fun - fun_before
+            downstream_value = (
+                0.0
+                if simulated_player.asleep
+                else self._future_hand_value(
+                    simulation,
+                    player_index,
+                    capacity=energy_after,
+                )
+            )
+            best_value = max(
+                best_value,
+                immediate_fun + projected_fun + downstream_value,
+            )
+        return best_value
+
+    def _project_next_day_suitcase_picks(
+        self,
+        game: Game,
+        player_index: int,
+    ) -> None:
+        """Project every player's guaranteed picks from public information.
+
+        A real non-final day is followed by three rounds of Suitcase picks
+        before anyone plays again.  Terminal search positions must therefore
+        not treat an empty current hand as an empty next-day hand.  Opponents
+        consume cards in public turn order using the same context-free card
+        estimate as Genius; this neither inspects their hidden hands nor adds
+        title-specific policy.  Replacement cards come from the planning
+        copy's independently sampled Trunk.
+        """
+        from thenos.game import DAILY_PICKS
+
+        for _ in range(DAILY_PICKS):
+            for picker_index in game.player_order():
+                # Normal games can refill every slot.  Synthetic unit states
+                # sometimes omit a deck, so stop before an impossible refill.
+                if not game.suitcase or (not game.trunk and not game.discard):
+                    return
+                choice = max(
+                    range(len(game.suitcase)),
+                    key=lambda index: (
+                        self._card_value(game.suitcase[index]),
+                        -game.suitcase[index].instance_id,
+                    ),
+                )
+                game.pick_suitcase_cards(
+                    picker_index,
+                    (game.suitcase[choice],),
+                )
+
     def _state_value(self, game: Game, player_index: int) -> float:
         """Blend long-term self value with the observable score margin."""
+        same_day = copy.deepcopy(game)
+        self._add_projected_opponent_plays(same_day, player_index)
+        same_day_value = self._same_day_hand_value(same_day, player_index)
+
         scoring = copy.deepcopy(game)
+        self._add_projected_opponent_plays(scoring, player_index)
         scoring.end_day()
         player = scoring.players[player_index]
         own_score = player.fun
@@ -164,26 +318,39 @@ class GeniusAI(PlannerAI):
 
         future_value = 0.0
         if game.day < DAYS_PER_GAME:
+            scoring.day = game.day + 1
             player.energy = DAILY_ENERGY
             player.asleep = False
             for card in player.tomorrow_cards:
                 card.effective_behavior.on_start_day(scoring, player, card)
+            self._project_next_day_suitcase_picks(scoring, player_index)
             immediate_future = player.fun - own_score
-            tomorrow_score = sum(
-                scoring.card_fun(player_index, card)
-                for card in player.tomorrow_cards
-            )
             energy_delta = player.energy - DAILY_ENERGY
             reserve_value = self._future_hand_value(scoring, player_index)
+            without_tomorrow = copy.deepcopy(scoring)
+            without_tomorrow.players[player_index].tomorrow_cards.clear()
+            ordinary_reserve_value = self._future_hand_value(
+                without_tomorrow,
+                player_index,
+            )
+            tomorrow_reserve_bonus = reserve_value - ordinary_reserve_value
             future_value = (
                 immediate_future
-                + tomorrow_score
                 + 0.65 * energy_delta
                 + 0.20 * reserve_value
+                # The reserve estimate is broadly discounted because most
+                # future cards are available in either branch. A Tomorrow
+                # modifier is caused by today's decision, however, so raise
+                # its total coefficient to one before FUTURE_WEIGHT applies.
+                + 0.80 * tomorrow_reserve_bonus
                 + 0.18 * self._portfolio_synergy(scoring, player_index)
             )
 
-        value = own_score + self.FUTURE_WEIGHT * future_value
+        value = (
+            own_score
+            + self.SAME_DAY_VALUE_WEIGHT * same_day_value
+            + self.FUTURE_WEIGHT * future_value
+        )
         if (
             game.day < 6
             and game.players[player_index].asleep
@@ -316,6 +483,11 @@ class GeniusAI(PlannerAI):
     ) -> int:
         if not playable_hand_indices:
             raise ValueError("No playable card was supplied")
+        cached = self._take_cached_play_choice(
+            game, player_index, playable_hand_indices
+        )
+        if cached is not None:
+            return cached
         if self._evaluation_depth:
             return super().choose_card_to_play(
                 game, player_index, playable_hand_indices
@@ -354,6 +526,75 @@ class GeniusAI(PlannerAI):
                 if abs(value - best_average) < 1e-9
             ]
         )
+
+    def choose_to_go_to_bed(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> bool:
+        if not playable_hand_indices:
+            raise ValueError("No playable card was supplied")
+        self._pending_play_choice = None
+        if self._evaluation_depth:
+            return super().choose_to_go_to_bed(
+                game, player_index, playable_hand_indices
+            )
+
+        results: list[tuple[int, float, float]] = []
+        for _ in range(self.DETERMINIZATIONS):
+            root = self._planning_copy(game)
+            stopped = copy.deepcopy(root)
+            stopped.go_to_bed(player_index)
+            stop_value = self._state_value(stopped, player_index)
+            choice, play_value = self._best_play(
+                root, player_index, playable_hand_indices
+            )
+            results.append((choice, play_value, stop_value))
+
+        continuations = [
+            (choice, play_value)
+            for choice, play_value, stop_value in results
+            if play_value > stop_value + 1e-9
+        ]
+        if 2 * len(continuations) <= self.DETERMINIZATIONS:
+            return True
+
+        vote_counts = {
+            choice: sum(candidate == choice for candidate, _ in continuations)
+            for choice, _ in continuations
+        }
+        most_votes = max(vote_counts.values())
+        finalists = [
+            choice
+            for choice, votes in vote_counts.items()
+            if votes == most_votes
+        ]
+        if len(finalists) == 1:
+            choice = finalists[0]
+        else:
+            average_values = {
+                candidate: sum(
+                    value
+                    for result_choice, value in continuations
+                    if result_choice == candidate
+                )
+                / vote_counts[candidate]
+                for candidate in finalists
+            }
+            best_average = max(average_values.values())
+            choice = self.rng.choice(
+                [
+                    candidate
+                    for candidate, value in average_values.items()
+                    if abs(value - best_average) < 1e-9
+                ]
+            )
+
+        self._cache_play_choice(
+            game, player_index, playable_hand_indices, choice
+        )
+        return False
 
     def choose_extra_card_to_play(
         self,

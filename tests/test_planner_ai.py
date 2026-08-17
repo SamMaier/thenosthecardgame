@@ -3,8 +3,9 @@ import unittest
 
 from thenos.ais import PlannerAI, RandomAI
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
-from thenos.cards.exercise import ZUMBA
-from thenos.cards.fun_effects import WORK_CALL
+from thenos.cards.exercise import MORNING_RUN
+from thenos.cards.food import DECAF
+from thenos.cards.fun_effects import AUNTERVIEW, JOHNNY_APPLESEED, WORK_CALL
 from thenos.game import DAYS_PER_GAME, Game, PLAYER_COUNT
 from thenos.simulation import simulate_planner_vs_greedy
 
@@ -60,10 +61,10 @@ class PlannerAITests(unittest.TestCase):
     def test_values_tomorrow_setup_before_final_day(self) -> None:
         game = planner_game()
         player = game.players[0]
-        player.energy = 4
+        player.energy = 5
         player.hand = [
-            CardInstance(1, ZUMBA),
-            card(2, "Three Fun", cost=4, fun=3),
+            CardInstance(1, MORNING_RUN),
+            card(2, "Two Fun", cost=5, fun=2),
         ]
 
         choice = game.ais[0].choose_card_to_play(game, 0, (0, 1))
@@ -74,15 +75,46 @@ class PlannerAITests(unittest.TestCase):
         game = planner_game()
         game.day = DAYS_PER_GAME
         player = game.players[0]
-        player.energy = 4
+        player.energy = 5
         player.hand = [
-            CardInstance(1, ZUMBA),
-            card(2, "Three Fun", cost=4, fun=3),
+            CardInstance(1, MORNING_RUN),
+            card(2, "Two Fun", cost=5, fun=2),
         ]
 
         choice = game.ais[0].choose_card_to_play(game, 0, (0, 1))
 
         self.assertEqual(choice, 1)
+
+    def test_future_hand_value_applies_active_tomorrow_fun_text(self) -> None:
+        game = planner_game()
+        player = game.players[0]
+        player.energy = 1
+        social_card = CardInstance(1, JOHNNY_APPLESEED)
+        player.hand = [social_card]
+        baseline = game.ais[0]._future_hand_value(game, 0)
+
+        aunterview = CardInstance(2, AUNTERVIEW)
+        aunterview.is_tomorrow = True
+        player.tomorrow_cards = [aunterview]
+        with_tomorrow = game.ais[0]._future_hand_value(game, 0)
+
+        self.assertAlmostEqual(with_tomorrow, baseline + 1.0)
+        self.assertEqual(player.hand, [social_card])
+        self.assertEqual(player.played_today, [])
+
+    def test_goes_to_bed_to_preserve_decaf_energy(self) -> None:
+        game = planner_game()
+        game.day = DAYS_PER_GAME
+        player = game.players[0]
+        player.energy = 4
+        player.played_today = [CardInstance(1, DECAF)]
+        player.hand = [card(2, "Three Fun", cost=2, fun=3)]
+
+        goes_to_bed = game.ais[0].choose_to_go_to_bed(game, 0, (0,))
+
+        self.assertTrue(goes_to_bed)
+        self.assertEqual(player.energy, 4)
+        self.assertEqual(len(player.hand), 1)
 
     def test_seeded_choice_is_reproducible_and_does_not_mutate_game(self) -> None:
         games = [planner_game(19), planner_game(19)]

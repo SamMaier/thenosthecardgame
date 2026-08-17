@@ -3,8 +3,10 @@ import random
 import unittest
 
 from thenos.ais import GeniusAI, PlannerAI, RandomAI
+from thenos.cards import make_card
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.cards.catalog import create_default_deck
+from thenos.cards.food import DECAF
 from thenos.cards.fun_effects import WORK_CALL
 from thenos.game import Game
 
@@ -35,6 +37,114 @@ def genius_game(seed: int = 11) -> Game:
 
 
 class GeniusAITests(unittest.TestCase):
+    def test_uses_generic_card_values_without_title_specific_priors(self) -> None:
+        genius = GeniusAI(random.Random(1))
+        planner = PlannerAI(random.Random(1))
+
+        for physical_card in create_default_deck():
+            with self.subTest(card=physical_card.title):
+                self.assertEqual(
+                    genius._card_value(physical_card),
+                    planner._card_value(physical_card),
+                )
+
+    def test_goes_to_bed_to_preserve_decaf_energy(self) -> None:
+        game = genius_game()
+        game.day = 6
+        player = game.players[0]
+        player.energy = 4
+        player.played_today = [CardInstance(1, DECAF)]
+        player.hand = [card(2, "Three Fun", cost=2, fun=3)]
+
+        goes_to_bed = game.ais[0].choose_to_go_to_bed(game, 0, (0,))
+
+        self.assertTrue(goes_to_bed)
+        self.assertEqual(player.energy, 4)
+        self.assertEqual(len(player.hand), 1)
+
+    def test_scores_relative_play_bonus_against_observable_opponent_capacity(
+        self,
+    ) -> None:
+        game = genius_game()
+        genius = game.ais[0]
+        player = game.players[0]
+        player.played_today = [
+            make_card("fit-to-print"),
+            make_card("fajitas"),
+        ]
+        for opponent in game.players[1:]:
+            opponent.energy = 7
+            opponent.hand = [make_card("fajitas") for _ in range(4)]
+
+        # The opponents have not played yet, but their public hand sizes and
+        # Energy make later plays plausible. Genius must not score the bonus
+        # from the partial position as though the day ended immediately.
+        self.assertEqual(genius._state_value(game, 0), 1.0)
+
+        for opponent in game.players[1:]:
+            opponent.asleep = True
+        self.assertEqual(genius._state_value(game, 0), 5.0)
+
+    def test_uses_energy_gain_to_unlock_a_same_day_high_cost_play(self) -> None:
+        game = genius_game()
+        genius = game.ais[0]
+        genius.SEARCH_DEPTH = 1
+        player = game.players[0]
+        player.energy = 6
+        player.hand = [
+            make_card("weird-chip-flavor"),
+            card(2, "Big Day", cost=8, fun=8),
+        ]
+
+        # Weird Chip Flavor is the only legal first play. Its +2 Energy
+        # makes the otherwise unaffordable card worth playing immediately.
+        self.assertFalse(genius.choose_to_go_to_bed(game, 0, (0,)))
+        self.assertEqual(genius.choose_card_to_play(game, 0, (0,)), 0)
+
+    def test_saves_an_energy_enabler_without_a_follow_up_play(self) -> None:
+        game = genius_game()
+        player = game.players[0]
+        player.energy = 0
+        player.hand = [make_card("weird-chip-flavor")]
+
+        self.assertTrue(game.ais[0].choose_to_go_to_bed(game, 0, (0,)))
+
+    def test_counts_next_day_picks_when_evaluating_tomorrow_setup(self) -> None:
+        game = genius_game()
+        game.day = 1
+        player = game.players[0]
+        player.energy = 7
+        player.hand = [make_card("dates-first-noz")]
+        game.suitcase = [
+            card(100 + index, f"Suitcase {index}", cost=2, fun=2)
+            for index in range(4)
+        ]
+        game.trunk = [
+            card(200 + index, f"Trunk {index}", cost=2, fun=2)
+            for index in range(20)
+        ]
+
+        # The printed card itself scores nothing, but its Tomorrow modifier
+        # will apply to the three cards Genius is guaranteed to acquire.
+        self.assertFalse(game.ais[0].choose_to_go_to_bed(game, 0, (0,)))
+
+    def test_does_not_project_suitcase_picks_after_the_final_day(self) -> None:
+        game = genius_game()
+        game.day = 6
+        player = game.players[0]
+        player.energy = 7
+        player.hand = [make_card("dates-first-noz")]
+        game.suitcase = [
+            card(100 + index, f"Suitcase {index}", cost=2, fun=2)
+            for index in range(4)
+        ]
+        game.trunk = [
+            card(200 + index, f"Trunk {index}", cost=2, fun=2)
+            for index in range(20)
+        ]
+
+        self.assertTrue(game.ais[0].choose_to_go_to_bed(game, 0, (0,)))
+
     def test_finds_setup_payoff_sequence_without_mutating_game(self) -> None:
         game = genius_game()
         player = game.players[0]

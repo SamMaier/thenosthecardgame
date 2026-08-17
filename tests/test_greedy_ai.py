@@ -69,6 +69,31 @@ class GreedyAITests(unittest.TestCase):
 
         self.assertIsNone(choice)
 
+    def test_goes_to_bed_to_preserve_decaf_energy(self) -> None:
+        game = greedy_game()
+        player = game.players[0]
+        player.energy = 4
+        player.played_today = [CardInstance(1, DECAF)]
+        player.hand = [card(2, "Three Fun", cost=2, fun=3)]
+
+        goes_to_bed = game.ais[0].choose_to_go_to_bed(game, 0, (0,))
+
+        self.assertTrue(goes_to_bed)
+        self.assertEqual(player.energy, 4)
+        self.assertEqual(len(player.hand), 1)
+
+    def test_continuing_choice_is_cached_for_the_immediate_play(self) -> None:
+        game = greedy_game()
+        player = game.players[0]
+        player.energy = 1
+        player.hand = [card(1, "One Fun", fun=1)]
+
+        goes_to_bed = game.ais[0].choose_to_go_to_bed(game, 0, (0,))
+        choice = game.ais[0].choose_card_to_play(game, 0, (0,))
+
+        self.assertFalse(goes_to_bed)
+        self.assertEqual(choice, 0)
+
     def test_suitcase_choice_prefers_card_with_best_today_score(self) -> None:
         game = greedy_game()
         player = game.players[0]

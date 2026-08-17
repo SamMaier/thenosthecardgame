@@ -1,11 +1,114 @@
 import unittest
 from collections import Counter
 
+from thenos.ais import RandomAI
 from thenos.cards import CARD_REGISTRY, create_default_deck
+from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.game import DAILY_PICKS, DAYS_PER_GAME, PLAYER_COUNT, Game, fractional_wins
 
 
 class GameTests(unittest.TestCase):
+    def test_player_may_go_to_bed_with_a_playable_card(self) -> None:
+        class GoToBedAI(RandomAI):
+            def choose_to_go_to_bed(
+                self, game, player_index, playable_hand_indices
+            ):
+                return True
+
+        game = Game.default(seed=2)
+        game.ais[0] = GoToBedAI()
+        player = game.players[0]
+        playable = CardInstance(
+            99_100_000,
+            CardDefinition(
+                slug="playable-test",
+                title="Playable Test",
+                tags=frozenset(),
+                cost=0,
+                base_fun=1,
+            ),
+        )
+        player.hand.append(playable)
+
+        game.playing_phase()
+
+        self.assertTrue(player.asleep)
+        self.assertEqual(player.hand, [playable])
+        self.assertEqual(player.played_today, [])
+        self.assertEqual(game.starting_player, 0)
+
+    def test_active_tomorrow_card_runs_only_tomorrow_effects(self) -> None:
+        events = Counter()
+
+        class LifecycleBehavior(CardBehavior):
+            has_tomorrow_action = True
+
+            def on_start_day(self, game, player, card):
+                events["tomorrow_starts"] += 1
+
+            def on_score(self, game, player, card):
+                events["ordinary_scores"] += 1
+
+            def on_end_day(self, game, player, card):
+                events["ordinary_end_days"] += 1
+
+            def on_card_play(self, game, player, source, played_card):
+                events["ordinary_card_plays"] += 1
+
+            def on_tomorrow_card_play(
+                self, game, player, source, played_card
+            ):
+                events["tomorrow_card_plays"] += 1
+
+        game = Game.default(seed=1)
+        player = game.players[0]
+        card = CardInstance(
+            99_000_000,
+            CardDefinition(
+                slug="lifecycle-test",
+                title="Lifecycle Test",
+                tags=frozenset(),
+                cost=0,
+                base_fun=5,
+                behavior=LifecycleBehavior(),
+            ),
+        )
+        player.energy = 7
+        player.hand.append(card)
+
+        game.play_card(0, len(player.hand) - 1)
+        game.end_day()
+
+        self.assertEqual(player.fun, 5)
+        self.assertEqual(events["ordinary_scores"], 1)
+        self.assertEqual(events["ordinary_end_days"], 1)
+        self.assertEqual(events["ordinary_card_plays"], 1)
+
+        game.start_day()
+        self.assertEqual(events["tomorrow_starts"], 1)
+
+        player.hand.append(
+            CardInstance(
+                99_000_001,
+                CardDefinition(
+                    slug="ordinary-test",
+                    title="Ordinary Test",
+                    tags=frozenset(),
+                    cost=0,
+                    base_fun=1,
+                ),
+            )
+        )
+        game.play_card(0, len(player.hand) - 1)
+
+        game.end_day()
+
+        self.assertEqual(player.fun, 6)
+        self.assertEqual(events["ordinary_scores"], 1)
+        self.assertEqual(events["ordinary_end_days"], 1)
+        self.assertEqual(events["ordinary_card_plays"], 1)
+        self.assertEqual(events["tomorrow_card_plays"], 1)
+
     def test_default_deck_has_one_copy_of_each_implemented_card(self) -> None:
         counts = Counter(card.title for card in create_default_deck())
         self.assertEqual(len(counts), len(CARD_REGISTRY))

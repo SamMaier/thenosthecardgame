@@ -94,15 +94,14 @@ class PhotoShootBehavior(CardBehavior):
 
     has_tomorrow_action = True
 
-    def on_card_play(
+    def on_tomorrow_card_play(
         self,
         game: Game,
         player: PlayerState,
         source: CardInstance,
         played_card: CardInstance,
     ) -> None:
-        if source.is_tomorrow:
-            game.pick_from_suitcase(game.players.index(player))
+        game.pick_from_suitcase(game.players.index(player))
 
 
 SING_SONG = CardDefinition(

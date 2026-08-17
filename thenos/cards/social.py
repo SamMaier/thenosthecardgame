@@ -31,7 +31,7 @@ class DatesFirstNozBehavior(CardBehavior):
         if _is_after(player, source, played_card):
             game.pick_from_suitcase(game.players.index(player))
 
-    def modify_fun(
+    def modify_tomorrow_fun(
         self,
         game: Game,
         player: PlayerState,
@@ -39,7 +39,7 @@ class DatesFirstNozBehavior(CardBehavior):
         target: CardInstance,
         current_fun: int,
     ) -> int:
-        if source.is_tomorrow and _today_position(player, target) is not None:
+        if _today_position(player, target) is not None:
             return current_fun + 1
         return current_fun
 

@@ -66,16 +66,38 @@ class PlannerAI(GreedyAI):
                 ai._evaluation_depth = self._evaluation_depth + 1
         return simulation
 
-    def _future_hand_value(self, game: Game, player_index: int) -> float:
-        """Estimate one future day's best printed-value Energy allocation."""
+    def _future_hand_value(
+        self,
+        game: Game,
+        player_index: int,
+        *,
+        capacity: int | None = None,
+    ) -> float:
+        """Estimate one future day's best rules-adjusted Energy allocation."""
         player = game.players[player_index]
-        capacity = max(0, player.energy)
+        if capacity is None:
+            capacity = max(0, player.energy)
+        else:
+            capacity = max(0, capacity)
         best = [0.0] * (capacity + 1)
-        for card in player.hand:
+        for card in tuple(player.hand):
             if not card.effective_behavior.can_play(game, player, card):
                 continue
             cost = min(capacity, game.energy_cost(player_index, card))
-            value = max(0.0, self._card_value(card))
+            hand_index = player.hand.index(card)
+            player.hand.pop(hand_index)
+            player.played_today.append(card)
+            try:
+                projected_fun = game.card_fun(player_index, card)
+            finally:
+                player.played_today.pop()
+                player.hand.insert(hand_index, card)
+            value = max(
+                0.0,
+                self._card_value(card)
+                + projected_fun
+                - card.effective_base_fun,
+            )
             for energy in range(capacity, cost - 1, -1):
                 best[energy] = max(best[energy], best[energy - cost] + value)
         return best[capacity]
@@ -91,23 +113,19 @@ class PlannerAI(GreedyAI):
         if game.day >= DAYS_PER_GAME:
             return float(today_score)
 
-        # Resolve only this player's already-visible Tomorrow setup. Current
-        # implementations adjust Energy here and never consult hidden zones.
+        # Resolve only this player's already-visible Tomorrow setup. Start-day
+        # actions apply here; cost and Fun modifiers are reflected when the
+        # known hand is valued below. None of these paths consult hidden zones.
         player.energy = DAILY_ENERGY
         player.asleep = False
         for card in player.tomorrow_cards:
             card.effective_behavior.on_start_day(scoring, player, card)
 
         immediate_future = player.fun - today_score
-        tomorrow_score = sum(
-            scoring.card_fun(player_index, card)
-            for card in player.tomorrow_cards
-        )
         energy_delta = player.energy - DAILY_ENERGY
         reserve_value = self._future_hand_value(scoring, player_index)
         future_value = (
             immediate_future
-            + tomorrow_score
             + 0.65 * energy_delta
             + 0.20 * reserve_value
         )
@@ -197,6 +215,11 @@ class PlannerAI(GreedyAI):
     ) -> int:
         if not playable_hand_indices:
             raise ValueError("No playable card was supplied")
+        cached = self._take_cached_play_choice(
+            game, player_index, playable_hand_indices
+        )
+        if cached is not None:
+            return cached
         if self._evaluation_depth:
             return super().choose_card_to_play(
                 game, player_index, playable_hand_indices
@@ -204,6 +227,32 @@ class PlannerAI(GreedyAI):
         root = self._planning_copy(game)
         choice, _ = self._best_play(root, player_index, playable_hand_indices)
         return choice
+
+    def choose_to_go_to_bed(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> bool:
+        if not playable_hand_indices:
+            raise ValueError("No playable card was supplied")
+        self._pending_play_choice = None
+        if self._evaluation_depth:
+            return super().choose_to_go_to_bed(
+                game, player_index, playable_hand_indices
+            )
+
+        root = self._planning_copy(game)
+        stop_value = self._state_value(root, player_index)
+        choice, play_value = self._best_play(
+            root, player_index, playable_hand_indices
+        )
+        if play_value <= stop_value + 1e-9:
+            return True
+        self._cache_play_choice(
+            game, player_index, playable_hand_indices, choice
+        )
+        return False
 
     def choose_extra_card_to_play(
         self,

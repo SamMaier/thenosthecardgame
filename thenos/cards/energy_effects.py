@@ -195,7 +195,7 @@ class TomorrowEnergyForTagBehavior(CardBehavior):
         self.tag = tag
         self.energy_delta = energy_delta
 
-    def modify_energy_cost(
+    def modify_tomorrow_energy_cost(
         self,
         game: Game,
         player: PlayerState,
@@ -203,7 +203,7 @@ class TomorrowEnergyForTagBehavior(CardBehavior):
         target: CardInstance,
         current_cost: int,
     ) -> int:
-        if source.is_tomorrow and self.tag in target.tags:
+        if self.tag in target.tags:
             return current_cost + self.energy_delta
         return current_cost
 

@@ -37,6 +37,17 @@ class CardBehavior:
         """Modify ``target`` while ``source`` is visible."""
         return current_cost
 
+    def modify_tomorrow_energy_cost(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_cost: int,
+    ) -> int:
+        """Apply this active card's Tomorrow text to ``target``'s cost."""
+        return current_cost
+
     def modify_own_energy_cost(
         self,
         game: Game,
@@ -81,6 +92,16 @@ class CardBehavior:
         played_card: CardInstance,
     ) -> None:
         """Resolve an active card's reaction to one of its player's plays."""
+        pass
+
+    def on_tomorrow_card_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        played_card: CardInstance,
+    ) -> None:
+        """Resolve Tomorrow text reacting to one of this player's plays."""
         pass
 
     def allows_energy_gain(
@@ -139,6 +160,17 @@ class CardBehavior:
         current_fun: int,
     ) -> int:
         """Modify ``target`` while ``source`` is visible."""
+        return current_fun
+
+    def modify_tomorrow_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        """Apply this active card's Tomorrow text to ``target``'s Fun."""
         return current_fun
 
     def on_score(

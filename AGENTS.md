@@ -202,7 +202,8 @@ Preserve these core invariants:
   after its active Tomorrow day; and
 - one total win credit split across tied winners.
 
-Only visible cards affect Energy cost and scoring. Visibility order is active
-Tomorrow cards first, then today's cards from left to right. Use generic engine
-helpers such as `Game.energy_cost`, `Game.playable_hand_indices`, and
+Only visible cards affect Energy cost and scoring modifiers. Active Tomorrow
+cards apply only their Tomorrow text: they do not score printed Fun or trigger
+non-Tomorrow effects. Today's cards score from left to right. Use generic
+engine helpers such as `Game.energy_cost`, `Game.playable_hand_indices`, and
 `Game.card_fun` instead of duplicating rules in policies or reports.

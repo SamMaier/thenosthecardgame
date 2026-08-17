@@ -96,6 +96,15 @@ class RandomAI:
             raise ValueError("No playable card was supplied")
         return self.rng.choice(playable_hand_indices)
 
+    def choose_to_go_to_bed(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> bool:
+        # Preserve the plumbing baseline: play until nothing is affordable.
+        return False
+
     def choose_extra_card_to_play(
         self,
         game: Game,

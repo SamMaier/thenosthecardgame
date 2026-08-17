@@ -25,6 +25,67 @@ class GreedyAI(RandomAI):
     def __init__(self, rng: random.Random | None = None) -> None:
         super().__init__(rng)
         self._evaluation_depth = 0
+        self._pending_play_choice: tuple[tuple[object, ...], int] | None = None
+
+    @staticmethod
+    def _play_decision_key(
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> tuple[object, ...]:
+        """Identify one observable play decision without hidden card values."""
+        player = game.players[player_index]
+        public_players = tuple(
+            (
+                candidate.fun,
+                candidate.energy,
+                candidate.asleep,
+                len(candidate.hand),
+                tuple(card.instance_id for card in candidate.visible_cards),
+            )
+            for candidate in game.players
+        )
+        return (
+            id(game),
+            game.day,
+            game.starting_player,
+            player_index,
+            player.energy,
+            player.fun,
+            tuple(playable_hand_indices),
+            tuple(card.instance_id for card in player.hand),
+            tuple(card.instance_id for card in game.suitcase),
+            public_players,
+        )
+
+    def _cache_play_choice(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+        choice: int,
+    ) -> None:
+        self._pending_play_choice = (
+            self._play_decision_key(game, player_index, playable_hand_indices),
+            choice,
+        )
+
+    def _take_cached_play_choice(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> int | None:
+        pending = self._pending_play_choice
+        self._pending_play_choice = None
+        if pending is None:
+            return None
+        key, choice = pending
+        if key != self._play_decision_key(
+            game, player_index, playable_hand_indices
+        ):
+            return None
+        return choice
 
     def _choose_best(self, values: Sequence[int]) -> int:
         if not values:
@@ -66,6 +127,11 @@ class GreedyAI(RandomAI):
     ) -> int:
         if not playable_hand_indices:
             raise ValueError("No playable card was supplied")
+        cached = self._take_cached_play_choice(
+            game, player_index, playable_hand_indices
+        )
+        if cached is not None:
+            return cached
         if self._evaluation_depth:
             values = [
                 self._printed_value(game.players[player_index].hand[index])
@@ -77,6 +143,34 @@ class GreedyAI(RandomAI):
                 for index in playable_hand_indices
             ]
         return playable_hand_indices[self._choose_best(values)]
+
+    def choose_to_go_to_bed(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> bool:
+        if not playable_hand_indices:
+            raise ValueError("No playable card was supplied")
+        self._pending_play_choice = None
+        if self._evaluation_depth:
+            return False
+
+        current_score = self._score_if_day_ended(game, player_index)
+        projected_scores = [
+            self._score_after_play(game, player_index, hand_index)
+            for hand_index in playable_hand_indices
+        ]
+        best_position = self._choose_best(projected_scores)
+        if projected_scores[best_position] <= current_score:
+            return True
+        self._cache_play_choice(
+            game,
+            player_index,
+            playable_hand_indices,
+            playable_hand_indices[best_position],
+        )
+        return False
 
     def choose_extra_card_to_play(
         self,

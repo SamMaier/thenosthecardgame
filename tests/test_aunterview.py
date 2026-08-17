@@ -35,12 +35,12 @@ class AunterviewTests(unittest.TestCase):
         tomorrow_social = game.play_card(0, 0)
         tomorrow_relax = game.play_card(0, 0)
 
-        self.assertEqual(game.card_fun(0, aunterview), 1)
+        self.assertEqual(game.card_fun(0, aunterview), 0)
         self.assertEqual(game.card_fun(0, tomorrow_social), 2)
         self.assertEqual(game.card_fun(0, tomorrow_relax), 2)
 
         game.end_day()
-        self.assertEqual(player.fun, 8)
+        self.assertEqual(player.fun, 7)
         self.assertEqual(player.tomorrow_cards, [])
         self.assertFalse(aunterview.is_tomorrow)
 

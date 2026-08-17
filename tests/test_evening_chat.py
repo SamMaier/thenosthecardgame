@@ -10,6 +10,13 @@ class FirstPlayableAI(RandomAI):
         return playable_hand_indices[0]
 
 
+class PlayEveryExtraCardAI(FirstPlayableAI):
+    def choose_extra_card_to_play(
+        self, game, player_index, playable_hand_indices
+    ):
+        return playable_hand_indices[0]
+
+
 class EveningChatTests(unittest.TestCase):
     def test_printed_values_and_tags(self) -> None:
         card = make_card("evening-chat")
@@ -67,6 +74,28 @@ class EveningChatTests(unittest.TestCase):
         game.start_day()
 
         self.assertEqual(player.energy, 6)
+
+        game.end_day()
+
+        self.assertEqual(player.fun, 5)
+        self.assertEqual(player.tomorrow_cards, [])
+
+    def test_extra_play_still_makes_player_first_to_bed(self) -> None:
+        game = empty_game()
+        game.ais[0] = PlayEveryExtraCardAI(game.rng)
+        player = game.players[0]
+        player.energy = 7
+        player.hand.extend(
+            [make_card("epic-duels"), make_card("evening-chat")]
+        )
+
+        game.playing_phase()
+
+        self.assertEqual(
+            [card.title for card in player.played_today],
+            ["Epic Duels", "Evening Chat"],
+        )
+        self.assertEqual(game.starting_player, 0)
 
 
 if __name__ == "__main__":

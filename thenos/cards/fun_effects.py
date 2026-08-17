@@ -158,7 +158,7 @@ class TomorrowFunForTagBehavior(CardBehavior):
         self.tag = tag
         self.bonus = bonus
 
-    def modify_fun(
+    def modify_tomorrow_fun(
         self,
         game: Game,
         player: PlayerState,
@@ -166,7 +166,7 @@ class TomorrowFunForTagBehavior(CardBehavior):
         target: CardInstance,
         current_fun: int,
     ) -> int:
-        if source.is_tomorrow and self.tag in target.tags:
+        if self.tag in target.tags:
             return current_fun + self.bonus
         return current_fun
 

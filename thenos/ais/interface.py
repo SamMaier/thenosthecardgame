@@ -77,6 +77,14 @@ class PlayerAI(Protocol):
     ) -> int:
         """Return one of ``playable_hand_indices``."""
 
+    def choose_to_go_to_bed(
+        self,
+        game: Game,
+        player_index: int,
+        playable_hand_indices: Sequence[int],
+    ) -> bool:
+        """Whether to stop playing despite having a legal card available."""
+
     def choose_extra_card_to_play(
         self,
         game: Game,
