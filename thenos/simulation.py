@@ -354,16 +354,24 @@ def simulate_games(
             _GameJob(master_rng.getrandbits(64), seated_competitors)
         )
 
+    progress_interval = 8 if games <= 100 else 64
+    completed_games = 0
     if workers == 1:
         outcomes = map(_run_game, jobs)
         for outcome in outcomes:
             _merge_outcome(report, outcome)
+            completed_games += 1
+            if completed_games % progress_interval == 0:
+                print(f"Run {completed_games} complete", flush=True)
     else:
         chunksize = max(1, games // (workers * 4))
         with ProcessPoolExecutor(max_workers=workers) as executor:
             outcomes = executor.map(_run_game, jobs, chunksize=chunksize)
             for outcome in outcomes:
                 _merge_outcome(report, outcome)
+                completed_games += 1
+                if completed_games % progress_interval == 0:
+                    print(f"Run {completed_games} complete", flush=True)
 
     return report
 

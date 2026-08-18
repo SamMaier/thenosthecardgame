@@ -3,6 +3,7 @@ from csv import DictReader
 from collections import Counter
 from tempfile import TemporaryDirectory
 from pathlib import Path
+from unittest.mock import call, patch
 
 from thenos.cards import CARD_REGISTRY
 from thenos.simulation import (
@@ -20,6 +21,49 @@ from thenos.simulation import (
 
 
 class SimulationTests(unittest.TestCase):
+    @staticmethod
+    def _empty_outcome() -> _GameOutcome:
+        return _GameOutcome(
+            free_pick_offers=Counter(),
+            free_picks=Counter(),
+            suitcase_offers=Counter(),
+            suitcase_picks=Counter(),
+            card_acquisitions=Counter(),
+            card_plays=Counter(),
+            card_plays_without_acquisition=Counter(),
+            players=(),
+        )
+
+    def test_progress_prints_every_eight_games_for_short_runs(self) -> None:
+        with (
+            patch("thenos.simulation._run_game", return_value=self._empty_outcome()),
+            patch("thenos.simulation.print") as print_mock,
+        ):
+            simulate_games(16, seed=2026, workers=1)
+
+        self.assertEqual(
+            print_mock.call_args_list,
+            [
+                call("Run 8 complete", flush=True),
+                call("Run 16 complete", flush=True),
+            ],
+        )
+
+    def test_progress_prints_every_64_games_for_long_runs(self) -> None:
+        with (
+            patch("thenos.simulation._run_game", return_value=self._empty_outcome()),
+            patch("thenos.simulation.print") as print_mock,
+        ):
+            simulate_games(128, seed=2026, workers=1)
+
+        self.assertEqual(
+            print_mock.call_args_list,
+            [
+                call("Run 64 complete", flush=True),
+                call("Run 128 complete", flush=True),
+            ],
+        )
+
     def test_batch_collects_pick_play_and_win_statistics(self) -> None:
         report = simulate_games(10, seed=2026)
 
