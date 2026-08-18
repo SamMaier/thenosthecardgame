@@ -117,7 +117,7 @@ CHRISTMAS_NAME_DRAW = CardDefinition(
     slug="christmas-name-draw",
     title="Christmas Name Draw",
     tags=frozenset({"Event"}),
-    cost=4,
+    cost=3,
     behavior=ChristmasNameDrawBehavior(),
 )
 

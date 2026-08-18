@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from thenos.models import PlayerState
 
 
-class DatesFirstNozBehavior(CardBehavior):
+class DatesFirstNosBehavior(CardBehavior):
     """Pick from the Suitcase after later plays, then boost Tomorrow's plays."""
 
     has_tomorrow_action = True
@@ -71,7 +71,7 @@ class TellAStoryBehavior(CardBehavior):
         return card.effective_base_fun + (3 if has_previous_event else 0)
 
 
-class NewNozBookEntryBehavior(CardBehavior):
+class NewNosBookEntryBehavior(CardBehavior):
     """Score a bonus when at least five cards were played earlier today."""
 
     def fun_value(
@@ -180,21 +180,21 @@ TELL_A_STORY = CardDefinition(
     behavior=TellAStoryBehavior(),
 )
 
-NEW_NOZ_BOOK_ENTRY = CardDefinition(
-    slug="new-noz-book-entry",
-    title="New Noz Book Entry",
+NEW_NOS_BOOK_ENTRY = CardDefinition(
+    slug="new-nos-book-entry",
+    title="New Nos Book Entry",
     tags=frozenset({"Social", "Event"}),
     cost=2,
     base_fun=1,
-    behavior=NewNozBookEntryBehavior(),
+    behavior=NewNosBookEntryBehavior(),
 )
 
-DATES_FIRST_NOZ = CardDefinition(
-    slug="dates-first-noz",
-    title="Date's First Noz",
+DATES_FIRST_NOS = CardDefinition(
+    slug="dates-first-nos",
+    title="Date's First Nos",
     tags=frozenset({"Social"}),
     cost=7,
-    behavior=DatesFirstNozBehavior(),
+    behavior=DatesFirstNosBehavior(),
 )
 
 CAMPFIRE = CardDefinition(

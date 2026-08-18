@@ -88,6 +88,6 @@ LAST_YEARS_SHORTS = CardDefinition(
     slug="last-years-shorts",
     title="Last Year's Shorts",
     tags=frozenset({"Item"}),
-    cost=3,
+    cost=2,
     behavior=LastYearsShortsBehavior(),
 )

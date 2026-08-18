@@ -539,7 +539,7 @@ SCRABBLE = CardDefinition(
     title="Scrabble",
     tags=frozenset({"Board Game", "Outdoors"}),
     cost=3,
-    base_fun=1,
+    base_fun=2,
     behavior=ScrabbleBehavior(),
 )
 

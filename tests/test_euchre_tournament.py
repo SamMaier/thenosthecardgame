@@ -28,11 +28,11 @@ class EuchreTournamentTests(unittest.TestCase):
         player.energy = 7
         player.hand.append(make_card("euchre-tournament"))
 
-        item = make_card("noz-shirt")
+        item = make_card("nos-shirt")
         other = make_card("biography")
         food = make_card("fajitas")
         other_item = make_card("waterski")
-        replacement_item = make_card("noz-book")
+        replacement_item = make_card("nos-book")
         replacement_food = make_card("cheap-white")
         game.suitcase = [item, other, food, other_item]
         game.trunk = [replacement_food, replacement_item]
@@ -51,7 +51,7 @@ class EuchreTournamentTests(unittest.TestCase):
         )
         self.assertEqual(sum(player.picked_cards.values()), 2)
         self.assertEqual(sum(player.acquired_cards.values()), 2)
-        self.assertEqual(game.stats.suitcase_picks["Noz Shirt"], 1)
+        self.assertEqual(game.stats.suitcase_picks["Nos Shirt"], 1)
         self.assertEqual(game.stats.suitcase_picks["Fajitas"], 1)
         self.assertEqual(sum(game.stats.suitcase_offers.values()), 4)
 

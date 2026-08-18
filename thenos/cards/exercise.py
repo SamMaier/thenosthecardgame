@@ -240,7 +240,7 @@ class PaddleboardBehavior(CardBehavior):
 
 
 class NavySEALingBehavior(CardBehavior):
-    """Discard any number of hand cards for three Fun per discarded card."""
+    """Discard any number of hand cards for two Fun per discarded card."""
 
     def on_play(
         self,
@@ -261,7 +261,7 @@ class NavySEALingBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        return card.effective_base_fun + 3 * int(
+        return card.effective_base_fun + 2 * int(
             card.markers.get("energy_cubes", 0)
         )
 
@@ -296,7 +296,7 @@ ZUMBA = CardDefinition(
     title="Zumba",
     tags=frozenset({"Exercise"}),
     cost=4,
-    base_fun=2,
+    base_fun=1,
     behavior=ZumbaBehavior(),
 )
 
@@ -400,7 +400,7 @@ PADDLEBOARD = CardDefinition(
     title="Paddleboard",
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=4,
-    base_fun=6,
+    base_fun=5,
     behavior=PaddleboardBehavior(),
 )
 

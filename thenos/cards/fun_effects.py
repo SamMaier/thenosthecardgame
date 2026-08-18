@@ -454,6 +454,38 @@ class FunAndEnergyForTagAfterBehavior(CardBehavior):
         return current_fun
 
 
+class FunAndEnergyForAllCardsAfterBehavior(CardBehavior):
+    """Modify cost and Fun for every card played after this card today."""
+
+    def __init__(self, energy_delta: int, fun_bonus: int) -> None:
+        self.energy_delta = energy_delta
+        self.fun_bonus = fun_bonus
+
+    def modify_energy_cost(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_cost: int,
+    ) -> int:
+        if _is_after_for_cost(player, source, target):
+            return current_cost + self.energy_delta
+        return current_cost
+
+    def modify_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if _is_after(player, source, target):
+            return current_fun + self.fun_bonus
+        return current_fun
+
+
 class FunForAllCardsAfterDoubleBehavior(CardBehavior):
     """Double Fun on every card played after this card today."""
 
@@ -596,7 +628,7 @@ SCHWANK = CardDefinition(
     slug="schwank",
     title="Schwank",
     tags=frozenset({"Food"}),
-    cost=3,
+    cost=2,
     behavior=FunForNthTagDoubleBehavior("Exercise", 3),
 )
 
@@ -618,9 +650,9 @@ HIGH_END_WHITE = CardDefinition(
     behavior=FunForTagAfterBehavior("Food", 1),
 )
 
-NOZ_SHIRT = CardDefinition(
-    slug="noz-shirt",
-    title="Noz Shirt",
+NOS_SHIRT = CardDefinition(
+    slug="nos-shirt",
+    title="Nos Shirt",
     tags=frozenset({"Item"}),
     cost=1,
     behavior=FunForTagAfterBehavior("Event", 2),
@@ -631,7 +663,7 @@ EPIC_PLAYLIST = CardDefinition(
     title="Epic Playlist",
     tags=frozenset({"Item"}),
     cost=1,
-    behavior=FunForTagAfterBehavior("Social", 1),
+    behavior=FunForTagAfterBehavior("Social", 2),
 )
 
 PONYBACK = CardDefinition(
@@ -659,9 +691,9 @@ PRIME_PICNIC_TABLE = CardDefinition(
     behavior=FunAndEnergyForTagAfterBehavior("Event", -1, 1),
 )
 
-NOZ_BOOK = CardDefinition(
-    slug="noz-book",
-    title="Noz Book",
+NOS_BOOK = CardDefinition(
+    slug="nos-book",
+    title="Nos Book",
     tags=frozenset({"Item"}),
     cost=4,
     base_fun=2,
@@ -706,7 +738,7 @@ AUNTERVIEW = CardDefinition(
     slug="aunterview",
     title="Aunterview",
     tags=frozenset({"Social"}),
-    cost=2,
+    cost=1,
     behavior=TomorrowFunForTagBehavior("Social", 1),
 )
 
@@ -732,6 +764,14 @@ LONG_DISTANCE_VISITORS = CardDefinition(
     tags=frozenset({"Social"}),
     cost=6,
     behavior=PickThreeAndFunForSocialAfterBehavior(),
+)
+
+HOLD_THE_BABY = CardDefinition(
+    slug="hold-the-baby",
+    title="Hold the Baby",
+    tags=frozenset({"Social"}),
+    cost=2,
+    behavior=FunAndEnergyForAllCardsAfterBehavior(1, 2),
 )
 
 OUTDOOR_MOVIE = CardDefinition(
@@ -807,12 +847,12 @@ FUN_EFFECT_CARDS = (
     SCHWANK,
     HIGH_END_RED,
     HIGH_END_WHITE,
-    NOZ_SHIRT,
+    NOS_SHIRT,
     EPIC_PLAYLIST,
     PONYBACK,
     BUG_SPRAY,
     PRIME_PICNIC_TABLE,
-    NOZ_BOOK,
+    NOS_BOOK,
     SWEET_LAWN_CHAIR,
     BRACELET_MAKING,
     MOVIE,
@@ -821,6 +861,7 @@ FUN_EFFECT_CARDS = (
     BRING_A_FRIEND,
     DOXOLOGY,
     LONG_DISTANCE_VISITORS,
+    HOLD_THE_BABY,
     OUTDOOR_MOVIE,
     CLIFF_CLIMBING,
     ICE_WINE,

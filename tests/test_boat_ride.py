@@ -10,7 +10,7 @@ class BoatRideTests(unittest.TestCase):
         player = game.players[0]
         player.energy = 7
         player.hand.extend(
-            [make_card("boat-ride"), make_card("biography"), make_card("noz-shirt"), make_card("noz-shirt")]
+            [make_card("boat-ride"), make_card("biography"), make_card("nos-shirt"), make_card("nos-shirt")]
         )
 
         card = game.play_card(0, 0)

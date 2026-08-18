@@ -15,10 +15,10 @@ class ZumbaTests(unittest.TestCase):
 
         self.assertEqual(card.title, "Zumba")
         self.assertEqual(card.definition.cost, 4)
-        self.assertEqual(card.definition.base_fun, 2)
+        self.assertEqual(card.definition.base_fun, 1)
         self.assertEqual(card.definition.tags, frozenset({"Exercise"}))
         self.assertEqual(player.energy, 0)
-        self.assertEqual(game.card_fun(0, card), 2)
+        self.assertEqual(game.card_fun(0, card), 1)
 
         game.end_day()
 

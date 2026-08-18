@@ -114,7 +114,7 @@ class GeniusAITests(unittest.TestCase):
         game.day = 1
         player = game.players[0]
         player.energy = 7
-        player.hand = [make_card("dates-first-noz")]
+        player.hand = [make_card("dates-first-nos")]
         game.suitcase = [
             card(100 + index, f"Suitcase {index}", cost=2, fun=2)
             for index in range(4)
@@ -133,7 +133,7 @@ class GeniusAITests(unittest.TestCase):
         game.day = 6
         player = game.players[0]
         player.energy = 7
-        player.hand = [make_card("dates-first-noz")]
+        player.hand = [make_card("dates-first-nos")]
         game.suitcase = [
             card(100 + index, f"Suitcase {index}", cost=2, fun=2)
             for index in range(4)

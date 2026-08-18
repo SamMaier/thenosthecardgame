@@ -23,7 +23,7 @@ class ScrabbleTests(unittest.TestCase):
 
         self.assertEqual(card.title, "Scrabble")
         self.assertEqual(card.definition.cost, 3)
-        self.assertEqual(card.definition.base_fun, 1)
+        self.assertEqual(card.definition.base_fun, 2)
         self.assertEqual(
             card.definition.tags,
             frozenset({"Board Game", "Outdoors"}),
@@ -76,7 +76,7 @@ class ScrabbleTests(unittest.TestCase):
         self.assertEqual(player.picked_cards["Fajitas"], 1)
         self.assertEqual(player.picked_cards["Biography"], 1)
         self.assertEqual(sum(game.stats.suitcase_picks.values()), 2)
-        self.assertEqual(game.card_fun(0, card), 1)
+        self.assertEqual(game.card_fun(0, card), 2)
 
     def test_can_discard_zero_cards(self) -> None:
         game = empty_game()

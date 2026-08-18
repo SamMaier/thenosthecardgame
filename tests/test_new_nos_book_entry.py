@@ -4,11 +4,11 @@ from thenos.cards import make_card
 from tests.helpers import empty_game
 
 
-class NewNozBookEntryTests(unittest.TestCase):
+class NewNosBookEntryTests(unittest.TestCase):
     def test_printed_values_and_base_fun(self) -> None:
-        card = make_card("new-noz-book-entry")
+        card = make_card("new-nos-book-entry")
 
-        self.assertEqual(card.title, "New Noz Book Entry")
+        self.assertEqual(card.title, "New Nos Book Entry")
         self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 1)
         self.assertEqual(
@@ -21,7 +21,7 @@ class NewNozBookEntryTests(unittest.TestCase):
         player = game.players[0]
         player.energy = 2
         player.played_today.extend(make_card("tres-fute") for _ in range(4))
-        player.hand.append(make_card("new-noz-book-entry"))
+        player.hand.append(make_card("new-nos-book-entry"))
 
         card = game.play_card(0, 0)
 
@@ -32,7 +32,7 @@ class NewNozBookEntryTests(unittest.TestCase):
         player = game.players[0]
         player.energy = 2
         player.played_today.extend(make_card("tres-fute") for _ in range(5))
-        player.hand.append(make_card("new-noz-book-entry"))
+        player.hand.append(make_card("new-nos-book-entry"))
 
         card = game.play_card(0, 0)
 
@@ -43,7 +43,7 @@ class NewNozBookEntryTests(unittest.TestCase):
         player = game.players[0]
         player.energy = 2
         player.tomorrow_cards.extend(make_card("tres-fute") for _ in range(5))
-        player.hand.append(make_card("new-noz-book-entry"))
+        player.hand.append(make_card("new-nos-book-entry"))
 
         card = game.play_card(0, 0)
 

@@ -10,11 +10,11 @@ class FirstSuitcaseAI(RandomAI):
         return 0
 
 
-class DatesFirstNozTests(unittest.TestCase):
+class DatesFirstNosTests(unittest.TestCase):
     def test_printed_values_and_tags(self) -> None:
-        card = make_card("dates-first-noz")
+        card = make_card("dates-first-nos")
 
-        self.assertEqual(card.title, "Date's First Noz")
+        self.assertEqual(card.title, "Date's First Nos")
         self.assertEqual(card.definition.cost, 7)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
@@ -25,7 +25,7 @@ class DatesFirstNozTests(unittest.TestCase):
         player = game.players[0]
         player.energy = 7
         player.hand.extend(
-            [make_card("dates-first-noz"), make_card("nap"), make_card("nap")]
+            [make_card("dates-first-nos"), make_card("nap"), make_card("nap")]
         )
         first_pick = make_card("biography")
         second_pick = make_card("waterski")
@@ -53,7 +53,7 @@ class DatesFirstNozTests(unittest.TestCase):
         game = empty_game()
         player = game.players[0]
         player.energy = 7
-        player.hand.append(make_card("dates-first-noz"))
+        player.hand.append(make_card("dates-first-nos"))
 
         date = game.play_card(0, 0)
         game.end_day()

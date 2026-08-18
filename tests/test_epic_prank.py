@@ -28,7 +28,7 @@ class EpicPrankTests(unittest.TestCase):
         game.ais[0] = TargetDiscardAI(0, game.rng)
         player = game.players[0]
         player.energy = 7
-        item = make_card("noz-shirt")
+        item = make_card("nos-shirt")
         retained = make_card("biography")
         player.hand.extend([make_card("epic-prank"), item, retained])
 

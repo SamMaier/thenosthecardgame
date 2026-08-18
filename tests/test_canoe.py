@@ -10,7 +10,7 @@ class CanoeTests(unittest.TestCase):
         player = game.players[0]
         player.energy = 7
         player.hand.extend(
-            [make_card("canoe"), make_card("cheap-white"), make_card("noz-shirt")]
+            [make_card("canoe"), make_card("cheap-white"), make_card("nos-shirt")]
         )
 
         card = game.play_card(0, 0)

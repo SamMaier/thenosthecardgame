@@ -189,7 +189,7 @@ class WeddingAnniversaryTests(unittest.TestCase):
         wedding = game.play_card(0, 0)
 
         self.assertIs(wedding.effective_behavior, item.effective_behavior)
-        self.assertEqual(wedding.effective_cost, 3)
+        self.assertEqual(wedding.effective_cost, 2)
         self.assertIn(drawn, player.hand)
         self.assertTrue(item.markers["energy_cube"])
         self.assertTrue(source.markers["energy_cube"])

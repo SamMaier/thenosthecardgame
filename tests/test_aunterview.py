@@ -14,10 +14,10 @@ class AunterviewTests(unittest.TestCase):
         aunterview = game.play_card(0, 0)
 
         self.assertEqual(aunterview.title, "Aunterview")
-        self.assertEqual(aunterview.definition.cost, 2)
+        self.assertEqual(aunterview.definition.cost, 1)
         self.assertEqual(aunterview.definition.base_fun, 0)
         self.assertEqual(aunterview.definition.tags, frozenset({"Social"}))
-        self.assertEqual(player.energy, 5)
+        self.assertEqual(player.energy, 6)
 
         player.hand.extend([make_card("johnny-appleseed"), make_card("biography")])
         social = game.play_card(0, 0)

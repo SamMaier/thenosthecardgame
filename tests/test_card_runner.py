@@ -29,7 +29,7 @@ class CardRunnerTests(unittest.TestCase):
         self.assertEqual(len(self.jobs), 95)
         self.assertEqual(
             [len(job.cards) for job in self.jobs[:5]],
-            [spec[2] for spec in GROUP_SPECS],
+            [len(spec[2]) for spec in GROUP_SPECS],
         )
         self.assertTrue(all(len(job.cards) == 1 for job in self.jobs[5:]))
 
@@ -39,6 +39,7 @@ class CardRunnerTests(unittest.TestCase):
         self.assertEqual(self.jobs[1].cards[0].title, "M&Ms")
         self.assertEqual(self.jobs[4].cards[-1].title, "After Dinner Entertainment")
         self.assertEqual(self.jobs[5].cards[0].title, "The Crew")
+        self.assertEqual(self.jobs[2].cards[-1].title, "Hold the Baby")
 
     def test_existing_cards_are_removed_from_pending_group(self) -> None:
         pending = pending_cards(

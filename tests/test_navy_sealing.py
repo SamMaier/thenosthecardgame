@@ -26,7 +26,7 @@ class NavySEALingTests(unittest.TestCase):
             frozenset({"Exercise", "Outdoors"}),
         )
 
-    def test_discards_selected_hand_cards_for_three_fun_each(self) -> None:
+    def test_discards_selected_hand_cards_for_two_fun_each(self) -> None:
         game = empty_game()
         game.ais[0] = NavySEALingAI((0, 2), game.rng)
         player = game.players[0]
@@ -48,7 +48,7 @@ class NavySEALingTests(unittest.TestCase):
         )
         self.assertEqual(second_discard.markers, {})
         self.assertEqual(card.markers["energy_cubes"], 2)
-        self.assertEqual(game.card_fun(0, card), 10)
+        self.assertEqual(game.card_fun(0, card), 8)
 
     def test_may_discard_zero_cards(self) -> None:
         game = empty_game()

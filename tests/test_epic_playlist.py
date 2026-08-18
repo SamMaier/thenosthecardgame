@@ -5,7 +5,7 @@ from tests.helpers import empty_game
 
 
 class EpicPlaylistTests(unittest.TestCase):
-    def test_social_cards_after_score_one_extra_fun(self) -> None:
+    def test_social_cards_after_score_two_extra_fun(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
@@ -17,7 +17,7 @@ class EpicPlaylistTests(unittest.TestCase):
         self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
         self.assertEqual(game.card_fun(0, card), 0)
-        self.assertEqual(game.card_fun(0, social), 2)
+        self.assertEqual(game.card_fun(0, social), 3)
 
 
 if __name__ == "__main__":

@@ -23,16 +23,90 @@ from typing import Sequence
 
 MODEL = "gpt-5.6-luna"
 REASONING_EFFORT = "high"
-EXPECTED_CARD_COUNT = 151
+EXPECTED_CARD_COUNT = 152
 
-# cards.csv is intentionally sorted in these stable ranges. Every card after
-# the first five ranges is its own one-card "unique" job.
+# These cards share implementation patterns and can be handled in batches.
+# Titles are explicit so reordering cards.csv cannot change batch membership.
 GROUP_SPECS = (
-    ("pure-fun", "pure Fun cards", 19),
-    ("pure-energy", "pure Energy cards", 3),
-    ("future-fun", "cards adding Fun to cards played afterward", 24),
-    ("previous-fun", "cards adding Fun to cards played before", 4),
-    ("future-energy", "cards changing Energy costs for future cards today", 11),
+    (
+        "pure-fun",
+        "pure Fun cards",
+        (
+            "Tres Fute",
+            "Splendor",
+            "7 Wonders",
+            "Dumbed Down Settlers",
+            "Azul",
+            "Agricola",
+            "Terra Mystica",
+            "Risk",
+            "Civilization the Board Game",
+            "Kneeboard",
+            "Waterski",
+            "Spikeball",
+            "Screamer Battle",
+            "Adventure Race",
+            "Cheap White",
+            "Chalk Art",
+            "Biography",
+            "Thriller Book",
+            "Dock Fishing",
+        ),
+    ),
+    ("pure-energy", "pure Energy cards", ("M&Ms", "Fajitas", "Nap")),
+    (
+        "future-fun",
+        "cards adding Fun to cards played afterward",
+        (
+            "Trekking Through History",
+            "Euchre",
+            "Work Call",
+            "Stretch",
+            "Canoe",
+            "Water Trampoline",
+            "Water Volleyball",
+            "Cheap Red",
+            "Schwank",
+            "High-End Red",
+            "High-End White",
+            "Nos Shirt",
+            "Epic Playlist",
+            "Ponyback",
+            "Bug Spray",
+            "Prime Picnic Table",
+            "Nos Book",
+            "Sweet Lawn Chair",
+            "Bracelet Making",
+            "Movie",
+            "Johnny Appleseed",
+            "Bring a Friend",
+            "Doxology",
+            "Long Distance Visitors",
+            "Hold the Baby",
+        ),
+    ),
+    (
+        "previous-fun",
+        "cards adding Fun to cards played before",
+        ("Outdoor Movie", "Cliff Climbing", "Ice Wine", "Evening on the Dock"),
+    ),
+    (
+        "future-energy",
+        "cards changing Energy costs for future cards today",
+        (
+            "Forced Family Fun",
+            "Boat Ride",
+            "Treat Cereal",
+            "Beaver Burger",
+            "Rouladen",
+            "Zero Gravity Chair",
+            "Sunscreen",
+            "Shady Spot",
+            "Bend the Rules",
+            "Medical Advice",
+            "After Dinner Entertainment",
+        ),
+    ),
 )
 
 
@@ -97,15 +171,25 @@ def read_card_rows(repo: Path) -> list[CardRow]:
 
 def build_jobs(rows: Sequence[CardRow]) -> list[Job]:
     jobs: list[Job] = []
-    offset = 0
-    for key, label, size in GROUP_SPECS:
-        cards = tuple(rows[offset : offset + size])
-        if len(cards) != size:
-            raise RunnerError(f"Batch {key} expected {size} cards, found {len(cards)}")
-        jobs.append(Job(key, label, cards))
-        offset += size
+    rows_by_title = {normalized_title(row.title): row for row in rows}
+    grouped_titles: set[str] = set()
+    for key, label, titles in GROUP_SPECS:
+        cards: list[CardRow] = []
+        for title in titles:
+            title_key = normalized_title(title)
+            try:
+                card = rows_by_title[title_key]
+            except KeyError as error:
+                raise RunnerError(f"Batch {key} is missing card: {title}") from error
+            if title_key in grouped_titles:
+                raise RunnerError(f"Card appears in multiple batches: {title}")
+            grouped_titles.add(title_key)
+            cards.append(card)
+        jobs.append(Job(key, label, tuple(cards)))
 
-    for card in rows[offset:]:
+    for card in rows:
+        if normalized_title(card.title) in grouped_titles:
+            continue
         jobs.append(
             Job(
                 key=f"unique-{slugify(card.title)}",

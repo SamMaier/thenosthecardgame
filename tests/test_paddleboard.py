@@ -16,7 +16,7 @@ class PaddleboardTests(unittest.TestCase):
 
         self.assertEqual(card.title, "Paddleboard")
         self.assertEqual(card.definition.cost, 4)
-        self.assertEqual(card.definition.base_fun, 6)
+        self.assertEqual(card.definition.base_fun, 5)
         self.assertEqual(
             card.definition.tags,
             frozenset({"Exercise", "Outdoors"}),
@@ -70,7 +70,7 @@ class PaddleboardTests(unittest.TestCase):
         self.assertEqual(player.picked_cards["Cheap White"], 1)
         self.assertEqual(player.picked_cards["Chalk Art"], 1)
         self.assertEqual(player.picked_cards["Nap"], 1)
-        self.assertEqual(game.card_fun(0, paddleboard), 6)
+        self.assertEqual(game.card_fun(0, paddleboard), 5)
 
     def test_empty_hand_discards_and_picks_nothing(self) -> None:
         game = empty_game()
@@ -87,7 +87,7 @@ class PaddleboardTests(unittest.TestCase):
         self.assertEqual(player.hand, [])
         self.assertEqual(game.discard, [])
         self.assertEqual(game.suitcase, suitcase)
-        self.assertEqual(game.card_fun(0, paddleboard), 6)
+        self.assertEqual(game.card_fun(0, paddleboard), 5)
 
 
 if __name__ == "__main__":
