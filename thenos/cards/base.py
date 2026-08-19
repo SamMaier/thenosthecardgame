@@ -201,6 +201,11 @@ class CardDefinition:
     base_fun: int = 0
     behavior: CardBehavior = field(default_factory=CardBehavior)
 
+    def __deepcopy__(self, memo: dict[int, object]) -> CardDefinition:
+        """Share this immutable definition across copied game states."""
+        memo[id(self)] = self
+        return self
+
 
 @dataclass(slots=True)
 class CardInstance:

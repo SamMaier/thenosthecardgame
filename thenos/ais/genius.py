@@ -299,12 +299,11 @@ class GeniusAI(PlannerAI):
 
     def _state_value(self, game: Game, player_index: int) -> float:
         """Blend long-term self value with the observable score margin."""
-        same_day = copy.deepcopy(game)
-        self._add_projected_opponent_plays(same_day, player_index)
-        same_day_value = self._same_day_hand_value(same_day, player_index)
-
         scoring = copy.deepcopy(game)
         self._add_projected_opponent_plays(scoring, player_index)
+        # This copy remains private to the evaluation. Read its same-day value
+        # before scoring it instead of cloning the entire game a second time.
+        same_day_value = self._same_day_hand_value(scoring, player_index)
         scoring.end_day()
         player = scoring.players[player_index]
         own_score = player.fun
@@ -327,12 +326,18 @@ class GeniusAI(PlannerAI):
             immediate_future = player.fun - own_score
             energy_delta = player.energy - DAILY_ENERGY
             reserve_value = self._future_hand_value(scoring, player_index)
-            without_tomorrow = copy.deepcopy(scoring)
-            without_tomorrow.players[player_index].tomorrow_cards.clear()
-            ordinary_reserve_value = self._future_hand_value(
-                without_tomorrow,
-                player_index,
-            )
+            # _future_hand_value restores its temporary hand/played changes.
+            # Hide Tomorrow sources briefly rather than copying the whole
+            # scoring state solely to clear this one list.
+            tomorrow_cards = player.tomorrow_cards
+            player.tomorrow_cards = []
+            try:
+                ordinary_reserve_value = self._future_hand_value(
+                    scoring,
+                    player_index,
+                )
+            finally:
+                player.tomorrow_cards = tomorrow_cards
             tomorrow_reserve_bonus = reserve_value - ordinary_reserve_value
             future_value = (
                 immediate_future

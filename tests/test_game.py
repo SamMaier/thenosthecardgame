@@ -1,3 +1,4 @@
+import copy
 import unittest
 from collections import Counter
 
@@ -8,6 +9,21 @@ from thenos.game import DAILY_PICKS, DAYS_PER_GAME, PLAYER_COUNT, Game, fraction
 
 
 class GameTests(unittest.TestCase):
+    def test_deepcopy_shares_definition_but_copies_instance_state(self) -> None:
+        definition = CARD_REGISTRY["wedding-anniversary"]
+        original = CardInstance(
+            99_200_000,
+            definition,
+            markers={"nested": {"value": 1}},
+        )
+
+        copied = copy.deepcopy(original)
+
+        self.assertIsNot(copied, original)
+        self.assertIs(copied.definition, definition)
+        self.assertIsNot(copied.markers, original.markers)
+        self.assertIsNot(copied.markers["nested"], original.markers["nested"])
+
     def test_player_may_go_to_bed_with_a_playable_card(self) -> None:
         class GoToBedAI(RandomAI):
             def choose_to_go_to_bed(

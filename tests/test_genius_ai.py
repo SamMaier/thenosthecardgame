@@ -37,6 +37,28 @@ def genius_game(seed: int = 11) -> Game:
 
 
 class GeniusAITests(unittest.TestCase):
+    def test_state_value_uses_one_game_copy_for_simple_state(self) -> None:
+        class CopyCounter:
+            copies = 0
+
+            def __deepcopy__(self, memo):
+                type(self).copies += 1
+                copied = type(self)()
+                memo[id(self)] = copied
+                return copied
+
+        game = genius_game()
+        game.day = 1
+        player = game.players[0]
+        player.energy = 7
+        physical_card = card(1, "Simple", cost=1, fun=2)
+        physical_card.markers["copy_counter"] = CopyCounter()
+        player.hand = [physical_card]
+
+        game.ais[0]._state_value(game, 0)
+
+        self.assertEqual(CopyCounter.copies, 1)
+
     def test_uses_generic_card_values_without_title_specific_priors(self) -> None:
         genius = GeniusAI(random.Random(1))
         planner = PlannerAI(random.Random(1))
