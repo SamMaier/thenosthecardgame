@@ -365,6 +365,31 @@ class FunForNextTagWrittenCostBehavior(CardBehavior):
         return current_fun
 
 
+class FunEqualToNextTagWrittenCostBehavior(CardBehavior):
+    """Set the next matching card's Fun to twice its printed Energy cost."""
+
+    def __init__(self, tag: str, multiplier: int = 2) -> None:
+        self.tag = tag
+        self.multiplier = multiplier
+
+    def modify_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if _is_next_matching(
+            player,
+            source,
+            target,
+            lambda card: self.tag in card.tags,
+        ):
+            return self.multiplier * target.definition.cost
+        return current_fun
+
+
 class FunForNthTagBehavior(CardBehavior):
     """Add Fun to a particular matching card after this card today."""
 
@@ -746,7 +771,7 @@ BRING_A_FRIEND = CardDefinition(
     slug="bring-a-friend",
     title="Bring a Friend",
     tags=frozenset({"Social"}),
-    cost=2,
+    cost=1,
     behavior=FunForAllCardsAfterDoubleBehavior(),
 )
 
@@ -821,7 +846,7 @@ WAKEBOARD = CardDefinition(
     title="Wakeboard",
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=6,
-    base_fun=10,
+    base_fun=9,
     behavior=WakeboardBehavior(),
 )
 

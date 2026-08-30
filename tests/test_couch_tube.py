@@ -48,7 +48,7 @@ class CouchTubeTests(unittest.TestCase):
         bring_a_friend = game.play_card(0, 0)
         other = game.play_card(0, 0)
 
-        self.assertEqual(game.card_fun(0, couch_tube), 4)
+        self.assertEqual(game.card_fun(0, couch_tube), 3)
         self.assertEqual(game.card_fun(0, bring_a_friend), 0)
         self.assertEqual(game.card_fun(0, other), 6)
 

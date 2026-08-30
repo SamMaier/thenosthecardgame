@@ -400,7 +400,7 @@ PADDLEBOARD = CardDefinition(
     title="Paddleboard",
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=4,
-    base_fun=5,
+    base_fun=4,
     behavior=PaddleboardBehavior(),
 )
 

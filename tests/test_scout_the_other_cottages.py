@@ -9,7 +9,7 @@ class ScoutTheOtherCottagesTests(unittest.TestCase):
         card = make_card("scout-the-other-cottages")
 
         self.assertEqual(card.title, "Scout the Other Cottages")
-        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(
             card.definition.tags,
@@ -31,7 +31,7 @@ class ScoutTheOtherCottagesTests(unittest.TestCase):
         scout = game.play_card(0, 0)
         owner_marker = f"_scout_energy_cube_{scout.instance_id}"
 
-        self.assertEqual(player.energy, 5)
+        self.assertEqual(player.energy, 6)
         self.assertTrue(all(card.markers["energy_cube"] for card in game.suitcase))
         self.assertTrue(
             all(card.markers[owner_marker] for card in game.suitcase)

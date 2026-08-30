@@ -23,12 +23,12 @@ class WakeboardTests(unittest.TestCase):
 
         self.assertEqual(wakeboard.title, "Wakeboard")
         self.assertEqual(wakeboard.definition.cost, 6)
-        self.assertEqual(wakeboard.definition.base_fun, 10)
+        self.assertEqual(wakeboard.definition.base_fun, 9)
         self.assertEqual(
             wakeboard.definition.tags,
             frozenset({"Exercise", "Outdoors"}),
         )
-        self.assertEqual(game.card_fun(0, wakeboard), 4)
+        self.assertEqual(game.card_fun(0, wakeboard), 3)
         self.assertEqual(game.card_fun(0, before), 2)
         self.assertEqual(game.card_fun(0, after), 6)
 

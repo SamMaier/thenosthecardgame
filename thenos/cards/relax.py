@@ -5,7 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
-from thenos.cards.fun_effects import FunForTagAfterBehavior
+from thenos.cards.fun_effects import (
+    FunEqualToNextTagWrittenCostBehavior,
+    FunForTagAfterBehavior,
+)
 
 if TYPE_CHECKING:
     from thenos.game import Game
@@ -63,19 +66,11 @@ class CheesyPhoneGameBehavior(CardBehavior):
         )
 
 
-class FancyCraftBehavior(CardBehavior):
-    """Perform Unpack for +1 Fun, with an optional second Unpack."""
+class FancyCraftBehavior(FunEqualToNextTagWrittenCostBehavior):
+    """Set the next Item card's Fun to twice its printed Energy cost."""
 
-    def on_play(
-        self,
-        game: Game,
-        player: PlayerState,
-        card: CardInstance,
-    ) -> None:
-        player_index = game.players.index(player)
-        game.unpack(player_index, fun_delta=1)
-        if game.choose_optional_action(player_index, "unpack"):
-            game.unpack(player_index, fun_delta=1)
+    def __init__(self) -> None:
+        super().__init__("Item")
 
 
 class ClassicBookBehavior(CardBehavior):
@@ -287,7 +282,7 @@ FANCY_CRAFT = CardDefinition(
     slug="fancy-craft",
     title="Fancy Craft",
     tags=frozenset({"Relax"}),
-    cost=2,
+    cost=3,
     behavior=FancyCraftBehavior(),
 )
 

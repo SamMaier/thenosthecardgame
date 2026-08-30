@@ -209,7 +209,7 @@ SCOUT_THE_OTHER_COTTAGES = CardDefinition(
     slug="scout-the-other-cottages",
     title="Scout the Other Cottages",
     tags=frozenset({"Social", "Indoors"}),
-    cost=2,
+    cost=1,
     behavior=ScoutTheOtherCottagesBehavior(),
 )
 
