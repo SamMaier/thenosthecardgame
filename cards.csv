@@ -75,7 +75,7 @@ After end of day scoring is completed, return to your hand."
 Canoe,"Exercise, Outdoors",3,"2 Fun.
 The next Item card you play today scores bonus Fun equal to its written Energy cost."
 Paddleboat,"Exercise, Outdoors",4,"Whenever you pick or draw a card after this today, gain 2 Fun (place an energy cube on this card to track)."
-Paddleboard,"Exercise, Outdoors",4,"5 Fun.
+Paddleboard,"Exercise, Outdoors",4,"4 Fun.
 Discard your hand, and pick that many cards from the Suitcase."
 Kneeboard,"Exercise, Outdoors",4,5 Fun.
 Wakesurf,"Exercise, Outdoors",4,"1 Fun.
@@ -95,7 +95,7 @@ If your total score is lower than at least half of your opponents, +5 Fun."
 Slalom Start,"Exercise, Outdoors",5,"2 Fun.
 +6 Fun if you have exactly 1 card in your hand at end of day."
 Spikeball,"Exercise, Outdoors",6,7 Fun.
-Wakeboard,"Exercise, Outdoors",6,10 Fun. -1 Fun per written Energy cost on other cards you played previously or after this today.
+Wakeboard,"Exercise, Outdoors",6,9 Fun. -1 Fun per written Energy cost on other cards you played previously or after this today.
 Cliff Climbing,"Exercise, Outdoors",6,"4 Fun.
 All Outdoors cards you played previously today score +1 Fun."
 Navy SEALing,"Exercise, Outdoors",6,"4 Fun.
@@ -169,7 +169,7 @@ Early Bedtime,Relax,1,"Cannot be played as 4th or later card.
 Tomorrow: start the day with +3 energy."
 Biography,Relax,1,2 Fun.
 Cheesy Phone Game,Relax,1,1 Fun. +3 Fun if at least half your opponents have played a Relax card previously today (indicate if this was true by placing an energy cube on this card)
-Fancy Craft,Relax,2,"Perform the Unpack action, but gain 1 Fun instead of losing 1 Fun. You may optionally do this a second time after seeing the results of the first Unpack."
+Fancy Craft,Relax,3,The next item you play scores Fun double its written Energy cost.
 Thriller Book,Relax,2,3 Fun.
 Classic Book,Relax,2,2 Fun. Costs 1 Energy less per Relax card you play previously today.
 Sunrise,Relax,2,"4 Fun.
@@ -199,7 +199,7 @@ Address the Food,Social,1,"Pick a Food card from the Suitcase, then immediately 
 Johnny Appleseed,Social,1,"1 Fun.
 The next Event card you play today scores +2 Fun."
 Bend the Rules,Social,2,All Board Game cards you play after this today cost -1 energy.
-Bring a Friend,Social,2,"For all cards you play after this today, Energy costs are doubled, and Fun scored on those cards is doubled."
+Bring a Friend,Social,1,"For all cards you play after this today, Energy costs are doubled, and Fun scored on those cards is doubled."
 Medical Advice,Social,2,"Pick 3 cards from the Suitcase.
 Cards you played previously today score -1 Fun.
 Cards you play after this today cost +1 Energy."
@@ -217,7 +217,7 @@ Tomorrow: Every card you play scores +1 Fun."
 New Nos Book Entry,"Social, Event",2,"1 Fun.
 If you have played 5 or more cards previously today, +4 Fun."
 Campfire,"Social, Event, Outdoors",1,"+1 Fun for every active ""Tomorrow"" card you have today (played yesterday)"
-Scout the Other Cottages,"Social, Indoors",2,"Place an Energy cube on all cards in the Suitcase. After all scoring at end of day, add all cards that remain with your Energy cube on them to your hand.
+Scout the Other Cottages,"Social, Indoors",1,"Place an Energy cube on all cards in the Suitcase. After all scoring at end of day, add all cards that remain with your Energy cube on them to your hand.
 All cards played previously today score -1 Fun."
 Evening Chat,"Social, Indoors",3,"5 Fun.
 Immediately go to bed.

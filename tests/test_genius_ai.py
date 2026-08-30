@@ -123,6 +123,18 @@ class GeniusAITests(unittest.TestCase):
         self.assertFalse(genius.choose_to_go_to_bed(game, 0, (0,)))
         self.assertEqual(genius.choose_card_to_play(game, 0, (0,)), 0)
 
+    def test_does_not_value_unaffordable_adventure_race_as_future_play(
+        self,
+    ) -> None:
+        game = genius_game()
+        player = game.players[0]
+        player.energy = 7
+        player.hand = [make_card("adventure-race")]
+
+        self.assertEqual(game.energy_cost(0, player.hand[0]), 12)
+        self.assertEqual(game.playable_hand_indices(0), [])
+        self.assertEqual(game.ais[0]._future_hand_value(game, 0), 0.0)
+
     def test_saves_an_energy_enabler_without_a_follow_up_play(self) -> None:
         game = genius_game()
         player = game.players[0]
@@ -185,6 +197,28 @@ class GeniusAITests(unittest.TestCase):
         self.assertEqual(player.energy, before_energy)
         self.assertEqual(tuple(player.hand), before_hand)
         self.assertEqual(player.played_today, [])
+
+    def test_does_not_apply_work_call_to_every_remaining_hand_card(
+        self,
+    ) -> None:
+        game = genius_game()
+        player = game.players[0]
+        player.energy = 6
+        player.hand = [
+            CardInstance(1, WORK_CALL),
+            *(card(2 + index, f"Biography {index}", cost=1, fun=2)
+              for index in range(4)),
+        ]
+
+        # Four ordinary plays score 8 Fun. Playing Work Call first instead
+        # scores only 6 because its doubling applies to the first follow-up.
+        choice = game.ais[0].choose_card_to_play(
+            game,
+            0,
+            tuple(range(len(player.hand))),
+        )
+
+        self.assertNotEqual(choice, 0)
 
     def test_seeded_equal_choices_are_reproducible(self) -> None:
         games = [genius_game(31), genius_game(31)]

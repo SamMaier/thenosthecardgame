@@ -15,7 +15,7 @@ from thenos.models import GameStats, PlayerState
 
 PLAYER_COUNT = 4
 DAYS_PER_GAME = 6
-STARTING_HAND_SIZE = 7
+STARTING_HAND_SIZE = 4
 DAILY_ENERGY = 7
 SUITCASE_SIZE = 4
 DAILY_PICKS = 3

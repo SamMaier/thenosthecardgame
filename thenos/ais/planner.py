@@ -83,7 +83,9 @@ class PlannerAI(GreedyAI):
         for card in tuple(player.hand):
             if not card.effective_behavior.can_play(game, player, card):
                 continue
-            cost = min(capacity, game.energy_cost(player_index, card))
+            cost = game.energy_cost(player_index, card)
+            if cost > capacity:
+                continue
             hand_index = player.hand.index(card)
             player.hand.pop(hand_index)
             player.played_today.append(card)

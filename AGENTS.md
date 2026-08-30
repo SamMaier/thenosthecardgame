@@ -194,7 +194,7 @@ validated observation or decision interfaces when required.
 
 Preserve these core invariants:
 
-- exactly four players, six days, seven starting cards, seven Energy per day,
+- exactly four players, six days, four starting cards, seven Energy per day,
   three Suitcase selections per player per day, and four Suitcase slots;
 - immediate refill of a selected Suitcase slot;
 - nonnegative Energy costs and unlimited hand size;

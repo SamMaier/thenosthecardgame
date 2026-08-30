@@ -19,6 +19,7 @@ from thenos.cards.catalog import CARD_REGISTRY
 from thenos.cards.copy_effects import WeddingAnniversaryBehavior
 from thenos.cards.exercise import NavySEALingBehavior
 from thenos.cards.food import AddressTheFoodBehavior, PuddingChomeurBehavior
+from thenos.cards.fun_effects import FunForNextCardBehavior
 
 if TYPE_CHECKING:
     from thenos.game import Game
@@ -206,6 +207,47 @@ class GeniusAI(PlannerAI):
         player = game.players[player_index]
         if player.asleep or player.energy <= 0 or not player.hand:
             return 0.0
+
+        # A pending immediately-next-card effect cannot be estimated by the
+        # ordinary hand knapsack. That estimator considers each hand card in
+        # isolation, which would make every candidate appear immediately next
+        # and apply the one-shot effect repeatedly. Resolve the actual next
+        # play first, then value the remaining hand after the effect is spent.
+        if player.played_today and isinstance(
+            player.played_today[-1].effective_behavior,
+            FunForNextCardBehavior,
+        ):
+            best_value = 0.0
+            for card in tuple(player.hand):
+                if not card.effective_behavior.can_play(game, player, card):
+                    continue
+                if game.energy_cost(player_index, card) > player.energy:
+                    continue
+
+                simulation = copy.deepcopy(game)
+                simulated_player = simulation.players[player_index]
+                simulated_card = next(
+                    candidate
+                    for candidate in simulated_player.hand
+                    if candidate.instance_id == card.instance_id
+                )
+                simulation.play_card(
+                    player_index,
+                    simulated_player.hand.index(simulated_card),
+                )
+                projected_fun = simulation.card_fun(
+                    player_index, simulated_card
+                )
+                downstream_value = (
+                    0.0
+                    if simulated_player.asleep
+                    else self._future_hand_value(simulation, player_index)
+                )
+                best_value = max(
+                    best_value,
+                    projected_fun + downstream_value,
+                )
+            return best_value
 
         best_value = self._future_hand_value(game, player_index)
         has_energy_bottleneck = any(

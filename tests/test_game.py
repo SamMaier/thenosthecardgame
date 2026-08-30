@@ -5,7 +5,14 @@ from collections import Counter
 from thenos.ais import RandomAI
 from thenos.cards import CARD_REGISTRY, create_default_deck
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
-from thenos.game import DAILY_PICKS, DAYS_PER_GAME, PLAYER_COUNT, Game, fractional_wins
+from thenos.game import (
+    DAILY_PICKS,
+    DAYS_PER_GAME,
+    PLAYER_COUNT,
+    STARTING_HAND_SIZE,
+    Game,
+    fractional_wins,
+)
 
 
 class GameTests(unittest.TestCase):
@@ -142,6 +149,17 @@ class GameTests(unittest.TestCase):
         )
         self.assertAlmostEqual(sum(result.win_shares), 1.0)
         self.assertTrue(all(score >= 0 for score in result.scores))
+
+    def test_setup_deals_four_starting_cards_to_each_player(self) -> None:
+        game = Game.default(seed=12345)
+
+        game.setup()
+
+        self.assertEqual(STARTING_HAND_SIZE, 4)
+        self.assertEqual(
+            [len(player.hand) for player in game.players],
+            [4] * PLAYER_COUNT,
+        )
 
     def test_tied_players_split_one_win(self) -> None:
         self.assertEqual(fractional_wins((10, 10, 4, 2)), (0.5, 0.5, 0.0, 0.0))
