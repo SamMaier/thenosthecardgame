@@ -6,8 +6,7 @@ Current work should prioritize trustworthy card metrics, long four-Genius
 batches, reproducible seeds, and clear reporting over adding more policies.
 
 `cards.csv` is the source of truth for card wording and `rules.md` is the source
-of truth for general rules. Daily Conditions are not modeled; ask before adding
-that system.
+of truth for general rules. 
 
 ## Project map
 
