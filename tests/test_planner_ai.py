@@ -102,7 +102,7 @@ class PlannerAITests(unittest.TestCase):
         self.assertEqual(player.hand, [social_card])
         self.assertEqual(player.played_today, [])
 
-    def test_goes_to_bed_to_preserve_decaf_energy(self) -> None:
+    def test_plays_card_when_it_beats_decaf_energy_value(self) -> None:
         game = planner_game()
         game.day = DAYS_PER_GAME
         player = game.players[0]
@@ -112,7 +112,7 @@ class PlannerAITests(unittest.TestCase):
 
         goes_to_bed = game.ais[0].choose_to_go_to_bed(game, 0, (0,))
 
-        self.assertTrue(goes_to_bed)
+        self.assertFalse(goes_to_bed)
         self.assertEqual(player.energy, 4)
         self.assertEqual(len(player.hand), 1)
 

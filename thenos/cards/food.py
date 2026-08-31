@@ -407,7 +407,7 @@ AFTERNOON_COFFEE = CardDefinition(
 
 
 class DecafBehavior(CardBehavior):
-    """Score two Fun for each Energy remaining at the end of the day."""
+    """Score one Fun for each Energy remaining at the end of the day."""
 
     def fun_value(
         self,
@@ -415,14 +415,14 @@ class DecafBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        return card.effective_base_fun + 2 * player.energy
+        return card.effective_base_fun + player.energy
 
 
 DECAF = CardDefinition(
     slug="decaf",
     title="Decaf",
     tags=frozenset({"Food"}),
-    cost=3,
+    cost=0,
     behavior=DecafBehavior(),
 )
 

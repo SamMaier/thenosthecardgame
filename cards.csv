@@ -126,7 +126,7 @@ Leftovers,Food,2,"Copy the effects (but not the tags, and not the cost) of a Foo
 Treat Cereal,Food,2,The next Exercise card you play today costs -4 Energy.
 Keeper,Food,2,"2 Fun.
 Gain 1 Energy."
-Decaf,Food,3,"At end of day, each leftover Energy is worth +2 Fun."
+Decaf,Food,0,"At end of day, each leftover Energy is worth +1 Fun."
 Schwank,Food,2,The 3rd Exercise card you play after this today scores double Fun.
 Fajitas,Food,3,Gain 4 Energy.
 Beaver Burger,Food,3,5 Fun. Cards you play after this today cost +1 Energy.

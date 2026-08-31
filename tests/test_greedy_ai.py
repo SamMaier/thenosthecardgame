@@ -69,7 +69,7 @@ class GreedyAITests(unittest.TestCase):
 
         self.assertIsNone(choice)
 
-    def test_goes_to_bed_to_preserve_decaf_energy(self) -> None:
+    def test_plays_card_when_it_beats_decaf_energy_value(self) -> None:
         game = greedy_game()
         player = game.players[0]
         player.energy = 4
@@ -78,7 +78,7 @@ class GreedyAITests(unittest.TestCase):
 
         goes_to_bed = game.ais[0].choose_to_go_to_bed(game, 0, (0,))
 
-        self.assertTrue(goes_to_bed)
+        self.assertFalse(goes_to_bed)
         self.assertEqual(player.energy, 4)
         self.assertEqual(len(player.hand), 1)
 

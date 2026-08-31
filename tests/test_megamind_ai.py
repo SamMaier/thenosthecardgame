@@ -67,7 +67,7 @@ class MegamindAITests(unittest.TestCase):
                     planner._card_value(physical_card),
                 )
 
-    def test_goes_to_bed_to_preserve_end_day_energy_value(self):
+    def test_plays_card_when_it_beats_decaf_energy_value(self):
         game = megamind_game()
         game.day = 6
         player = game.players[0]
@@ -75,7 +75,7 @@ class MegamindAITests(unittest.TestCase):
         player.played_today = [CardInstance(1, DECAF)]
         player.hand = [card(2, "Three Fun", 2, 3)]
 
-        self.assertTrue(game.ais[0].choose_to_go_to_bed(game, 0, (0,)))
+        self.assertFalse(game.ais[0].choose_to_go_to_bed(game, 0, (0,)))
         self.assertEqual(player.energy, 4)
         self.assertEqual(len(player.hand), 1)
 
