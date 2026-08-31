@@ -2,7 +2,7 @@
 
 This repository is a headless Python simulator for four AI players. The rules
 engine and card catalog primarily support reproducible card-strength studies.
-Current work should prioritize trustworthy card metrics, long four-Genius
+Current work should prioritize trustworthy card metrics, long four-Megamind
 batches, reproducible seeds, and clear reporting over adding more policies.
 
 `cards.csv` is the source of truth for card wording and `rules.md` is the source
@@ -14,7 +14,9 @@ of truth for general rules.
   rotation, card statistics, and `SimulationReport.rows()`.
 - `thenos/game.py` and `thenos/models.py`: rules and the low-level statistics
   hooks for free choices, acquisitions, plays, scores, and wins.
-- `thenos/ais/genius.py`: the preferred policy for meaningful card-data runs.
+- `thenos/ais/megamind.py`: the preferred policy for meaningful card-data runs.
+- `thenos/ais/genius.py`: a deprecated policy retained only as an explicit
+  competitor option for large comparative simulations.
 - `thenos/ais/random_ai.py`: a plumbing baseline, not a card-ranking policy.
 - `thenos/ais/interface.py`: the stable `PlayerAI` decision protocol.
 - `thenos/cards/`: stateless card behaviors; per-copy state belongs in
@@ -75,9 +77,9 @@ select cards that fit already-good hands, cards can be acquired together, and
 rare-card estimates can be noisy. Preserve both with-card and without-card
 sample counts and do not rank cards from tiny denominators.
 
-## Standard four-Genius card-data run
+## Standard four-Megamind card-data run
 
-Use four copies of `GeniusAI` for card-strength data. The default
+Use four copies of `MegamindAI` for card-strength data. The default
 `python -m thenos` command uses four Random AIs; it is useful for fast plumbing
 checks, but its free pick rates should converge toward 25% and are not strategic
 rankings.
@@ -85,13 +87,13 @@ rankings.
 Use the competition runner rather than an ad-hoc `Game.run()` loop:
 
 ```python
-from thenos.ais import GeniusAI
+from thenos.ais import MegamindAI
 from thenos.simulation import Competitor, simulate_games
 
 report = simulate_games(
     32,
     seed=20260816,
-    competitors=tuple(Competitor("Genius", GeniusAI) for _ in range(4)),
+    competitors=tuple(Competitor("Megamind", MegamindAI) for _ in range(4)),
     rotate_seats=True,
     workers=16,
 )
@@ -105,14 +107,13 @@ for row in report.rows():
 ```
 
 `workers` uses independent processes through `ProcessPoolExecutor`, not
-threads. Genius lookahead is expensive: a 32-game, 16-worker run has taken
-about nine minutes on the current development machine. A many-hundred-game run
-may take hours, so run it only when requested and leave an ample command
-timeout.
+threads. Megamind is substantially faster than the deprecated Genius policy,
+but a many-hundred-game run can still take significant time, so leave an ample
+command timeout.
 
 ### Batch sizes and seeds
 
-- Use 8 games for a quick four-Genius wiring smoke test.
+- Use 8 games for a quick four-Megamind wiring smoke test.
 - Use 32 games only as a preliminary metric check; do not call it stable.
 - Use many hundreds of games for a serious card ranking.
 - Keep game counts divisible by four and enable seat rotation.
@@ -131,10 +132,10 @@ primary metrics. For analysis, also retain these denominators and diagnostics:
 - total acquisitions and plays;
 - average final score and fractional win rate for each named policy.
 
-Repeated competitor names are aggregated. With four Genius entries, the
-`Genius` result contains four player appearances per game and should have about
-a 25% per-appearance win rate. Tied winners must split one win rather than each
-receiving a full win.
+Repeated competitor names are aggregated. With four Megamind entries, the
+`Megamind` result contains four player appearances per game and should have
+about a 25% per-appearance win rate. Tied winners must split one win rather
+than each receiving a full win.
 
 When identifying best and worst cards:
 
@@ -175,12 +176,12 @@ persistent WSL Python so results are reproducible across Codex chats:
 ```powershell
 wsl.exe python3 -m unittest discover -v
 wsl.exe python3 -m thenos 32 --seed 20260815 --workers 16
-wsl.exe python3 -c "from thenos.ais import GeniusAI; from thenos.simulation import Competitor, simulate_games; r=simulate_games(8, seed=20260816, competitors=tuple(Competitor('Genius', GeniusAI) for _ in range(4)), rotate_seats=True, workers=16); print(len(r.cards), r.ais['Genius'])"
+wsl.exe python3 -c "from thenos.ais import MegamindAI; from thenos.simulation import Competitor, simulate_games; r=simulate_games(8, seed=20260816, competitors=tuple(Competitor('Megamind', MegamindAI) for _ in range(4)), rotate_seats=True, workers=16); print(len(r.cards), r.ais['Megamind'])"
 ```
 
 Do not use Python 3.8; the engine relies on Python 3.11 features such as slotted
 dataclasses. For statistics changes, complete the full tests, a seeded Random
-plumbing batch, and a seeded four-Genius smoke batch before considering the
+plumbing batch, and a seeded four-Megamind smoke batch before considering the
 work finished.
 
 ## Policy and engine constraints

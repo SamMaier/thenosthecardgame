@@ -8,10 +8,10 @@ import time
 from pathlib import Path
 
 from thenos.simulation import (
-    simulate_four_genius,
-    simulate_genius_vs_planner,
+    simulate_four_megamind,
     simulate_games,
     simulate_greedy_vs_random,
+    simulate_megamind_vs_planner,
     simulate_planner_vs_greedy,
     write_report_csv,
 )
@@ -62,14 +62,14 @@ def main() -> None:
         help="seat-balance one Planner AI against three Greedy AIs",
     )
     parser.add_argument(
-        "--genius-vs-planner",
+        "--megamind-vs-planner",
         action="store_true",
-        help="seat-balance one Genius AI against three Planner AIs",
+        help="seat-balance one Megamind AI against three Planner AIs",
     )
     parser.add_argument(
-        "--four-genius",
+        "--four-megamind",
         action="store_true",
-        help="run the standard seat-rotated four-Genius card-data batch",
+        help="run the standard seat-rotated four-Megamind card-data batch",
     )
     parser.add_argument(
         "--output",
@@ -83,30 +83,32 @@ def main() -> None:
         (
             args.greedy_vs_random,
             args.planner_vs_greedy,
-            args.genius_vs_planner,
-            args.four_genius,
+            args.megamind_vs_planner,
+            args.four_megamind,
         )
     )
     if matchup_modes > 1:
         parser.error("choose only one matchup mode")
-    if args.four_genius and args.output is None:
-        parser.error("--four-genius requires --output so card stats are preserved")
+    if args.four_megamind and args.output is None:
+        parser.error(
+            "--four-megamind requires --output so card stats are preserved"
+        )
 
     revision = _code_revision()
     started = time.perf_counter()
-    if args.four_genius:
-        report = simulate_four_genius(
+    if args.four_megamind:
+        report = simulate_four_megamind(
             args.games, args.seed, workers=args.workers
         )
-        run_mode = "four-genius"
-        competitors = "Genius,Genius,Genius,Genius"
+        run_mode = "four-megamind"
+        competitors = "Megamind,Megamind,Megamind,Megamind"
         rotate_seats = True
-    elif args.genius_vs_planner:
-        report = simulate_genius_vs_planner(
+    elif args.megamind_vs_planner:
+        report = simulate_megamind_vs_planner(
             args.games, args.seed, workers=args.workers
         )
-        run_mode = "genius-vs-planner"
-        competitors = "Genius,Planner,Planner,Planner"
+        run_mode = "megamind-vs-planner"
+        competitors = "Megamind,Planner,Planner,Planner"
         rotate_seats = True
     elif args.planner_vs_greedy:
         report = simulate_planner_vs_greedy(

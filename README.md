@@ -15,11 +15,12 @@ Run a reproducible batch simulation:
 python -m thenos 1000 --seed 1 --output results/random-1000-seed-1.csv
 ```
 
-Run the standard four-Genius card-data simulation. Four-Genius mode requires an
-output path so a long run cannot finish without persisting its report:
+Run the standard four-Megamind card-data simulation. Four-Megamind mode
+requires an output path so a long run cannot finish without persisting its
+report:
 
 ```console
-python -m thenos 4096 --seed 20260817 --four-genius --workers 16 --output results/four-genius-4096-seed-20260817.csv
+python -m thenos 4096 --seed 20260817 --four-megamind --workers 16 --output results/four-megamind-4096-seed-20260817.csv
 ```
 
 Run the standard seat-balanced AI benchmark:
@@ -30,6 +31,11 @@ python -m thenos 1000 --seed 1 --greedy-vs-random --workers 16
 
 Games are distributed across worker processes so CPU-bound AI lookahead can use
 all sixteen cores. Seeded output is identical for one or multiple workers.
+
+The older `GeniusAI` policy is deprecated and is not used by standard scripts
+or tests. It remains available for explicit large-run comparisons via
+`from thenos.ais.genius import GeniusAI`; pass it as a `Competitor` factory to
+`simulate_games` when needed.
 
 The default card table reports free pick rate, win rate after acquiring a card,
 and the difference between average final Fun with and without that card. Free

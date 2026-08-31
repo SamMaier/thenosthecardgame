@@ -12,7 +12,13 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Callable, Mapping, Sequence
 
-from thenos.ais import GeniusAI, GreedyAI, PlannerAI, PlayerAI, RandomAI
+from thenos.ais import (
+    GreedyAI,
+    MegamindAI,
+    PlannerAI,
+    PlayerAI,
+    RandomAI,
+)
 from thenos.cards.catalog import CARD_REGISTRY, create_default_deck
 from thenos.game import Game, PLAYER_COUNT
 
@@ -397,17 +403,20 @@ def simulate_greedy_vs_random(
     )
 
 
-def simulate_four_genius(
+def simulate_four_megamind(
     games: int,
     seed: int | None = None,
     *,
     workers: int = 16,
 ) -> SimulationReport:
-    """Run the standard seat-rotated four-Genius card-data batch."""
+    """Run the standard seat-rotated four-Megamind card-data batch."""
     return simulate_games(
         games,
         seed,
-        tuple(Competitor("Genius", GeniusAI) for _ in range(PLAYER_COUNT)),
+        tuple(
+            Competitor("Megamind", MegamindAI)
+            for _ in range(PLAYER_COUNT)
+        ),
         rotate_seats=True,
         workers=workers,
     )
@@ -434,18 +443,18 @@ def simulate_planner_vs_greedy(
     )
 
 
-def simulate_genius_vs_planner(
+def simulate_megamind_vs_planner(
     games: int,
     seed: int | None = None,
     *,
     workers: int = 16,
 ) -> SimulationReport:
-    """Run a seat-balanced match of one Genius against three Planners."""
+    """Run a seat-balanced match of one Megamind against three Planners."""
     return simulate_games(
         games,
         seed,
         (
-            Competitor("Genius", GeniusAI),
+            Competitor("Megamind", MegamindAI),
             Competitor("Planner", PlannerAI),
             Competitor("Planner", PlannerAI),
             Competitor("Planner", PlannerAI),

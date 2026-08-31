@@ -39,7 +39,11 @@ _TYPICAL_CARD_COST = max(
 
 
 class GeniusAI(PlannerAI):
-    """Use wide multi-turn search and opponent-aware terminal values.
+    """Deprecated high-compute policy retained for explicit comparisons.
+
+    New simulations should use :class:`thenos.ais.megamind.MegamindAI`.
+    ``GeniusAI`` remains available as an explicit ``Competitor`` factory for
+    large comparative runs, but is no longer used by standard scripts or tests.
 
     The policy models only observable state. Before any hypothetical card can
     draw from the Trunk, hidden cards are sampled from the public catalog after
