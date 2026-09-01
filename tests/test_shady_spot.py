@@ -5,22 +5,22 @@ from tests.helpers import empty_game
 
 
 class ShadySpotTests(unittest.TestCase):
-    def test_outdoors_cards_after_cost_one_less(self) -> None:
+    def test_next_outdoors_card_costs_half_rounded_down(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 9
+        player.energy = 7
         player.hand.extend(
-            [make_card("shady-spot"), make_card("waterski"), make_card("biography")]
+            [make_card("shady-spot"), make_card("waterski"), make_card("dock-fishing")]
         )
 
         card = game.play_card(0, 0)
         outdoors = game.play_card(0, 0)
-        indoors = game.play_card(0, 0)
+        later_outdoors = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.tags, frozenset({"Relax"}))
-        self.assertEqual(game.energy_cost(0, indoors), 1)
-        self.assertEqual(player.energy, 0)
+        self.assertEqual(game.energy_cost(0, later_outdoors), 1)
+        self.assertEqual(player.energy, 2)
         self.assertEqual(outdoors.definition.cost, 5)
 
 

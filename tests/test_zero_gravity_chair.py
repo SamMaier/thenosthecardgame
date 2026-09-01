@@ -17,10 +17,10 @@ class ZeroGravityChairTests(unittest.TestCase):
         relax = game.play_card(0, 0)
         non_relax = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
         self.assertEqual(game.energy_cost(0, non_relax), 2)
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(player.energy, 4)
         self.assertEqual(relax.definition.cost, 1)
 
 

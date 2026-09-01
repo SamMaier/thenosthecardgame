@@ -20,7 +20,7 @@ class GroceryStoreRunTests(unittest.TestCase):
         card = make_card("grocery-store-run")
 
         self.assertEqual(card.title, "Grocery Store Run")
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Food", "Event"}))
 
@@ -47,7 +47,7 @@ class GroceryStoreRunTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(player.energy, 4)
         self.assertEqual(player.hand, [first_food, second_food])
         self.assertEqual(player.acquired_cards[first_food.title], 1)
         self.assertEqual(player.acquired_cards[second_food.title], 1)

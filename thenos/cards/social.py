@@ -89,7 +89,7 @@ class NewNosBookEntryBehavior(CardBehavior):
 
 
 class CampfireBehavior(CardBehavior):
-    """Score one Fun for each active Tomorrow card this player has."""
+    """Score two Fun for each active Tomorrow card this player has."""
 
     def fun_value(
         self,
@@ -97,7 +97,7 @@ class CampfireBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        return card.effective_base_fun + len(player.tomorrow_cards)
+        return card.effective_base_fun + 2 * len(player.tomorrow_cards)
 
 
 class ScoutTheOtherCottagesBehavior(FunForAllCardsBeforeBehavior):
@@ -193,7 +193,7 @@ DATES_FIRST_NOS = CardDefinition(
     slug="dates-first-nos",
     title="Date's First Nos",
     tags=frozenset({"Social"}),
-    cost=7,
+    cost=6,
     behavior=DatesFirstNosBehavior(),
 )
 
@@ -201,7 +201,7 @@ CAMPFIRE = CardDefinition(
     slug="campfire",
     title="Campfire",
     tags=frozenset({"Social", "Event", "Outdoors"}),
-    cost=1,
+    cost=2,
     behavior=CampfireBehavior(),
 )
 

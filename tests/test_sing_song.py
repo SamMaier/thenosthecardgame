@@ -10,47 +10,32 @@ class SingSongTests(unittest.TestCase):
 
         self.assertEqual(card.title, "Sing Song")
         self.assertEqual(card.definition.cost, 4)
-        self.assertEqual(card.definition.base_fun, 1)
+        self.assertEqual(card.definition.base_fun, 4)
         self.assertEqual(card.definition.tags, frozenset({"Event"}))
 
-    def test_scores_one_fun_for_each_unique_tag_played_by_end_of_day(self) -> None:
+    def test_costs_one_less_for_each_opponent_with_an_event_today(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 10
-        player.hand.extend(
-            [
-                make_card("sing-song"),
-                make_card("waterski"),
-                make_card("biography"),
-            ]
-        )
-
-        sing_song = game.play_card(0, 0)
-        game.play_card(0, 0)
-        game.play_card(0, 0)
-
-        # Event, Exercise, Outdoors, and Relax are four distinct tags.
-        self.assertEqual(game.card_fun(0, sing_song), 5)
-
-        game.end_day()
-
-        self.assertEqual(player.fun, 13)
-
-    def test_duplicate_tags_count_once_and_active_tomorrow_tags_do_not_count(self) -> None:
-        game = empty_game()
-        player = game.players[0]
-        player.energy = 4
+        player.energy = 7
         player.hand.append(make_card("sing-song"))
+        game.players[1].played_today.append(make_card("work-call"))
+        game.players[2].played_today.append(make_card("photo-shoot"))
+        game.players[3].played_today.append(make_card("biography"))
 
-        tomorrow_card = make_card("waterski")
-        tomorrow_card.is_tomorrow = True
-        player.tomorrow_cards.append(tomorrow_card)
-
+        self.assertEqual(game.energy_cost(0, player.hand[0]), 2)
         sing_song = game.play_card(0, 0)
+        self.assertEqual(player.energy, 5)
+        self.assertEqual(game.card_fun(0, sing_song), 4)
 
-        # Sing Song's Event tag is the only tag played today; the duplicate
-        # Outdoors/Exercise tags on the active Tomorrow card are excluded.
-        self.assertEqual(game.card_fun(0, sing_song), 2)
+    def test_each_opponent_reduces_cost_at_most_once(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 7
+        player.hand.append(make_card("sing-song"))
+        game.players[1].played_today.extend(
+            [make_card("work-call"), make_card("photo-shoot")]
+        )
+        self.assertEqual(game.energy_cost(0, player.hand[0]), 3)
 
 
 if __name__ == "__main__":

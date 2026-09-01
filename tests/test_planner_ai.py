@@ -98,7 +98,7 @@ class PlannerAITests(unittest.TestCase):
         player.tomorrow_cards = [aunterview]
         with_tomorrow = game.ais[0]._future_hand_value(game, 0)
 
-        self.assertAlmostEqual(with_tomorrow, baseline + 1.0)
+        self.assertAlmostEqual(with_tomorrow, baseline + 2.0)
         self.assertEqual(player.hand, [social_card])
         self.assertEqual(player.played_today, [])
 

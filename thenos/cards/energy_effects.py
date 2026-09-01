@@ -247,20 +247,24 @@ class MedicalAdviceBehavior(CardBehavior):
 
 
 class AfterDinnerEntertainmentBehavior(EnergyForNextTagBehavior):
-    """Discount the next Social card and enable Tomorrow's extra-pick option."""
-
-    has_tomorrow_action = True
+    """Discount and add Fun to the next Social card today."""
 
     def __init__(self) -> None:
-        super().__init__("Social", -1)
+        super().__init__("Social", -2)
 
-    def allows_extra_suitcase_pick(
+    def modify_fun(
         self,
         game: Game,
         player: PlayerState,
-        card: CardInstance,
-    ) -> bool:
-        return True
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if _is_next_matching_for_cost(
+            player, source, target, lambda candidate: "Social" in candidate.tags
+        ):
+            return current_fun + 2
+        return current_fun
 
 
 FORCED_FAMILY_FUN = CardDefinition(
@@ -305,11 +309,20 @@ ROULADEN = CardDefinition(
     behavior=EnergyForAllCardsAfterBehavior(-1),
 )
 
+PONYBACK = CardDefinition(
+    slug="ponyback",
+    title="Ponyback",
+    tags=frozenset({"Item"}),
+    cost=2,
+    base_fun=1,
+    behavior=TomorrowEnergyForTagBehavior("Outdoors", -1),
+)
+
 ZERO_GRAVITY_CHAIR = CardDefinition(
     slug="zero-gravity-chair",
     title="Zero Gravity Chair",
     tags=frozenset({"Item"}),
-    cost=2,
+    cost=1,
     behavior=EnergyForTagAfterBehavior("Relax", -1),
 )
 
@@ -317,7 +330,7 @@ SUNSCREEN = CardDefinition(
     slug="sunscreen",
     title="Sunscreen",
     tags=frozenset({"Item"}),
-    cost=4,
+    cost=3,
     behavior=EnergyForTagAfterBehavior("Outdoors", -1),
 )
 
@@ -325,15 +338,15 @@ SHADY_SPOT = CardDefinition(
     slug="shady-spot",
     title="Shady Spot",
     tags=frozenset({"Relax"}),
-    cost=4,
-    behavior=EnergyForTagAfterBehavior("Outdoors", -1),
+    cost=2,
+    behavior=HalfEnergyForNextTagBehavior("Outdoors"),
 )
 
 BEND_THE_RULES = CardDefinition(
     slug="bend-the-rules",
     title="Bend the Rules",
     tags=frozenset({"Social"}),
-    cost=2,
+    cost=1,
     behavior=EnergyForTagAfterBehavior("Board Game", -1),
 )
 
@@ -341,7 +354,7 @@ MEDICAL_ADVICE = CardDefinition(
     slug="medical-advice",
     title="Medical Advice",
     tags=frozenset({"Social"}),
-    cost=2,
+    cost=1,
     behavior=MedicalAdviceBehavior(),
 )
 
@@ -377,6 +390,7 @@ ENERGY_EFFECT_CARDS = (
     TREAT_CEREAL,
     BEAVER_BURGER,
     ROULADEN,
+    PONYBACK,
     ZERO_GRAVITY_CHAIR,
     SUNSCREEN,
     SHADY_SPOT,

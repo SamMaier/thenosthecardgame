@@ -560,8 +560,8 @@ TREKKING_THROUGH_HISTORY = CardDefinition(
     slug="trekking-through-history",
     title="Trekking Through History",
     tags=frozenset({"Board Game"}),
-    cost=3,
-    behavior=FunForTagTodayBehavior("Board Game", 1),
+    cost=2,
+    behavior=FunForTagsBeforeAndAfterBehavior(frozenset({"Board Game"}), 1),
 )
 
 FAMILY_BASEBALL_GAME = CardDefinition(
@@ -586,7 +586,7 @@ WORK_CALL = CardDefinition(
     slug="work-call",
     title="Work Call",
     tags=frozenset({"Event", "Indoors"}),
-    cost=2,
+    cost=1,
     base_fun=-4,
     behavior=FunForNextCardBehavior(2),
 )
@@ -596,7 +596,7 @@ STRETCH = CardDefinition(
     title="Stretch",
     tags=frozenset({"Exercise"}),
     cost=1,
-    behavior=FunForTagAfterBehavior("Exercise", 1),
+    behavior=FunForTagAfterBehavior("Exercise", 2),
 )
 
 CANOE = CardDefinition(
@@ -646,7 +646,7 @@ CHEAP_RED = CardDefinition(
     tags=frozenset({"Food"}),
     cost=2,
     base_fun=2,
-    behavior=FunForNextTagBehavior("Food", 1),
+    behavior=FunForNextTagBehavior("Food", 2),
 )
 
 SCHWANK = CardDefinition(
@@ -661,8 +661,7 @@ HIGH_END_RED = CardDefinition(
     slug="high-end-red",
     title="High-End Red",
     tags=frozenset({"Food"}),
-    cost=4,
-    base_fun=1,
+    cost=3,
     behavior=FunForTagAfterBehavior("Food", 2),
 )
 
@@ -670,8 +669,8 @@ HIGH_END_WHITE = CardDefinition(
     slug="high-end-white",
     title="High-End White",
     tags=frozenset({"Food"}),
-    cost=4,
-    base_fun=3,
+    cost=3,
+    base_fun=2,
     behavior=FunForTagAfterBehavior("Food", 1),
 )
 
@@ -689,15 +688,6 @@ EPIC_PLAYLIST = CardDefinition(
     tags=frozenset({"Item"}),
     cost=1,
     behavior=FunForTagAfterBehavior("Social", 2),
-)
-
-PONYBACK = CardDefinition(
-    slug="ponyback",
-    title="Ponyback",
-    tags=frozenset({"Item"}),
-    cost=2,
-    base_fun=1,
-    behavior=FunForNthTagBehavior("Outdoors", 3, 3),
 )
 
 BUG_SPRAY = CardDefinition(
@@ -720,8 +710,8 @@ NOS_BOOK = CardDefinition(
     slug="nos-book",
     title="Nos Book",
     tags=frozenset({"Item"}),
-    cost=4,
-    base_fun=2,
+    cost=2,
+    base_fun=1,
     behavior=FunForTagsBeforeAndAfterBehavior(frozenset({"Social", "Event"}), 1),
 )
 
@@ -729,7 +719,7 @@ SWEET_LAWN_CHAIR = CardDefinition(
     slug="sweet-lawn-chair",
     title="Sweet Lawn Chair",
     tags=frozenset({"Item"}),
-    cost=4,
+    cost=3,
     behavior=FunForTagAfterBehavior("Relax", 1),
 )
 
@@ -747,6 +737,7 @@ MOVIE = CardDefinition(
     title="Movie",
     tags=frozenset({"Relax", "Indoors"}),
     cost=1,
+    base_fun=1,
     behavior=FunForTagAfterBehavior("Indoors", 2),
 )
 
@@ -763,8 +754,9 @@ AUNTERVIEW = CardDefinition(
     slug="aunterview",
     title="Aunterview",
     tags=frozenset({"Social"}),
-    cost=1,
-    behavior=TomorrowFunForTagBehavior("Social", 1),
+    cost=2,
+    base_fun=1,
+    behavior=TomorrowFunForTagBehavior("Social", 2),
 )
 
 BRING_A_FRIEND = CardDefinition(
@@ -779,7 +771,7 @@ DOXOLOGY = CardDefinition(
     slug="doxology",
     title="Doxology",
     tags=frozenset({"Social"}),
-    cost=2,
+    cost=1,
     behavior=FunForTagAfterBehavior("Social", 1),
 )
 
@@ -787,7 +779,7 @@ LONG_DISTANCE_VISITORS = CardDefinition(
     slug="long-distance-visitors",
     title="Long Distance Visitors",
     tags=frozenset({"Social"}),
-    cost=6,
+    cost=4,
     behavior=PickThreeAndFunForSocialAfterBehavior(),
 )
 
@@ -812,9 +804,9 @@ CLIFF_CLIMBING = CardDefinition(
     slug="cliff-climbing",
     title="Cliff Climbing",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=6,
-    base_fun=4,
-    behavior=FunForTagBeforeBehavior("Outdoors", 1),
+    cost=5,
+    base_fun=3,
+    behavior=FunForTagBeforeBehavior("Outdoors", 2),
 )
 
 ICE_WINE = CardDefinition(
@@ -829,7 +821,7 @@ EVENING_ON_THE_DOCK = CardDefinition(
     slug="evening-on-the-dock",
     title="Evening on the Dock",
     tags=frozenset({"Relax", "Social"}),
-    cost=5,
+    cost=4,
     behavior=FunForAllCardsBeforeBehavior(1),
 )
 
@@ -845,16 +837,15 @@ WAKEBOARD = CardDefinition(
     slug="wakeboard",
     title="Wakeboard",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=6,
-    base_fun=9,
-    behavior=WakeboardBehavior(),
+    cost=8,
+    base_fun=10,
 )
 
 TEACH_KID_TO_SKI = CardDefinition(
     slug="teach-kid-to-ski",
     title="Teach Kid to Ski",
     tags=frozenset({"Event", "Outdoors"}),
-    cost=3,
+    cost=2,
     behavior=TomorrowFunForTagBehavior("Exercise", 1),
 )
 
@@ -874,7 +865,6 @@ FUN_EFFECT_CARDS = (
     HIGH_END_WHITE,
     NOS_SHIRT,
     EPIC_PLAYLIST,
-    PONYBACK,
     BUG_SPRAY,
     PRIME_PICNIC_TABLE,
     NOS_BOOK,

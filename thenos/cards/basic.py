@@ -219,7 +219,7 @@ class PuertoRicoBehavior(CardBehavior):
             and bool(target.markers.get(target_marker))
             and any(suitcase_card is target for suitcase_card in game.suitcase)
         )
-        return card.effective_base_fun + (4 if target_survived else 0)
+        return card.effective_base_fun + (3 if target_survived else 0)
 
 
 class SettlersCitiesAndKnightsBehavior(CardBehavior):
@@ -251,7 +251,7 @@ class SettlersCitiesAndKnightsBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        bonus = 4 if card.markers.get("discarded_card") else 0
+        bonus = 3 if card.markers.get("discarded_card") else 0
         return card.effective_base_fun + bonus
 
 
@@ -331,7 +331,7 @@ class FitToPrintBehavior(CardBehavior):
 
 
 class EuchreTournamentBehavior(CardBehavior):
-    """Pick the currently visible Item and Food cards from the Suitcase."""
+    """Draw four cards, then discard four cards from hand."""
 
     def on_play(
         self,
@@ -339,13 +339,17 @@ class EuchreTournamentBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        targets = tuple(
-            suitcase_card
-            for suitcase_card in game.suitcase
-            if {"Item", "Food"} & suitcase_card.tags
-        )
-        if targets:
-            game.pick_suitcase_cards(game.players.index(player), targets)
+        player_index = game.players.index(player)
+        for drawn_card in game.draw_from_trunk(player_index, 4):
+            game.give_card(player_index, drawn_card)
+        for _ in range(4):
+            hand = tuple(player.hand)
+            choice = game.ais[player_index].choose_card_to_discard(
+                game, player_index, hand
+            )
+            if choice < 0 or choice >= len(hand):
+                raise ValueError(f"AI returned invalid hand discard index: {choice}")
+            game.discard_from_hand(player_index, choice)
 
 
 class EuchreTournamentAwardsCeremonyBehavior(CardBehavior):
@@ -522,7 +526,7 @@ EUCHRE_TOURNAMENT_AWARDS_CEREMONY = CardDefinition(
     slug="euchre-tournament-awards-ceremony",
     title="Euchre Tournament Awards Ceremony",
     tags=frozenset({"Event", "Outdoors"}),
-    cost=4,
+    cost=3,
     behavior=EuchreTournamentAwardsCeremonyBehavior(),
 )
 
@@ -530,7 +534,7 @@ MAKE_PLANS = CardDefinition(
     slug="make-plans",
     title="Make Plans",
     tags=frozenset({"Social"}),
-    cost=3,
+    cost=2,
     behavior=MakePlansBehavior(),
 )
 

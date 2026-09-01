@@ -18,10 +18,10 @@ class NosBookTests(unittest.TestCase):
         after = game.play_card(0, 0)
 
         self.assertEqual(card.title, "Nos Book")
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
         self.assertEqual(game.card_fun(0, before), 2)
-        self.assertEqual(game.card_fun(0, card), 2)
+        self.assertEqual(game.card_fun(0, card), 1)
         self.assertEqual(game.card_fun(0, after), -1)
 
 

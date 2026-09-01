@@ -12,12 +12,12 @@ class PrimePicnicTableTests(unittest.TestCase):
         player.hand.extend([make_card("prime-picnic-table"), make_card("work-call")])
 
         card = game.play_card(0, 0)
-        self.assertEqual(game.energy_cost(0, player.hand[0]), 1)
+        self.assertEqual(game.energy_cost(0, player.hand[0]), 0)
         event = game.play_card(0, 0)
 
         self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(player.energy, 4)
         self.assertEqual(game.card_fun(0, event), -3)
 
 

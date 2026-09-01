@@ -17,10 +17,10 @@ class BendTheRulesTests(unittest.TestCase):
         board_game = game.play_card(0, 0)
         non_board_game = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
         self.assertEqual(game.energy_cost(0, non_board_game), 1)
-        self.assertEqual(player.energy, 2)
+        self.assertEqual(player.energy, 3)
         self.assertEqual(board_game.definition.cost, 3)
 
 

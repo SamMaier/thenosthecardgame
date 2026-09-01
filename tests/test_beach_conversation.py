@@ -27,7 +27,7 @@ class BeachConversationTests(unittest.TestCase):
         game.play_card(0, 0)
         card = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 6)
+        self.assertEqual(player.energy, 5)
         self.assertEqual(game.card_fun(0, card), 2)
 
     def test_only_the_immediately_previous_card_counts(self) -> None:
@@ -46,7 +46,7 @@ class BeachConversationTests(unittest.TestCase):
         game.play_card(0, 0)
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(player.energy, 2)
 
     def test_active_tomorrow_card_does_not_count_as_last_played(self) -> None:
         game = empty_game()

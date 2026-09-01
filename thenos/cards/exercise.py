@@ -391,7 +391,7 @@ PADDLEBOAT = CardDefinition(
     slug="paddleboat",
     title="Paddleboat",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=4,
+    cost=3,
     behavior=PaddleboatBehavior(),
 )
 
@@ -409,7 +409,7 @@ NAVY_SEALING = CardDefinition(
     title="Navy SEALing",
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=6,
-    base_fun=4,
+    base_fun=3,
     behavior=NavySEALingBehavior(),
 )
 

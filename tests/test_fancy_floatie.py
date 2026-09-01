@@ -58,6 +58,24 @@ class FancyFloatieTests(unittest.TestCase):
         self.assertEqual(sum(player.picked_cards.values()), 0)
         self.assertEqual(sum(game.stats.suitcase_offers.values()), 0)
 
+    def test_tomorrow_relax_cards_score_one_more_fun(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 2
+        player.hand.append(make_card("fancy-floatie"))
+        game.suitcase = [make_card("fajitas") for _ in range(4)]
+
+        floatie = game.play_card(0, 0)
+        game.end_day()
+        game.start_day()
+        player.hand.extend([make_card("biography"), make_card("tres-fute")])
+        relax = game.play_card(0, 0)
+        board_game = game.play_card(0, 0)
+
+        self.assertIn(floatie, player.tomorrow_cards)
+        self.assertEqual(game.card_fun(0, relax), 3)
+        self.assertEqual(game.card_fun(0, board_game), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

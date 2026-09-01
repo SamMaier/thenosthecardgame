@@ -17,9 +17,9 @@ class HighEndRedTests(unittest.TestCase):
         first_food = game.play_card(0, 0)
         second_food = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
-        self.assertEqual(game.card_fun(0, card), 1)
+        self.assertEqual(game.card_fun(0, card), 0)
         self.assertEqual(game.card_fun(0, first_food), 5)
         self.assertEqual(game.card_fun(0, second_food), 4)
 

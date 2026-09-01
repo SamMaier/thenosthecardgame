@@ -23,15 +23,15 @@ class CliffClimbingTests(unittest.TestCase):
         card = game.play_card(0, 0)
         outdoors_after = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 6)
-        self.assertEqual(card.definition.base_fun, 4)
+        self.assertEqual(card.definition.cost, 5)
+        self.assertEqual(card.definition.base_fun, 3)
         self.assertEqual(
             card.definition.tags,
             frozenset({"Exercise", "Outdoors"}),
         )
-        self.assertEqual(game.card_fun(0, outdoors_before), 7)
+        self.assertEqual(game.card_fun(0, outdoors_before), 8)
         self.assertEqual(game.card_fun(0, other_before), 2)
-        self.assertEqual(game.card_fun(0, card), 4)
+        self.assertEqual(game.card_fun(0, card), 3)
         self.assertEqual(game.card_fun(0, outdoors_after), 6)
 
 

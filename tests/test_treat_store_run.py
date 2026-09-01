@@ -9,7 +9,7 @@ class TreatStoreRunTests(unittest.TestCase):
         card = make_card("treat-store-run")
 
         self.assertEqual(card.title, "Treat Store Run")
-        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Food", "Event"}))
 

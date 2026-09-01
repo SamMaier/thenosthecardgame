@@ -20,7 +20,7 @@ class NavySEALingTests(unittest.TestCase):
 
         self.assertEqual(card.title, "Navy SEALing")
         self.assertEqual(card.definition.cost, 6)
-        self.assertEqual(card.definition.base_fun, 4)
+        self.assertEqual(card.definition.base_fun, 3)
         self.assertEqual(
             card.definition.tags,
             frozenset({"Exercise", "Outdoors"}),
@@ -48,7 +48,7 @@ class NavySEALingTests(unittest.TestCase):
         )
         self.assertEqual(second_discard.markers, {})
         self.assertEqual(card.markers["energy_cubes"], 2)
-        self.assertEqual(game.card_fun(0, card), 8)
+        self.assertEqual(game.card_fun(0, card), 7)
 
     def test_may_discard_zero_cards(self) -> None:
         game = empty_game()
@@ -63,7 +63,7 @@ class NavySEALingTests(unittest.TestCase):
         self.assertEqual(player.hand, [])
         self.assertEqual(game.discard, [])
         self.assertEqual(card.markers["energy_cubes"], 0)
-        self.assertEqual(game.card_fun(0, card), 4)
+        self.assertEqual(game.card_fun(0, card), 3)
 
 
 if __name__ == "__main__":

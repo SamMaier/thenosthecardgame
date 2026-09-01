@@ -29,13 +29,13 @@ BUTTER_TARTS = CardDefinition(
     slug="butter-tarts",
     title="Butter Tarts",
     tags=frozenset({"Food"}),
-    cost=4,
+    cost=3,
     behavior=ButterTartsBehavior(),
 )
 
 
 class DoritosBehavior(CardBehavior):
-    """Gain Energy after playing at least two earlier Food cards today."""
+    """Gain Energy after playing an earlier Food card today."""
 
     def on_play(
         self,
@@ -58,7 +58,7 @@ class DoritosBehavior(CardBehavior):
             "Food" in played_card.tags
             for played_card in player.played_today[:card_position]
         )
-        if food_cards_played >= 2:
+        if food_cards_played >= 1:
             game.gain_energy(player, 2, card)
 
 
@@ -526,13 +526,13 @@ TREAT_STORE_RUN = CardDefinition(
     slug="treat-store-run",
     title="Treat Store Run",
     tags=frozenset({"Food", "Event"}),
-    cost=2,
+    cost=1,
     behavior=TreatStoreRunBehavior(),
 )
 
 
 class AddressTheFoodBehavior(CardBehavior):
-    """Pick a Food card and play it for one less Energy."""
+    """Pick a Food card and immediately play it for free."""
 
     def on_play(
         self,
@@ -555,8 +555,7 @@ class AddressTheFoodBehavior(CardBehavior):
         game.play_card_for_effect(
             player_index,
             picked_card,
-            cost_adjustment=-1,
-            pay_energy=True,
+            pay_energy=False,
         )
 
 
@@ -564,7 +563,7 @@ ADDRESS_THE_FOOD = CardDefinition(
     slug="address-the-food",
     title="Address the Food",
     tags=frozenset({"Social"}),
-    cost=1,
+    cost=2,
     behavior=AddressTheFoodBehavior(),
 )
 
@@ -600,7 +599,7 @@ GROCERY_STORE_RUN = CardDefinition(
     slug="grocery-store-run",
     title="Grocery Store Run",
     tags=frozenset({"Food", "Event"}),
-    cost=4,
+    cost=3,
     behavior=GroceryStoreRunBehavior(),
 )
 

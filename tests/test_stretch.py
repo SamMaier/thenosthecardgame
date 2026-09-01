@@ -17,7 +17,7 @@ class StretchTests(unittest.TestCase):
         self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.tags, frozenset({"Exercise"}))
         self.assertEqual(game.card_fun(0, card), 0)
-        self.assertEqual(game.card_fun(0, exercise), 7)
+        self.assertEqual(game.card_fun(0, exercise), 8)
 
 
 if __name__ == "__main__":

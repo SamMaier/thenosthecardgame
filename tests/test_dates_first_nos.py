@@ -15,7 +15,7 @@ class DatesFirstNosTests(unittest.TestCase):
         card = make_card("dates-first-nos")
 
         self.assertEqual(card.title, "Date's First Nos")
-        self.assertEqual(card.definition.cost, 7)
+        self.assertEqual(card.definition.cost, 6)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
 

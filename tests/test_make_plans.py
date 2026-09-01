@@ -15,7 +15,7 @@ class MakePlansTests(unittest.TestCase):
         card = make_card("make-plans")
 
         self.assertEqual(card.title, "Make Plans")
-        self.assertEqual(card.definition.cost, 3)
+        self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
 
@@ -39,7 +39,7 @@ class MakePlansTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 4)
+        self.assertEqual(player.energy, 5)
         self.assertIn(first_pick, player.hand)
         self.assertIn(second_pick, player.hand)
         self.assertIs(game.suitcase[0], second_replacement)

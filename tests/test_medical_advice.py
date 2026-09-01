@@ -19,14 +19,14 @@ class MedicalAdviceTests(unittest.TestCase):
         card = game.play_card(0, 0)
         later = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
         self.assertEqual(game.card_fun(0, previous), 1)
         self.assertEqual(game.card_fun(0, card), 0)
         self.assertEqual(game.card_fun(0, later), 3)
         self.assertEqual(sum(player.picked_cards.values()), 3)
         self.assertEqual(len(game.suitcase), 4)
-        self.assertEqual(player.energy, 2)
+        self.assertEqual(player.energy, 3)
 
 
 if __name__ == "__main__":

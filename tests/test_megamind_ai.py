@@ -207,6 +207,37 @@ class MegamindAITests(unittest.TestCase):
         self.assertEqual(player.energy, 7)
         self.assertEqual(len(player.hand), 3)
 
+    def test_suitcase_pick_values_complete_same_day_energy_allocation(self):
+        game = megamind_game()
+        game.day = 1
+        player = game.players[0]
+        player.energy = 7
+        player.hand = [
+            card(1, "Existing 3-for-4", 3, 4),
+            card(2, "Existing 1-for-2", 1, 2),
+        ]
+        game.suitcase = [
+            card(3, "Big 7-for-8", 7, 8),
+            card(4, "New 3-for-4", 3, 4),
+            card(5, "Junk A", 7, 0),
+            card(6, "Junk B", 7, 0),
+        ]
+        game.trunk = [
+            card(100 + index, f"Refill {index}", 0, 0)
+            for index in range(8)
+        ]
+        original_hand = tuple(player.hand)
+        original_suitcase = tuple(game.suitcase)
+
+        choice = game.ais[0].choose_suitcase_card(
+            game, 0, tuple(game.suitcase)
+        )
+
+        self.assertEqual(choice, 1)
+        self.assertEqual(tuple(player.hand), original_hand)
+        self.assertEqual(tuple(game.suitcase), original_suitcase)
+        self.assertEqual(player.energy, 7)
+
     def test_seeded_equal_choices_are_reproducible(self):
         choices = []
         for _ in range(2):
@@ -225,6 +256,17 @@ class MegamindAITests(unittest.TestCase):
             ]
             choices.append(game.ais[0].choose_card_to_play(game, 0, (0, 1)))
         self.assertEqual(choices[0], choices[1])
+
+    def test_projects_public_opponent_capacity_for_count_bonus(self):
+        """A conditional count bonus is not treated as guaranteed mid-turn."""
+        game = megamind_game()
+        player = game.players[0]
+        player.played_today = [make_card("fit-to-print")]
+        for opponent in game.players[1:]:
+            opponent.energy = 7
+            opponent.hand = [make_card("fajitas") for _ in range(4)]
+
+        self.assertEqual(game.ais[0]._state_value(game, 0), 1.0)
 
 
 if __name__ == "__main__":

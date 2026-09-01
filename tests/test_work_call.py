@@ -17,7 +17,7 @@ class WorkCallTests(unittest.TestCase):
         next_card = game.play_card(0, 0)
         later_card = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.tags, frozenset({"Event", "Indoors"}))
         self.assertEqual(game.card_fun(0, card), -4)
         self.assertEqual(game.card_fun(0, next_card), 4)

@@ -9,7 +9,7 @@ class FancyCraftTests(unittest.TestCase):
         card = make_card("fancy-craft")
 
         self.assertEqual(card.title, "Fancy Craft")
-        self.assertEqual(card.definition.cost, 3)
+        self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Relax"}))
 
@@ -29,7 +29,7 @@ class FancyCraftTests(unittest.TestCase):
         non_item = game.play_card(0, 0)
         item = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 1)
+        self.assertEqual(player.energy, 2)
         self.assertEqual(game.card_fun(0, fancy_craft), 0)
         self.assertEqual(game.card_fun(0, non_item), 2)
         self.assertEqual(game.card_fun(0, item), 4)

@@ -76,6 +76,7 @@ from thenos.cards.relax import (
     PAINT,
     PAINT_ROCKS,
     TANNING,
+    WILDLIFE_SPOTTING,
 )
 from thenos.cards.social import (
     BEACH_CONVERSATION,
@@ -137,6 +138,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         FISHING_EVENING,
         FISHING_MORNING,
         TANNING,
+        WILDLIFE_SPOTTING,
         SLEEP_IN,
         FLOATING,
         ZUMBA,

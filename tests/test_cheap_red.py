@@ -5,7 +5,7 @@ from tests.helpers import empty_game
 
 
 class CheapRedTests(unittest.TestCase):
-    def test_next_food_scores_one_extra_fun(self) -> None:
+    def test_next_food_scores_two_extra_fun(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
@@ -21,7 +21,7 @@ class CheapRedTests(unittest.TestCase):
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
         self.assertEqual(game.card_fun(0, card), 2)
         self.assertEqual(game.card_fun(0, non_food), 2)
-        self.assertEqual(game.card_fun(0, food), 4)
+        self.assertEqual(game.card_fun(0, food), 5)
 
 
 if __name__ == "__main__":

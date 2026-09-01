@@ -145,6 +145,20 @@ class TanningBehavior(FunForTagAfterBehavior):
     def __init__(self) -> None:
         super().__init__("Outdoors", -1)
 
+    has_tomorrow_action = True
+
+    def modify_tomorrow_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if "Outdoors" in target.tags:
+            return current_fun - 1
+        return current_fun
+
     def can_play(
         self,
         game: Game,
@@ -261,6 +275,24 @@ class PaintRocksBehavior(CardBehavior):
         return card.effective_base_fun + (2 if previous_outdoors >= 2 else 0)
 
 
+class WildlifeSpottingBehavior(CardBehavior):
+    """Boost Tomorrow's first play if that card is Outdoors."""
+
+    has_tomorrow_action = True
+
+    def modify_tomorrow_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if player.played_today and player.played_today[0] is target and "Outdoors" in target.tags:
+            return current_fun + 2
+        return current_fun
+
+
 EARLY_BEDTIME = CardDefinition(
     slug="early-bedtime",
     title="Early Bedtime",
@@ -278,11 +310,20 @@ CHEESY_PHONE_GAME = CardDefinition(
     behavior=CheesyPhoneGameBehavior(),
 )
 
+WILDLIFE_SPOTTING = CardDefinition(
+    slug="wildlife-spotting",
+    title="Wildlife Spotting",
+    tags=frozenset({"Relax"}),
+    cost=1,
+    base_fun=1,
+    behavior=WildlifeSpottingBehavior(),
+)
+
 FANCY_CRAFT = CardDefinition(
     slug="fancy-craft",
     title="Fancy Craft",
     tags=frozenset({"Relax"}),
-    cost=3,
+    cost=2,
     behavior=FancyCraftBehavior(),
 )
 

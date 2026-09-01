@@ -12,20 +12,21 @@ if TYPE_CHECKING:
 
 
 class SingSongBehavior(CardBehavior):
-    """Score one Fun for each distinct tag played by this player today."""
+    """Cost one less for each opponent who played an Event today."""
 
-    def fun_value(
+    def modify_own_energy_cost(
         self,
         game: Game,
         player: PlayerState,
         card: CardInstance,
+        current_cost: int,
     ) -> int:
-        unique_tags = {
-            tag
-            for played_card in player.played_today
-            for tag in played_card.tags
-        }
-        return card.effective_base_fun + len(unique_tags)
+        event_opponents = sum(
+            any("Event" in played_card.tags for played_card in opponent.played_today)
+            for opponent in game.players
+            if opponent is not player
+        )
+        return current_cost - event_opponents
 
 
 class ChristmasNameDrawBehavior(CardBehavior):
@@ -109,7 +110,7 @@ SING_SONG = CardDefinition(
     title="Sing Song",
     tags=frozenset({"Event"}),
     cost=4,
-    base_fun=1,
+    base_fun=4,
     behavior=SingSongBehavior(),
 )
 
@@ -117,7 +118,7 @@ CHRISTMAS_NAME_DRAW = CardDefinition(
     slug="christmas-name-draw",
     title="Christmas Name Draw",
     tags=frozenset({"Event"}),
-    cost=3,
+    cost=2,
     behavior=ChristmasNameDrawBehavior(),
 )
 
@@ -133,7 +134,7 @@ PHOTO_SHOOT = CardDefinition(
     slug="photo-shoot",
     title="Photo Shoot",
     tags=frozenset({"Event", "Outdoors"}),
-    cost=4,
+    cost=3,
     base_fun=-1,
     behavior=PhotoShootBehavior(),
 )

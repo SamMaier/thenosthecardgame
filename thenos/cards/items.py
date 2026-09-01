@@ -99,6 +99,20 @@ class SkiBoatBehavior(CardBehavior):
 class FancyFloatieBehavior(CardBehavior):
     """Pick the Relax cards currently visible in the Suitcase."""
 
+    has_tomorrow_action = True
+
+    def modify_tomorrow_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if "Relax" in target.tags:
+            return current_fun + 1
+        return current_fun
+
     def on_play(
         self,
         game: Game,
@@ -136,7 +150,7 @@ BOUGIE_COFFEE_MACHINE = CardDefinition(
     slug="bougie-coffee-machine",
     title="Bougie Coffee Machine",
     tags=frozenset({"Item"}),
-    cost=5,
+    cost=4,
     behavior=BougieCoffeeMachineBehavior(),
 )
 

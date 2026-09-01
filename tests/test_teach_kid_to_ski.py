@@ -13,10 +13,10 @@ class TeachKidToSkiTests(unittest.TestCase):
 
         teach = game.play_card(0, 0)
 
-        self.assertEqual(teach.definition.cost, 3)
+        self.assertEqual(teach.definition.cost, 2)
         self.assertEqual(teach.definition.base_fun, 0)
         self.assertEqual(teach.definition.tags, frozenset({"Event", "Outdoors"}))
-        self.assertEqual(player.energy, 4)
+        self.assertEqual(player.energy, 5)
         self.assertEqual(game.card_fun(0, teach), 0)
 
         game.end_day()

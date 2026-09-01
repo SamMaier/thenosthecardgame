@@ -9,7 +9,7 @@ class ButterTartsTests(unittest.TestCase):
         card = make_card("butter-tarts")
 
         self.assertEqual(card.title, "Butter Tarts")
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
 
@@ -21,12 +21,12 @@ class ButterTartsTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 12)
+        self.assertEqual(player.energy, 14)
 
     def test_does_not_create_energy_when_payment_leaves_none(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 4
+        player.energy = 3
         player.hand.append(make_card("butter-tarts"))
 
         game.play_card(0, 0)
@@ -42,7 +42,7 @@ class ButterTartsTests(unittest.TestCase):
         game.play_card(0, 0)
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 5)
+        self.assertEqual(player.energy, 6)
 
     def test_counts_as_giving_energy_for_bubly(self) -> None:
         game = empty_game()

@@ -17,10 +17,10 @@ class SunscreenTests(unittest.TestCase):
         outdoors = game.play_card(0, 0)
         indoors = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
         self.assertEqual(game.energy_cost(0, indoors), 1)
-        self.assertEqual(player.energy, 0)
+        self.assertEqual(player.energy, 1)
         self.assertEqual(outdoors.definition.cost, 5)
 
 

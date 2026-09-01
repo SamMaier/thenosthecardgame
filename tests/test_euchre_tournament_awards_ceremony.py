@@ -15,7 +15,7 @@ class EuchreTournamentAwardsCeremonyTests(unittest.TestCase):
         card = make_card("euchre-tournament-awards-ceremony")
 
         self.assertEqual(card.title, "Euchre Tournament Awards Ceremony")
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(
             card.definition.tags,
@@ -43,7 +43,7 @@ class EuchreTournamentAwardsCeremonyTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(player.energy, 4)
         self.assertIn(first_pick, player.hand)
         self.assertIn(second_pick, player.hand)
         self.assertIn(third_pick, player.hand)

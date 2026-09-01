@@ -23,7 +23,7 @@ from typing import Sequence
 
 MODEL = "gpt-5.6-luna"
 REASONING_EFFORT = "high"
-EXPECTED_CARD_COUNT = 152
+EXPECTED_CARD_COUNT = 153
 
 # These cards share implementation patterns and can be handled in batches.
 # Titles are explicit so reordering cards.csv cannot change batch membership.

@@ -14,10 +14,10 @@ class AunterviewTests(unittest.TestCase):
         aunterview = game.play_card(0, 0)
 
         self.assertEqual(aunterview.title, "Aunterview")
-        self.assertEqual(aunterview.definition.cost, 1)
-        self.assertEqual(aunterview.definition.base_fun, 0)
+        self.assertEqual(aunterview.definition.cost, 2)
+        self.assertEqual(aunterview.definition.base_fun, 1)
         self.assertEqual(aunterview.definition.tags, frozenset({"Social"}))
-        self.assertEqual(player.energy, 6)
+        self.assertEqual(player.energy, 5)
 
         player.hand.extend([make_card("johnny-appleseed"), make_card("biography")])
         social = game.play_card(0, 0)
@@ -36,11 +36,11 @@ class AunterviewTests(unittest.TestCase):
         tomorrow_relax = game.play_card(0, 0)
 
         self.assertEqual(game.card_fun(0, aunterview), 0)
-        self.assertEqual(game.card_fun(0, tomorrow_social), 2)
+        self.assertEqual(game.card_fun(0, tomorrow_social), 3)
         self.assertEqual(game.card_fun(0, tomorrow_relax), 2)
 
         game.end_day()
-        self.assertEqual(player.fun, 7)
+        self.assertEqual(player.fun, 9)
         self.assertEqual(player.tomorrow_cards, [])
         self.assertFalse(aunterview.is_tomorrow)
 

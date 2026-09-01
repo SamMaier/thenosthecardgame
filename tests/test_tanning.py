@@ -50,6 +50,23 @@ class TanningTests(unittest.TestCase):
         self.assertEqual(game.card_fun(0, outdoors_after), 1)
         self.assertEqual(game.card_fun(0, non_outdoors_after), 2)
 
+    def test_tomorrow_all_outdoors_cards_score_one_less(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 3
+        player.hand.append(make_card("tanning"))
+
+        tanning = game.play_card(0, 0)
+        game.end_day()
+        game.start_day()
+        player.hand.extend([make_card("dock-fishing"), make_card("biography")])
+        outdoors = game.play_card(0, 0)
+        relax = game.play_card(0, 0)
+
+        self.assertIn(tanning, player.tomorrow_cards)
+        self.assertEqual(game.card_fun(0, outdoors), 1)
+        self.assertEqual(game.card_fun(0, relax), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

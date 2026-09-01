@@ -9,7 +9,7 @@ class BougieCoffeeMachineTests(unittest.TestCase):
         card = make_card("bougie-coffee-machine")
 
         self.assertEqual(card.title, "Bougie Coffee Machine")
-        self.assertEqual(card.definition.cost, 5)
+        self.assertEqual(card.definition.cost, 4)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
 
@@ -28,7 +28,7 @@ class BougieCoffeeMachineTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 6)
+        self.assertEqual(player.energy, 7)
         self.assertEqual(player.played_today, [machine, first_food, second_food])
         self.assertEqual(player.hand, [other_card])
         self.assertEqual(game.stats.card_plays["Fajitas"], 1)
@@ -50,7 +50,7 @@ class BougieCoffeeMachineTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 6)
+        self.assertEqual(player.energy, 7)
         self.assertEqual(player.hand, [restricted_food, other_card])
         self.assertEqual(player.played_today[0].title, "Bougie Coffee Machine")
         self.assertEqual(player.played_today[1], food)

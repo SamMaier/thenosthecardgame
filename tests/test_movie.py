@@ -16,7 +16,7 @@ class MovieTests(unittest.TestCase):
 
         self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.tags, frozenset({"Relax", "Indoors"}))
-        self.assertEqual(game.card_fun(0, card), 0)
+        self.assertEqual(game.card_fun(0, card), 1)
         self.assertEqual(game.card_fun(0, indoors), 4)
 
 

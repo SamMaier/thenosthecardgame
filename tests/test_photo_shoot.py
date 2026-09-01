@@ -15,7 +15,7 @@ class PhotoShootTests(unittest.TestCase):
         card = make_card("photo-shoot")
 
         self.assertEqual(card.title, "Photo Shoot")
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, -1)
         self.assertEqual(
             card.definition.tags,
@@ -32,7 +32,7 @@ class PhotoShootTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(player.energy, 4)
         self.assertEqual(game.card_fun(0, photo_shoot), -1)
         self.assertEqual(sum(player.picked_cards.values()), 0)
 
