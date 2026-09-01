@@ -3,7 +3,7 @@ from csv import DictReader
 from collections import Counter
 from tempfile import TemporaryDirectory
 from pathlib import Path
-from unittest.mock import call, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 from thenos.cards import CARD_REGISTRY
 from thenos.simulation import (
@@ -12,9 +12,9 @@ from thenos.simulation import (
     _GameOutcome,
     _PlayerOutcome,
     _merge_outcome,
+    simulate_galaxybrain_vs_planner,
     simulate_games,
     simulate_greedy_vs_random,
-    simulate_megamind_vs_planner,
     simulate_planner_vs_greedy,
     write_report_csv,
 )
@@ -61,6 +61,36 @@ class SimulationTests(unittest.TestCase):
             [
                 call("Run 64 complete", flush=True),
                 call("Run 128 complete", flush=True),
+            ],
+        )
+
+    def test_parallel_progress_counts_futures_as_they_complete(self) -> None:
+        futures = [Mock() for _ in range(16)]
+        for future in futures:
+            future.result.return_value = self._empty_outcome()
+        executor = MagicMock()
+        executor.__enter__.return_value = executor
+        executor.__exit__.return_value = None
+        executor.submit.side_effect = futures
+
+        with (
+            patch(
+                "thenos.simulation.ProcessPoolExecutor",
+                return_value=executor,
+            ),
+            patch(
+                "thenos.simulation.as_completed",
+                return_value=tuple(reversed(futures)),
+            ),
+            patch("thenos.simulation.print") as print_mock,
+        ):
+            simulate_games(16, seed=2026, workers=2)
+
+        self.assertEqual(
+            print_mock.call_args_list,
+            [
+                call("Run 8 complete", flush=True),
+                call("Run 16 complete", flush=True),
             ],
         )
 
@@ -155,10 +185,10 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(report.ais["Planner"].games, 1)
         self.assertEqual(report.ais["Greedy"].games, 3)
 
-    def test_megamind_matchup_aggregates_three_planner_opponents(self) -> None:
-        report = simulate_megamind_vs_planner(1, seed=102)
+    def test_galaxybrain_matchup_aggregates_three_planner_opponents(self) -> None:
+        report = simulate_galaxybrain_vs_planner(1, seed=102)
 
-        self.assertEqual(report.ais["Megamind"].games, 1)
+        self.assertEqual(report.ais["Galaxybrain"].games, 1)
         self.assertEqual(report.ais["Planner"].games, 3)
 
     def test_worker_count_must_be_positive(self) -> None:

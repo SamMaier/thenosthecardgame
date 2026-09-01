@@ -1,4 +1,4 @@
-"4 Player game. This game takes place over 6 ""days"" (rounds). To start, everyone is dealt 4 cards. Then, each day has two phases - the drawing phase, and the playing phase. At the start of the day, players get 7 energy cubes, and the top Daily Condition card is revealed.
+"4 Player game. This game takes place over 6 ""days"" (rounds). To start, everyone is dealt 3 cards. Then, each day has two phases - the drawing phase, and the playing phase. At the start of the day, players get 7 energy cubes, and the top Daily Condition card is revealed.
 
 Trunk: the main deck, to be shuffled before the start of the game. If it runs out during the game, shuffle the discard pile and use it as your Trunk.
 Suitcase: a set of 4 face up cards players choose from. Whenever a card is taken from the Suitcase, its spot is immediately refilled from the Trunk, so any player picking more than one card will see the replacement before picking again. The Suitcase stays visible during the whole game and is only refreshed when a card is taken or when a player ""Unpacks"", where the whole Suitcase is discarded and refilled from the Trunk. 

@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "python": "3.13.13",
+    "workers": 16,
+    "rotate_seats": true,
+    "code_revision": "e20bf5d748b5dad9ae2759597140a588a8ab2cab+dirty"
+  },
+  "timing_128_games": {
+    "seed": 20260923,
+    "games_per_policy": 128,
+    "galaxybrain_elapsed_seconds": 58.894429,
+    "megamind_elapsed_seconds": 225.738665,
+    "galaxybrain_player_games": 512,
+    "megamind_player_games": 512,
+    "galaxybrain_average_fun": 51.089844,
+    "megamind_average_fun": 50.316406,
+    "galaxybrain_win_credit": 128.0,
+    "megamind_win_credit": 128.0,
+    "passed": true
+  },
+  "matchup_2048_games": {
+    "seed": 20260924,
+    "games": 2048,
+    "competitors": [
+      "Galaxybrain",
+      "Megamind",
+      "Galaxybrain",
+      "Megamind"
+    ],
+    "galaxybrain_player_games": 4096,
+    "megamind_player_games": 4096,
+    "galaxybrain_score_total": 210606,
+    "megamind_score_total": 207082,
+    "galaxybrain_average_fun": 51.417480,
+    "megamind_average_fun": 50.557129,
+    "galaxybrain_win_credit": 1079.0,
+    "megamind_win_credit": 969.0,
+    "galaxybrain_win_rate_per_appearance": 0.263428,
+    "megamind_win_rate_per_appearance": 0.236572,
+    "elapsed_seconds": 2259.365937,
+    "passed": true
+  }
+}

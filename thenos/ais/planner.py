@@ -37,6 +37,10 @@ class PlannerAI(GreedyAI):
     def __init__(self, rng: random.Random | None = None) -> None:
         super().__init__(rng)
 
+    def _copy_game(self, game: Game) -> Game:
+        """Copy one search state; subclasses may provide an exact fast path."""
+        return copy.deepcopy(game)
+
     def _card_value(self, card: CardInstance) -> float:
         behavior_bonus = (
             1.25 if type(card.effective_behavior) is not CardBehavior else 0.0
@@ -51,9 +55,13 @@ class PlannerAI(GreedyAI):
             - 0.15 * card.effective_cost
         )
 
-    def _planning_copy(self, game: Game) -> Game:
+    def _planning_copy(
+        self,
+        game: Game,
+        player_index: int | None = None,
+    ) -> Game:
         """Copy public state while severing evaluation from hidden order."""
-        simulation = copy.deepcopy(game)
+        simulation = self._copy_game(game)
         seed = self.rng.getrandbits(64)
         simulation.rng = random.Random(seed)
         planning_rng = random.Random(seed)
@@ -105,7 +113,7 @@ class PlannerAI(GreedyAI):
         return best[capacity]
 
     def _state_value(self, game: Game, player_index: int) -> float:
-        scoring = copy.deepcopy(game)
+        scoring = self._copy_game(game)
         scoring.end_day()
         player = scoring.players[player_index]
         today_score = player.fun
@@ -173,7 +181,7 @@ class PlannerAI(GreedyAI):
                 ranked_remaining[: self.ROOT_WIDTH - len(root_plays)]
             )
         for hand_index in root_plays:
-            simulation = copy.deepcopy(root)
+            simulation = self._copy_game(root)
             simulation.play_card(player_index, hand_index)
             nodes.append(
                 (
@@ -192,7 +200,7 @@ class PlannerAI(GreedyAI):
                 for hand_index in self._shortlist(
                     state, player_index, next_plays
                 ):
-                    simulation = copy.deepcopy(state)
+                    simulation = self._copy_game(state)
                     simulation.play_card(player_index, hand_index)
                     candidates.append(
                         (
@@ -226,7 +234,7 @@ class PlannerAI(GreedyAI):
             return super().choose_card_to_play(
                 game, player_index, playable_hand_indices
             )
-        root = self._planning_copy(game)
+        root = self._planning_copy(game, player_index)
         choice, _ = self._best_play(root, player_index, playable_hand_indices)
         return choice
 
@@ -244,7 +252,7 @@ class PlannerAI(GreedyAI):
                 game, player_index, playable_hand_indices
             )
 
-        root = self._planning_copy(game)
+        root = self._planning_copy(game, player_index)
         stop_value = self._state_value(root, player_index)
         choice, play_value = self._best_play(
             root, player_index, playable_hand_indices
@@ -266,7 +274,7 @@ class PlannerAI(GreedyAI):
             return super().choose_extra_card_to_play(
                 game, player_index, playable_hand_indices
             )
-        root = self._planning_copy(game)
+        root = self._planning_copy(game, player_index)
         stop_value = self._state_value(root, player_index)
         choice, play_value = self._best_play(
             root, player_index, playable_hand_indices
@@ -281,7 +289,7 @@ class PlannerAI(GreedyAI):
         *,
         extra_pick_cost: int = 0,
     ) -> float:
-        simulation = copy.deepcopy(root)
+        simulation = self._copy_game(root)
         simulation.players[player_index].energy -= extra_pick_cost
         picked = simulation.pick_suitcase_cards(
             player_index, (simulation.suitcase[suitcase_index],)
@@ -291,7 +299,7 @@ class PlannerAI(GreedyAI):
         if picked in player.hand:
             hand_index = player.hand.index(picked)
             if hand_index in simulation.playable_hand_indices(player_index):
-                played = copy.deepcopy(simulation)
+                played = self._copy_game(simulation)
                 played.play_card(player_index, hand_index)
                 value = max(value, self._state_value(played, player_index))
         return value
@@ -306,7 +314,7 @@ class PlannerAI(GreedyAI):
             raise ValueError("Cannot choose from an empty Suitcase")
         if self._evaluation_depth:
             return self._choose_best([self._card_value(card) for card in suitcase])
-        root = self._planning_copy(game)
+        root = self._planning_copy(game, player_index)
         values = [
             self._suitcase_pick_value(root, player_index, index)
             for index in range(len(suitcase))
@@ -321,7 +329,7 @@ class PlannerAI(GreedyAI):
     ) -> bool:
         if self._evaluation_depth or not suitcase:
             return False
-        root = self._planning_copy(game)
+        root = self._planning_copy(game, player_index)
         current = self._state_value(root, player_index)
         best_pick = max(
             self._suitcase_pick_value(

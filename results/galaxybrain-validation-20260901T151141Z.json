@@ -1,0 +1,64 @@
+{
+  "metadata": {
+    "code_revision": "e20bf5d748b5dad9ae2759597140a588a8ab2cab+dirty",
+    "generated_at_utc": "2026-09-01T15:09:20.356983+00:00",
+    "python": "3.13.13",
+    "rotate_seats": true,
+    "workers": 16
+  },
+  "strength": {
+    "competitors": [
+      "Galaxybrain",
+      "Megamind",
+      "Galaxybrain",
+      "Megamind"
+    ],
+    "elapsed_seconds": 105.85684145501,
+    "galaxybrain": {
+      "average_fun": 51.655,
+      "outright_wins": 58,
+      "player_games": 200,
+      "score_total": 10331,
+      "shared_wins": 11,
+      "win_credit": 63.5,
+      "win_rate_per_appearance": 0.3175
+    },
+    "games": 100,
+    "megamind": {
+      "average_fun": 49.89,
+      "outright_wins": 33,
+      "player_games": 200,
+      "score_total": 9978,
+      "shared_wins": 7,
+      "win_credit": 36.5,
+      "win_rate_per_appearance": 0.1825
+    },
+    "passed": true,
+    "seed": 20260922
+  },
+  "timing": {
+    "galaxybrain": {
+      "average_fun": 52.140625,
+      "outright_wins": 14,
+      "player_games": 64,
+      "score_total": 3337,
+      "shared_wins": 4,
+      "win_credit": 16.0,
+      "win_rate_per_appearance": 0.25
+    },
+    "galaxybrain_elapsed_seconds": 7.7756131700007245,
+    "games_per_policy": 16,
+    "megamind": {
+      "average_fun": 50.875,
+      "outright_wins": 15,
+      "player_games": 64,
+      "score_total": 3256,
+      "shared_wins": 2,
+      "win_credit": 16.0,
+      "win_rate_per_appearance": 0.25
+    },
+    "megamind_elapsed_seconds": 27.400880317989504,
+    "passed": true,
+    "seed": 20260921
+  }
+}

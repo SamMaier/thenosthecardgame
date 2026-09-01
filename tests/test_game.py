@@ -150,15 +150,15 @@ class GameTests(unittest.TestCase):
         self.assertAlmostEqual(sum(result.win_shares), 1.0)
         self.assertTrue(all(score >= 0 for score in result.scores))
 
-    def test_setup_deals_four_starting_cards_to_each_player(self) -> None:
+    def test_setup_deals_three_starting_cards_to_each_player(self) -> None:
         game = Game.default(seed=12345)
 
         game.setup()
 
-        self.assertEqual(STARTING_HAND_SIZE, 4)
+        self.assertEqual(STARTING_HAND_SIZE, 3)
         self.assertEqual(
             [len(player.hand) for player in game.players],
-            [4] * PLAYER_COUNT,
+            [3] * PLAYER_COUNT,
         )
 
     def test_tied_players_split_one_win(self) -> None:

@@ -1,0 +1,129 @@
+{
+  "metadata": {
+    "games": 500,
+    "seed": 20260901,
+    "competitors": "4 x MegamindAI",
+    "rotate_seats": true,
+    "workers": 16,
+    "elapsed_seconds": 953.9283255199844
+  },
+  "navy_sealing": {
+    "free_pick_offers": 397,
+    "free_picks": 278,
+    "free_pick_rate": 0.7002518891687658,
+    "suitcase_offers": 400,
+    "suitcase_picks": 278,
+    "acquisitions": 359,
+    "plays": 355,
+    "player_games_with_card": 359,
+    "player_games_without_card": 1641,
+    "win_rate": 0.39925719591457753,
+    "average_fun_with_card": 55.43454038997214,
+    "average_fun_without_card": 51.73430834856794,
+    "fun_added": 3.700232041404199,
+    "day_breakdown": {
+      "1": {
+        "free_offers": 67,
+        "free_picks": 48,
+        "free_pick_rate": 0.7164179104477612,
+        "all_pickups": 48,
+        "average_final_fun_after_pickup": 51.3125,
+        "fractional_win_rate_after_pickup": 0.15625
+      },
+      "2": {
+        "free_offers": 59,
+        "free_picks": 32,
+        "free_pick_rate": 0.5423728813559322,
+        "all_pickups": 32,
+        "average_final_fun_after_pickup": 52.6875,
+        "fractional_win_rate_after_pickup": 0.3229166666666667
+      },
+      "3": {
+        "free_offers": 55,
+        "free_picks": 44,
+        "free_pick_rate": 0.8,
+        "all_pickups": 44,
+        "average_final_fun_after_pickup": 54.20454545454545,
+        "fractional_win_rate_after_pickup": 0.36363636363636365
+      },
+      "4": {
+        "free_offers": 82,
+        "free_picks": 46,
+        "free_pick_rate": 0.5609756097560976,
+        "all_pickups": 46,
+        "average_final_fun_after_pickup": 55.391304347826086,
+        "fractional_win_rate_after_pickup": 0.43478260869565216
+      },
+      "5": {
+        "free_offers": 67,
+        "free_picks": 51,
+        "free_pick_rate": 0.7611940298507462,
+        "all_pickups": 51,
+        "average_final_fun_after_pickup": 58.1764705882353,
+        "fractional_win_rate_after_pickup": 0.5
+      },
+      "6": {
+        "free_offers": 67,
+        "free_picks": 57,
+        "free_pick_rate": 0.8507462686567164,
+        "all_pickups": 57,
+        "average_final_fun_after_pickup": 62.49122807017544,
+        "fractional_win_rate_after_pickup": 0.6929824561403509
+      }
+    },
+    "hand_size_before_pickup_histogram": {
+      "0": 2,
+      "1": 2,
+      "2": 4,
+      "3": 14,
+      "4": 42,
+      "5": 60,
+      "6": 43,
+      "7": 38,
+      "8": 32,
+      "9": 23,
+      "10": 10,
+      "11": 6,
+      "12": 2
+    },
+    "free_pick_hand_size_histogram": {
+      "0": 2,
+      "1": 2,
+      "2": 4,
+      "3": 14,
+      "4": 42,
+      "5": 60,
+      "6": 43,
+      "7": 38,
+      "8": 32,
+      "9": 23,
+      "10": 10,
+      "11": 6,
+      "12": 2
+    },
+    "effect_pickup_hand_size_histogram": {},
+    "cards_discarded_per_play_histogram": {
+      "1": 2,
+      "2": 2,
+      "3": 17,
+      "4": 51,
+      "5": 79,
+      "6": 72,
+      "7": 53,
+      "8": 32,
+      "9": 15,
+      "10": 17,
+      "11": 9,
+      "12": 5,
+      "13": 1
+    },
+    "play_day_histogram": {
+      "1": 101,
+      "2": 34,
+      "3": 49,
+      "4": 49,
+      "5": 60,
+      "6": 62
+    }
+  }
+}

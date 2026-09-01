@@ -1,7 +1,8 @@
 import random
 import unittest
 
-from thenos.ais import MegamindAI, PlannerAI, RandomAI
+from thenos.ais import PlannerAI, RandomAI
+from thenos.ais.megamind import MegamindAI
 from thenos.cards import make_card
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.cards.catalog import create_default_deck

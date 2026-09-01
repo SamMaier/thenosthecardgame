@@ -6,15 +6,15 @@ import csv
 import os
 import random
 from collections import Counter
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Callable, Mapping, Sequence
 
 from thenos.ais import (
+    GalaxybrainAI,
     GreedyAI,
-    MegamindAI,
     PlannerAI,
     PlayerAI,
     RandomAI,
@@ -370,14 +370,27 @@ def simulate_games(
             if completed_games % progress_interval == 0:
                 print(f"Run {completed_games} complete", flush=True)
     else:
-        chunksize = max(1, games // (workers * 4))
         with ProcessPoolExecutor(max_workers=workers) as executor:
-            outcomes = executor.map(_run_game, jobs, chunksize=chunksize)
-            for outcome in outcomes:
-                _merge_outcome(report, outcome)
+            future_indices = {
+                executor.submit(_run_game, job): index
+                for index, job in enumerate(jobs)
+            }
+            completed_outcomes: dict[int, _GameOutcome] = {}
+            next_index = 0
+            for future in as_completed(future_indices):
+                index = future_indices[future]
+                completed_outcomes[index] = future.result()
                 completed_games += 1
                 if completed_games % progress_interval == 0:
                     print(f"Run {completed_games} complete", flush=True)
+
+                # Merge in submission order so parallel reports retain the
+                # exact same floating-point accumulation order as serial runs.
+                while next_index in completed_outcomes:
+                    _merge_outcome(
+                        report, completed_outcomes.pop(next_index)
+                    )
+                    next_index += 1
 
     return report
 
@@ -403,18 +416,18 @@ def simulate_greedy_vs_random(
     )
 
 
-def simulate_four_megamind(
+def simulate_four_galaxybrain(
     games: int,
     seed: int | None = None,
     *,
     workers: int = 16,
 ) -> SimulationReport:
-    """Run the standard seat-rotated four-Megamind card-data batch."""
+    """Run the standard seat-rotated four-Galaxybrain card-data batch."""
     return simulate_games(
         games,
         seed,
         tuple(
-            Competitor("Megamind", MegamindAI)
+            Competitor("Galaxybrain", GalaxybrainAI)
             for _ in range(PLAYER_COUNT)
         ),
         rotate_seats=True,
@@ -443,18 +456,18 @@ def simulate_planner_vs_greedy(
     )
 
 
-def simulate_megamind_vs_planner(
+def simulate_galaxybrain_vs_planner(
     games: int,
     seed: int | None = None,
     *,
     workers: int = 16,
 ) -> SimulationReport:
-    """Run a seat-balanced match of one Megamind against three Planners."""
+    """Run a seat-balanced match of one Galaxybrain against three Planners."""
     return simulate_games(
         games,
         seed,
         (
-            Competitor("Megamind", MegamindAI),
+            Competitor("Galaxybrain", GalaxybrainAI),
             Competitor("Planner", PlannerAI),
             Competitor("Planner", PlannerAI),
             Competitor("Planner", PlannerAI),

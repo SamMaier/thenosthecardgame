@@ -41,7 +41,8 @@ _TYPICAL_CARD_COST = max(
 class GeniusAI(PlannerAI):
     """Deprecated high-compute policy retained for explicit comparisons.
 
-    New simulations should use :class:`thenos.ais.megamind.MegamindAI`.
+    New simulations should use
+    :class:`thenos.ais.galaxybrain.GalaxybrainAI`.
     ``GeniusAI`` remains available as an explicit ``Competitor`` factory for
     large comparative runs, but is no longer used by standard scripts or tests.
 

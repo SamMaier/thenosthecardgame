@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import random
 from collections import Counter
 from dataclasses import dataclass
@@ -15,7 +16,7 @@ from thenos.models import GameStats, PlayerState
 
 PLAYER_COUNT = 4
 DAYS_PER_GAME = 6
-STARTING_HAND_SIZE = 4
+STARTING_HAND_SIZE = 3
 DAILY_ENERGY = 7
 SUITCASE_SIZE = 4
 DAILY_PICKS = 3
@@ -62,6 +63,121 @@ class Game:
         self.starting_player = 0
         self._is_setup = False
         self._fun_at_start_of_scoring: tuple[int, ...] | None = None
+
+    def copy_for_simulation(self) -> Game:
+        """Return an exact, independent copy optimized for AI search.
+
+        Generic ``copy.deepcopy`` spends most of its time rediscovering the
+        shape of the same slotted game objects at every search node.  Search
+        policies need the same isolation guarantees, but the engine already
+        knows which objects are mutable and which card definitions are safe to
+        share.  Build that graph directly while preserving marker references
+        between physical card copies.
+        """
+        simulation = object.__new__(type(self))
+
+        simulation.rng = random.Random()
+        simulation.rng.setstate(self.rng.getstate())
+
+        def clone_ai(ai: PlayerAI) -> PlayerAI:
+            attributes = getattr(ai, "__dict__", None)
+            if (
+                attributes is None
+                or "rng" not in attributes
+                or not isinstance(attributes["rng"], random.Random)
+            ):
+                return copy.deepcopy(ai)
+            cloned_ai = object.__new__(type(ai))
+            cloned_attributes = {
+                name: copy.deepcopy(value)
+                for name, value in attributes.items()
+                if name != "rng"
+            }
+            cloned_rng = random.Random()
+            cloned_rng.setstate(attributes["rng"].getstate())
+            cloned_attributes["rng"] = cloned_rng
+            cloned_ai.__dict__.update(cloned_attributes)
+            return cloned_ai
+
+        simulation.ais = [clone_ai(ai) for ai in self.ais]
+
+        players_cards = [
+            card
+            for player in self.players
+            for zone in (
+                player.hand,
+                player.played_today,
+                player.tomorrow_cards,
+            )
+            for card in zone
+        ]
+        all_cards = [
+            *self.trunk,
+            *self.discard,
+            *self.suitcase,
+            *players_cards,
+        ]
+        card_copies: dict[int, CardInstance] = {}
+        memo: dict[int, object] = {}
+        for card in all_cards:
+            identity = id(card)
+            if identity in card_copies:
+                continue
+            cloned = CardInstance(
+                card.instance_id,
+                card.definition,
+                card.is_tomorrow,
+            )
+            card_copies[identity] = cloned
+            memo[identity] = cloned
+        copied_markers: set[int] = set()
+        for card in all_cards:
+            identity = id(card)
+            if identity in copied_markers:
+                continue
+            cloned = card_copies[id(card)]
+            cloned.markers = (
+                copy.deepcopy(card.markers, memo) if card.markers else {}
+            )
+            copied_markers.add(identity)
+
+        def clone_zone(cards: Sequence[CardInstance]) -> list[CardInstance]:
+            return [card_copies[id(card)] for card in cards]
+
+        simulation.players = [
+            PlayerState(
+                name=player.name,
+                hand=clone_zone(player.hand),
+                played_today=clone_zone(player.played_today),
+                tomorrow_cards=clone_zone(player.tomorrow_cards),
+                energy=player.energy,
+                fun=player.fun,
+                asleep=player.asleep,
+                skipped_turns=player.skipped_turns,
+                picked_cards=player.picked_cards.copy(),
+                acquired_cards=player.acquired_cards.copy(),
+            )
+            for player in self.players
+        ]
+        simulation.trunk = clone_zone(self.trunk)
+        simulation.discard = clone_zone(self.discard)
+        simulation.suitcase = clone_zone(self.suitcase)
+        simulation.stats = GameStats(
+            free_pick_offers=self.stats.free_pick_offers.copy(),
+            free_picks=self.stats.free_picks.copy(),
+            suitcase_offers=self.stats.suitcase_offers.copy(),
+            suitcase_picks=self.stats.suitcase_picks.copy(),
+            card_acquisitions=self.stats.card_acquisitions.copy(),
+            card_plays=self.stats.card_plays.copy(),
+            card_plays_without_acquisition=(
+                self.stats.card_plays_without_acquisition.copy()
+            ),
+        )
+        simulation.day = self.day
+        simulation.starting_player = self.starting_player
+        simulation._is_setup = self._is_setup
+        simulation._fun_at_start_of_scoring = self._fun_at_start_of_scoring
+        return simulation
 
     @classmethod
     def default(cls, seed: int | None = None) -> Game:

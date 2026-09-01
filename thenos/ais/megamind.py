@@ -1,8 +1,7 @@
-"""A fast, catalog-agnostic competitive search policy."""
+"""A deprecated catalog-agnostic competitive search policy."""
 
 from __future__ import annotations
 
-import copy
 import math
 import random
 from statistics import median
@@ -30,7 +29,13 @@ _TYPICAL_CARD_COST = max(
 
 
 class MegamindAI(PlannerAI):
-    """Search strong same-day plans without knowing any individual card.
+    """Deprecated search policy retained for explicit comparisons.
+
+    New simulations should use
+    :class:`thenos.ais.galaxybrain.GalaxybrainAI`. ``MegamindAI`` remains
+    available from this module as an explicit ``Competitor`` factory for
+    comparative runs, but is no longer exposed by the policy package or used
+    by standard simulation modes.
 
     Megamind deliberately depends only on the public ``Game`` API and on the
     common properties exposed by every card.  In particular, it contains no
@@ -98,7 +103,7 @@ class MegamindAI(PlannerAI):
 
     def _state_value(self, game: Game, player_index: int) -> float:
         """Value a public position with one scoring copy and cheap reserves."""
-        scoring = copy.deepcopy(game)
+        scoring = self._copy_game(game)
         self._add_projected_opponent_plays(scoring, player_index)
         scoring.end_day()
         scored_player = scoring.players[player_index]
@@ -159,7 +164,7 @@ class MegamindAI(PlannerAI):
         The ordinary exact-play branch is retained for immediate card effects
         which the allocation estimate cannot model in isolation.
         """
-        simulation = copy.deepcopy(root)
+        simulation = self._copy_game(root)
         simulation.players[player_index].energy -= extra_pick_cost
         picked = simulation.pick_suitcase_cards(
             player_index, (simulation.suitcase[suitcase_index],)
@@ -185,7 +190,7 @@ class MegamindAI(PlannerAI):
         if picked in player.hand:
             hand_index = player.hand.index(picked)
             if hand_index in simulation.playable_hand_indices(player_index):
-                played = copy.deepcopy(simulation)
+                played = self._copy_game(simulation)
                 played.play_card(player_index, hand_index)
                 value = max(value, self._state_value(played, player_index))
         return value
