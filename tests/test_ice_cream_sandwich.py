@@ -13,7 +13,7 @@ class IceCreamSandwichTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 1)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
 
-    def test_gains_two_energy_after_a_previous_food_card(self) -> None:
+    def test_gains_three_energy_after_a_previous_food_card(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
@@ -24,7 +24,7 @@ class IceCreamSandwichTests(unittest.TestCase):
         game.play_card(0, 0)
         sandwich = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 5)
+        self.assertEqual(player.energy, 6)
         self.assertTrue(sandwich.markers["_gave_energy"])
         self.assertEqual(game.card_fun(0, sandwich), 1)
 

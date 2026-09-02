@@ -79,7 +79,7 @@ class PaddleboatTests(unittest.TestCase):
         self.assertEqual(paddleboat.markers["energy_cubes"], 1)
         self.assertEqual(game.card_fun(0, paddleboat), 2)
 
-    def test_card_returned_by_play_effect_does_not_trigger(self) -> None:
+    def test_card_played_from_trunk_does_not_trigger(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
@@ -90,7 +90,11 @@ class PaddleboatTests(unittest.TestCase):
         game.play_card(0, 0)
         game.play_card(0, 0)
 
-        self.assertEqual([card.title for card in player.hand], ["Sunrise"])
+        self.assertEqual(player.hand, [])
+        self.assertEqual(
+            [card.title for card in player.played_today],
+            ["Paddleboat", "Assorted Cutlery", "Sunrise"],
+        )
         self.assertNotIn("energy_cubes", paddleboat.markers)
         self.assertEqual(game.card_fun(0, paddleboat), 0)
 

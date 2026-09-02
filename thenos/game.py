@@ -612,14 +612,23 @@ class Game:
             source.effective_behavior.on_card_play(self, player, source, card)
         return card
 
-    def play_card_from_trunk(self, player_index: int) -> CardInstance:
+    def play_card_from_trunk(
+        self,
+        player_index: int,
+        *,
+        ignore_restrictions: bool = False,
+    ) -> CardInstance:
         """Play the Trunk's top card for an effect without paying Energy.
 
         A card that cannot legally be played is returned to the player's hand
-        without a cost, as required for cards that play cards from the Trunk.
+        unless the source effect explicitly ignores play restrictions.
         """
         card = self._draw_from_trunk()
-        return self.play_card_for_effect(player_index, card)
+        return self.play_card_for_effect(
+            player_index,
+            card,
+            ignore_restrictions=ignore_restrictions,
+        )
 
     def play_card_for_effect(
         self,
@@ -628,6 +637,7 @@ class Game:
         *,
         cost_adjustment: int = 0,
         pay_energy: bool = False,
+        ignore_restrictions: bool = False,
     ) -> CardInstance:
         """Play a card for an effect, optionally adjusting its Energy cost.
 
@@ -639,7 +649,10 @@ class Game:
         clamped at zero.
         """
         player = self.players[player_index]
-        if not card.effective_behavior.can_play(self, player, card):
+        if (
+            not ignore_restrictions
+            and not card.effective_behavior.can_play(self, player, card)
+        ):
             if card not in player.hand:
                 self.give_card(player_index, card)
             return card

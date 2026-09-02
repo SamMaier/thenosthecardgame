@@ -626,7 +626,7 @@ WATER_TRAMPOLINE = CardDefinition(
     slug="water-trampoline",
     title="Water Trampoline",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=4,
+    cost=3,
     base_fun=1,
     behavior=WaterTrampolineBehavior(2),
 )
@@ -694,7 +694,7 @@ BUG_SPRAY = CardDefinition(
     slug="bug-spray",
     title="Bug Spray",
     tags=frozenset({"Item"}),
-    cost=3,
+    cost=2,
     behavior=FunForTagAfterBehavior("Outdoors", 1),
 )
 

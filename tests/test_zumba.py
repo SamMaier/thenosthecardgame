@@ -27,7 +27,7 @@ class ZumbaTests(unittest.TestCase):
 
         game.start_day()
 
-        self.assertEqual(player.energy, 10)
+        self.assertEqual(player.energy, 11)
 
         game.end_day()
 

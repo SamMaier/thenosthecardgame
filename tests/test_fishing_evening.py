@@ -30,9 +30,9 @@ class FishingEveningTests(unittest.TestCase):
         player.energy = 7
         player.hand.extend(
             [
-                make_card("early-bedtime"),
-                make_card("early-bedtime"),
-                make_card("early-bedtime"),
+                make_card("nap"),
+                make_card("nap"),
+                make_card("nap"),
                 make_card("fishing-evening"),
             ]
         )
@@ -44,7 +44,7 @@ class FishingEveningTests(unittest.TestCase):
         self.assertIn(0, game.playable_hand_indices(0))
         card = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 1)
+        self.assertEqual(player.energy, 7)
         self.assertEqual(game.card_fun(0, card), 5)
         game.end_day()
         self.assertEqual(player.fun, 5)

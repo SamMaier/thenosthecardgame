@@ -178,7 +178,7 @@ class IceCreamSandwichBehavior(CardBehavior):
             for played_card in player.played_today[:card_position]
         )
         if has_previous_food:
-            game.gain_energy(player, 2, card)
+            game.gain_energy(player, 3, card)
 
 
 ICE_CREAM_SANDWICH = CardDefinition(

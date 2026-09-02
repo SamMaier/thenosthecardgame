@@ -85,11 +85,33 @@ Use four copies of `GalaxybrainAI` for card-strength data. The default
 checks, but its free pick rates should converge toward 25% and are not strategic
 rankings.
 
-Use the competition runner rather than an ad-hoc `Game.run()` loop:
+For an actual card-data run, use the module CLI below. Do not create an
+ad-hoc runner or inline `Game.run()` loop: custom formatters are easy to get
+wrong and can lose a long run's results after simulation completes. The
+`--output` option is required for four-Galaxybrain runs and atomically writes
+the complete CSV before the human-readable table is printed.
+
+```powershell
+wsl.exe python3 -m thenos 10000 --seed 20260901 --workers 16 \
+  --four-galaxybrain --output galaxybrain_10000_seed_20260901.csv
+```
+
+The CSV includes run metadata, every registered card, all three primary
+metrics, and their denominators. Use the Python API below only for library
+tests or programmatic consumers; if it is used for a report, call
+`write_report_csv` before doing any additional formatting and use the exact
+keys returned by `SimulationReport.rows()` (not invented aliases such as
+`with_card_games`).
+
+The equivalent competition-runner API is:
 
 ```python
 from thenos.ais import GalaxybrainAI
-from thenos.simulation import Competitor, simulate_games
+from thenos.simulation import (
+    Competitor,
+    simulate_games,
+    write_report_csv,
+)
 
 report = simulate_games(
     32,
@@ -101,6 +123,7 @@ report = simulate_games(
     workers=16,
 )
 
+write_report_csv(report, "galaxybrain_report.csv")
 print("Card | Free pick rate | Win rate | Fun added")
 for row in report.rows():
     print(
@@ -109,8 +132,10 @@ for row in report.rows():
     )
 ```
 
-`workers` uses independent processes through `ProcessPoolExecutor`, not
-threads. Galaxybrain is substantially faster than the deprecated Megamind and
+`python -m thenos --four-galaxybrain` delegates to
+`simulate_four_galaxybrain`, which supplies the four named Galaxybrain
+competitors and seat rotation. `workers` uses independent processes through
+`ProcessPoolExecutor`, not threads. Galaxybrain is substantially faster than the deprecated Megamind and
 Genius policies, but a many-hundred-game run can still take significant time,
 so leave an ample command timeout.
 

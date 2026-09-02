@@ -15,8 +15,8 @@ class PaddleboardTests(unittest.TestCase):
         card = make_card("paddleboard")
 
         self.assertEqual(card.title, "Paddleboard")
-        self.assertEqual(card.definition.cost, 4)
-        self.assertEqual(card.definition.base_fun, 4)
+        self.assertEqual(card.definition.cost, 3)
+        self.assertEqual(card.definition.base_fun, 2)
         self.assertEqual(
             card.definition.tags,
             frozenset({"Exercise", "Outdoors"}),
@@ -56,7 +56,7 @@ class PaddleboardTests(unittest.TestCase):
         played = game.play_card(0, 0)
 
         self.assertIs(played, paddleboard)
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(player.energy, 4)
         self.assertEqual(
             player.hand,
             [first_pick, replacement_after_first_pick, replacement_after_second_pick],
@@ -70,13 +70,13 @@ class PaddleboardTests(unittest.TestCase):
         self.assertEqual(player.picked_cards["Cheap White"], 1)
         self.assertEqual(player.picked_cards["Chalk Art"], 1)
         self.assertEqual(player.picked_cards["Nap"], 1)
-        self.assertEqual(game.card_fun(0, paddleboard), 4)
+        self.assertEqual(game.card_fun(0, paddleboard), 2)
 
     def test_empty_hand_discards_and_picks_nothing(self) -> None:
         game = empty_game()
         game.ais[0] = PaddleboardAI(game.rng)
         player = game.players[0]
-        player.energy = 4
+        player.energy = 3
         paddleboard = make_card("paddleboard")
         player.hand.append(paddleboard)
         suitcase = [make_card("biography") for _ in range(4)]
@@ -87,7 +87,7 @@ class PaddleboardTests(unittest.TestCase):
         self.assertEqual(player.hand, [])
         self.assertEqual(game.discard, [])
         self.assertEqual(game.suitcase, suitcase)
-        self.assertEqual(game.card_fun(0, paddleboard), 4)
+        self.assertEqual(game.card_fun(0, paddleboard), 2)
 
 
 if __name__ == "__main__":

@@ -330,7 +330,7 @@ SUNSCREEN = CardDefinition(
     slug="sunscreen",
     title="Sunscreen",
     tags=frozenset({"Item"}),
-    cost=3,
+    cost=2,
     behavior=EnergyForTagAfterBehavior("Outdoors", -1),
 )
 

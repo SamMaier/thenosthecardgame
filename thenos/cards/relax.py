@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 class EarlyBedtimeBehavior(CardBehavior):
-    """Start the next day with three additional Energy; play before the fourth card."""
+    """Go to bed, then start Tomorrow with three additional Energy."""
 
     has_tomorrow_action = True
 
@@ -35,6 +35,14 @@ class EarlyBedtimeBehavior(CardBehavior):
         card: CardInstance,
     ) -> None:
         game.gain_energy(player, 3, card)
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        game.go_to_bed(game.players.index(player))
 
 
 class CheesyPhoneGameBehavior(CardBehavior):

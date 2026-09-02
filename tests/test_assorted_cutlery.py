@@ -29,7 +29,7 @@ class AssortedCutleryTests(unittest.TestCase):
         self.assertEqual(game.stats.card_plays[played_card.title], 1)
         self.assertEqual(player.acquired_cards[played_card.title], 0)
 
-    def test_restricted_trunk_card_returns_to_hand_without_cost(self) -> None:
+    def test_restricted_trunk_card_is_played_ignoring_its_restriction(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 3
@@ -39,11 +39,14 @@ class AssortedCutleryTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 0)
-        self.assertEqual(player.played_today[0].title, "Assorted Cutlery")
-        self.assertEqual(player.hand, [restricted_card])
-        self.assertEqual(game.stats.card_plays[restricted_card.title], 0)
-        self.assertEqual(player.acquired_cards[restricted_card.title], 1)
+        self.assertEqual(player.energy, 3)
+        self.assertEqual(
+            [card.title for card in player.played_today],
+            ["Assorted Cutlery", "Morning Coffee"],
+        )
+        self.assertEqual(player.hand, [])
+        self.assertEqual(game.stats.card_plays[restricted_card.title], 1)
+        self.assertEqual(player.acquired_cards[restricted_card.title], 0)
 
 
 if __name__ == "__main__":

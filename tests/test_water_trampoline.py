@@ -17,7 +17,7 @@ class WaterTrampolineTests(unittest.TestCase):
         non_relax = game.play_card(0, 0)
         later_relax = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.tags, frozenset({"Exercise", "Outdoors"}))
         self.assertEqual(game.card_fun(0, card), 1)
         self.assertEqual(game.card_fun(0, non_relax), 3)

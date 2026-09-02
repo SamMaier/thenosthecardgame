@@ -26,7 +26,7 @@ class BoobyPrizeBehavior(CardBehavior):
 
 
 class AssortedCutleryBehavior(CardBehavior):
-    """Play the top card of the Trunk without paying its Energy cost."""
+    """Play the Trunk's top card for free, ignoring play restrictions."""
 
     def on_play(
         self,
@@ -34,11 +34,14 @@ class AssortedCutleryBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        game.play_card_from_trunk(game.players.index(player))
+        game.play_card_from_trunk(
+            game.players.index(player),
+            ignore_restrictions=True,
+        )
 
 
 class BougieCoffeeMachineBehavior(CardBehavior):
-    """Draw three cards and play each drawn Food card without paying Energy."""
+    """Play each Food among three draws for free, ignoring restrictions."""
 
     def on_play(
         self,
@@ -49,7 +52,11 @@ class BougieCoffeeMachineBehavior(CardBehavior):
         player_index = game.players.index(player)
         for drawn_card in game.draw_from_trunk(player_index, 3):
             if "Food" in drawn_card.tags:
-                game.play_card_for_effect(player_index, drawn_card)
+                game.play_card_for_effect(
+                    player_index,
+                    drawn_card,
+                    ignore_restrictions=True,
+                )
             else:
                 game.give_card(player_index, drawn_card)
 

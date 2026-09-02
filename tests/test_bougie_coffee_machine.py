@@ -37,11 +37,12 @@ class BougieCoffeeMachineTests(unittest.TestCase):
         self.assertEqual(game.stats.card_acquisitions["Fajitas"], 0)
         self.assertEqual(game.trunk, [])
 
-    def test_restricted_drawn_food_returns_to_hand_without_cost(self) -> None:
+    def test_restricted_drawn_food_is_played_ignoring_its_restriction(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
-        player.hand.append(make_card("bougie-coffee-machine"))
+        machine = make_card("bougie-coffee-machine")
+        player.hand.append(machine)
 
         restricted_food = make_card("morning-coffee")
         other_card = make_card("biography")
@@ -50,12 +51,14 @@ class BougieCoffeeMachineTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 7)
-        self.assertEqual(player.hand, [restricted_food, other_card])
-        self.assertEqual(player.played_today[0].title, "Bougie Coffee Machine")
-        self.assertEqual(player.played_today[1], food)
-        self.assertEqual(game.stats.card_plays["Morning Coffee"], 0)
-        self.assertEqual(game.stats.card_acquisitions["Morning Coffee"], 1)
+        self.assertEqual(player.energy, 10)
+        self.assertEqual(player.hand, [other_card])
+        self.assertEqual(
+            player.played_today,
+            [machine, restricted_food, food],
+        )
+        self.assertEqual(game.stats.card_plays["Morning Coffee"], 1)
+        self.assertEqual(game.stats.card_acquisitions["Morning Coffee"], 0)
 
 
 if __name__ == "__main__":

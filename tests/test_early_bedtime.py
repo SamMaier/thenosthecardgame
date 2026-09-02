@@ -37,6 +37,8 @@ class EarlyBedtimeTests(unittest.TestCase):
 
         self.assertEqual(player.energy, 6)
         self.assertEqual(game.card_fun(0, card), 0)
+        self.assertTrue(player.asleep)
+        self.assertEqual(game.playable_hand_indices(0), [])
 
         game.end_day()
 

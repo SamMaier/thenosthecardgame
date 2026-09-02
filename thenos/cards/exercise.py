@@ -78,7 +78,7 @@ class MorningRunBehavior(CardBehavior):
 
 
 class ZumbaBehavior(CardBehavior):
-    """Start the next day with three additional Energy."""
+    """Start the next day with four additional Energy."""
 
     has_tomorrow_action = True
 
@@ -88,7 +88,7 @@ class ZumbaBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        game.gain_energy(player, 3, card)
+        game.gain_energy(player, 4, card)
 
 
 class PlayWithTheKidsBehavior(CardBehavior):
@@ -130,7 +130,7 @@ class WakesurfBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        bonus = 6 if not player.hand else 0
+        bonus = 5 if not player.hand else 0
         return card.effective_base_fun + bonus
 
 
@@ -143,7 +143,7 @@ class SlalomStartBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        bonus = 6 if len(player.hand) == 1 else 0
+        bonus = 5 if len(player.hand) == 1 else 0
         return card.effective_base_fun + bonus
 
 
@@ -322,7 +322,7 @@ WAKESURF = CardDefinition(
     slug="wakesurf",
     title="Wakesurf",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=4,
+    cost=3,
     base_fun=1,
     behavior=WakesurfBehavior(),
 )
@@ -331,7 +331,7 @@ SLALOM_START = CardDefinition(
     slug="slalom-start",
     title="Slalom Start",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=5,
+    cost=4,
     base_fun=2,
     behavior=SlalomStartBehavior(),
 )
@@ -399,8 +399,8 @@ PADDLEBOARD = CardDefinition(
     slug="paddleboard",
     title="Paddleboard",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=4,
-    base_fun=4,
+    cost=3,
+    base_fun=2,
     behavior=PaddleboardBehavior(),
 )
 
@@ -408,8 +408,8 @@ NAVY_SEALING = CardDefinition(
     slug="navy-sealing",
     title="Navy SEALing",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=6,
-    base_fun=3,
+    cost=8,
+    base_fun=4,
     behavior=NavySEALingBehavior(),
 )
 
