@@ -28,7 +28,7 @@ class TeachKidToSkiTests(unittest.TestCase):
         exercise = game.play_card(0, 0)
         other = game.play_card(0, 0)
 
-        self.assertEqual(game.card_fun(0, exercise), 7)
+        self.assertEqual(game.card_fun(0, exercise), 8)
         self.assertEqual(game.card_fun(0, other), 2)
 
         game.end_day()

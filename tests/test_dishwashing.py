@@ -13,10 +13,10 @@ class DishwashingTests(unittest.TestCase):
 
         dishwashing = game.play_card(0, 0)
 
-        self.assertEqual(dishwashing.definition.cost, 2)
+        self.assertEqual(dishwashing.definition.cost, 1)
         self.assertEqual(dishwashing.definition.base_fun, 0)
         self.assertEqual(dishwashing.definition.tags, frozenset({"Event"}))
-        self.assertEqual(player.energy, 5)
+        self.assertEqual(player.energy, 6)
 
         player.hand.extend(
             [make_card("cheap-white"), make_card("waterski"), make_card("m-ms")]

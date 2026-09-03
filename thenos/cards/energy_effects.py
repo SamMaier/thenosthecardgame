@@ -279,7 +279,7 @@ BOAT_RIDE = CardDefinition(
     slug="boat-ride",
     title="Boat Ride",
     tags=frozenset({"Event", "Outdoors"}),
-    cost=3,
+    cost=2,
     base_fun=1,
     behavior=SetEnergyForNextTagBehavior("Item", 0),
 )
@@ -370,7 +370,7 @@ DISHWASHING = CardDefinition(
     slug="dishwashing",
     title="Dishwashing",
     tags=frozenset({"Event"}),
-    cost=2,
+    cost=1,
     behavior=TomorrowEnergyForTagBehavior("Food", -1),
 )
 

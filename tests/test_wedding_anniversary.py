@@ -44,7 +44,7 @@ class WeddingAnniversaryTests(unittest.TestCase):
         card = game.play_card(0, 0)
 
         self.assertEqual(ai.eligible_titles, ("Wingspan",))
-        self.assertEqual(player.energy, 4)
+        self.assertEqual(player.energy, 5)
         self.assertIs(card.effective_behavior, target.definition.behavior)
         self.assertEqual(card.effective_base_fun, target.definition.base_fun)
         self.assertEqual(card.tags, frozenset({"Event"}))

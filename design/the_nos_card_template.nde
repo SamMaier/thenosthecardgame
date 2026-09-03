@@ -1,0 +1,65 @@
+; The Nos — minimalist photo card starter for nanDECK
+; Keep this .nde file and the linked CSV in the same folder.
+; Put each real-life card photo in the path listed in the Image column.
+
+UNIT = INCH
+; Print geometry:
+; bleed canvas: 2.74 x 3.74 in
+; cut line:     x=0.12..2.62, y=0.12..3.62
+; safe area:    x=0.22..2.52, y=0.22..3.52 (2.3 x 3.3 in)
+CARDSIZE = 2.74, 3.74
+DPI = 600
+
+; Palette: warm paper, charcoal ink, restrained cedar accent.
+[paper] = #F5F0E8
+[ink] = #1F2528
+[accent] = #C65532
+[rule] = #D9D0C3
+
+; The linked CSV must have these columns:
+; Title, Tags, Cost, Effect, Flavor, Image
+LINKCSV = UTF8
+LINK = "the_nos_card_template_data.csv"
+
+; Base card.
+RECTANGLE = , 0, 0, 2.74, 3.74, [paper]
+
+; Full-bleed photo: it reaches the top and both side borders.
+; PC keeps the aspect ratio and crops the excess to fill the frame.
+; The badge is intentionally drawn later, so it sits over the photo.
+IMAGE = , [Image], 0, 0, 2.74, 2.16, 0, PC
+
+; Information panel.
+; It is allowed to extend into the bleed because it is plain paper.
+RECTANGLE = , 0, 2.16, 2.74, 1.58, [paper]
+LINE = , 0, 2.16, 2.74, 2.16, [rule], 0.01
+
+; Energy cost badge — top-left, over the image.
+; Its entire bounding box is inside the safe area.
+ROUNDRECT = , 0.30, 0.30, 0.32, 0.32, [ink], [paper], 0.02, 0.06, 0.06, R
+FONT = Arial, 11, BX, [ink]
+TEXT = , [Cost], 0.30, 0.30, 0.32, 0.32, center, center
+
+; Wordmark, title, tags, and effect text.
+FONT = Arial, 7, B, [ink]
+TEXT = , "THE NOS", 1.78, 2.27, 0.74, 0.13, right, center
+
+FONT = Arial, 24, BX, [ink]
+TEXT = , [Title], 0.32, 2.42, 2.10, 0.34, left, center
+
+LINE = , 0.32, 2.84, 0.58, 2.84, [accent], 0.04
+
+FONT = Arial, 8, B, [ink]
+TEXT = , [Tags], 0.32, 2.94, 2.10, 0.14, left, center
+
+; wwtop wraps long rules from the top; X shrinks text if needed.
+FONT = Arial, 8, X, [ink]
+TEXT = , [Effect], 0.32, 3.14, 2.10, 0.24, left, wwtop
+
+; Optional flavor text below the effect, set in italics.
+FONT = Arial, 7, IX, [ink]
+TEXT = , [Flavor], 0.32, 3.42, 2.10, 0.10, left, wwtop
+
+; Draw a quiet border on the safe-area boundary, last.
+; It is decorative only; all critical content is inside it.
+ROUNDRECT = , 0.22, 0.22, 2.30, 3.30, [ink], EMPTY, 0.015, 0.08, 0.08, R

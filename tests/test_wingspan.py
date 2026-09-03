@@ -8,7 +8,7 @@ class WingspanTests(unittest.TestCase):
     def test_cost_tags_and_printed_fun(self) -> None:
         card = make_card("wingspan")
 
-        self.assertEqual(card.definition.cost, 3)
+        self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.tags, frozenset({"Board Game"}))
         self.assertEqual(card.definition.base_fun, 1)
 
@@ -20,7 +20,7 @@ class WingspanTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 4)
+        self.assertEqual(player.energy, 5)
         self.assertEqual(player.fun, 1)
         self.assertEqual(game.card_fun(0, card), 1)
 

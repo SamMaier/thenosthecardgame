@@ -40,6 +40,80 @@ def galaxy_game(seed: int = 11) -> Game:
 
 
 class GalaxybrainAITests(unittest.TestCase):
+    def test_credits_tomorrow_hand_benefit_before_final_day(self):
+        class TomorrowFunBehavior(CardBehavior):
+            has_tomorrow_action = True
+
+            def modify_tomorrow_fun(
+                self, game, player, source, target, current_fun
+            ):
+                return current_fun + 2
+
+        game = galaxy_game(seed=17)
+        game.day = 2
+        player = game.players[0]
+        player.played_today = [
+            CardInstance(
+                1,
+                CardDefinition(
+                    slug="tomorrow-source",
+                    title="Tomorrow source",
+                    tags=frozenset(),
+                    cost=1,
+                    base_fun=1,
+                    behavior=TomorrowFunBehavior(),
+                ),
+            )
+        ]
+        player.hand = [
+            card(2, "Future A", cost=1, fun=1),
+            card(3, "Future B", cost=1, fun=1),
+        ]
+
+        galaxybrain_value = game.ais[0]._state_value(game, 0)
+        game.ais[0].TOMORROW_RESERVE_BONUS_WEIGHT = 0.0
+        ordinary_value = game.ais[0]._state_value(game, 0)
+
+        self.assertAlmostEqual(
+            galaxybrain_value - ordinary_value,
+            2 * 2 * 0.80 * 0.50,
+        )
+
+    def test_credits_tomorrow_hand_benefit_on_day_five(self):
+        class TomorrowFunBehavior(CardBehavior):
+            has_tomorrow_action = True
+
+            def modify_tomorrow_fun(
+                self, game, player, source, target, current_fun
+            ):
+                return current_fun + 5
+
+        game = galaxy_game(seed=18)
+        game.day = 5
+        player = game.players[0]
+        player.played_today = [
+            CardInstance(
+                1,
+                CardDefinition(
+                    slug="tomorrow-source",
+                    title="Tomorrow source",
+                    tags=frozenset(),
+                    cost=1,
+                    base_fun=1,
+                    behavior=TomorrowFunBehavior(),
+                ),
+            )
+        ]
+        player.hand = [card(2, "Future", cost=1, fun=1)]
+
+        galaxybrain_value = game.ais[0]._state_value(game, 0)
+        game.ais[0].TOMORROW_RESERVE_BONUS_WEIGHT = 0.0
+
+        self.assertGreater(
+            galaxybrain_value,
+            game.ais[0]._state_value(game, 0),
+        )
+
     def test_fast_copy_matches_deepcopy_and_preserves_marker_references(self):
         game = Game.default(seed=101)
         game.setup()

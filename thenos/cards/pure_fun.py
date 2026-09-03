@@ -106,7 +106,7 @@ CIVILIZATION_THE_BOARD_GAME = CardDefinition(
     title="Civilization the Board Game",
     tags=frozenset({"Board Game", "Indoors"}),
     cost=10,
-    base_fun=15,
+    base_fun=14,
 )
 
 KNEEBOARD = CardDefinition(

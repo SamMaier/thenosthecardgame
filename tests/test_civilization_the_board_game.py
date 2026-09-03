@@ -19,7 +19,7 @@ class CivilizationTheBoardGameTests(unittest.TestCase):
             frozenset({"Board Game", "Indoors"}),
         )
         self.assertEqual(player.energy, 0)
-        self.assertEqual(game.card_fun(0, card), 15)
+        self.assertEqual(game.card_fun(0, card), 14)
 
 
 if __name__ == "__main__":

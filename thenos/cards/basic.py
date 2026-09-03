@@ -292,7 +292,7 @@ class EpicPrankBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        bonus = 6 if card.markers.get("discarded_item") is not None else 0
+        bonus = 5 if card.markers.get("discarded_item") is not None else 0
         return card.effective_base_fun + bonus
 
 
@@ -418,7 +418,7 @@ WINGSPAN = CardDefinition(
     slug="wingspan",
     title="Wingspan",
     tags=frozenset({"Board Game"}),
-    cost=3,
+    cost=2,
     base_fun=1,
     behavior=WingspanBehavior(),
 )

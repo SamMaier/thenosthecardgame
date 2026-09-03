@@ -23,7 +23,7 @@ class EpicPrankTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 2)
         self.assertEqual(card.definition.tags, frozenset({"Event"}))
 
-    def test_discards_selected_item_for_six_fun(self) -> None:
+    def test_discards_selected_item_for_five_fun(self) -> None:
         game = empty_game()
         game.ais[0] = TargetDiscardAI(0, game.rng)
         player = game.players[0]
@@ -38,7 +38,7 @@ class EpicPrankTests(unittest.TestCase):
         self.assertEqual(player.hand, [retained])
         self.assertIn(item, game.discard)
         self.assertIs(card.markers["discarded_item"], item)
-        self.assertEqual(game.card_fun(0, card), 8)
+        self.assertEqual(game.card_fun(0, card), 7)
 
     def test_without_an_item_in_hand_scores_only_base_fun(self) -> None:
         game = empty_game()

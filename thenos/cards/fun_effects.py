@@ -653,7 +653,7 @@ SCHWANK = CardDefinition(
     slug="schwank",
     title="Schwank",
     tags=frozenset({"Food"}),
-    cost=2,
+    cost=1,
     behavior=FunForNthTagDoubleBehavior("Exercise", 3),
 )
 
@@ -804,8 +804,8 @@ CLIFF_CLIMBING = CardDefinition(
     slug="cliff-climbing",
     title="Cliff Climbing",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=5,
-    base_fun=3,
+    cost=4,
+    base_fun=2,
     behavior=FunForTagBeforeBehavior("Outdoors", 2),
 )
 
@@ -846,7 +846,7 @@ TEACH_KID_TO_SKI = CardDefinition(
     title="Teach Kid to Ski",
     tags=frozenset({"Event", "Outdoors"}),
     cost=2,
-    behavior=TomorrowFunForTagBehavior("Exercise", 1),
+    behavior=TomorrowFunForTagBehavior("Exercise", 2),
 )
 
 

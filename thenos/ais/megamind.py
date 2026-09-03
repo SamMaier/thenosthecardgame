@@ -53,6 +53,9 @@ class MegamindAI(PlannerAI):
     ROOT_WIDTH = 10
     FUTURE_WEIGHT = 0.50
     FUTURE_HAND_WEIGHT = 0.24
+    TOMORROW_RESERVE_BONUS_WEIGHT = 0.0
+    PENULTIMATE_MARGIN_WEIGHT = 2.0
+    FINAL_MARGIN_WEIGHT = 6.0
 
     def __init__(self, rng: random.Random | None = None) -> None:
         super().__init__(rng)
@@ -121,11 +124,32 @@ class MegamindAI(PlannerAI):
                 )
             immediate_future = scored_player.fun - own_score
             energy_delta = scored_player.energy - DAILY_ENERGY
+            reserve_value = self._future_hand_value(scoring, player_index)
+            tomorrow_reserve_bonus = 0.0
+            if (
+                self.TOMORROW_RESERVE_BONUS_WEIGHT
+                and scored_player.tomorrow_cards
+            ):
+                # Isolate only the next-day hand value caused by Tomorrow
+                # text; ordinary reserve value is available in either branch.
+                tomorrow_cards = scored_player.tomorrow_cards
+                scored_player.tomorrow_cards = []
+                try:
+                    ordinary_reserve_value = self._future_hand_value(
+                        scoring,
+                        player_index,
+                    )
+                finally:
+                    scored_player.tomorrow_cards = tomorrow_cards
+                tomorrow_reserve_bonus = (
+                    reserve_value - ordinary_reserve_value
+                )
             future_value = (
                 immediate_future
                 + 0.65 * energy_delta
-                + self.FUTURE_HAND_WEIGHT
-                * self._future_hand_value(scoring, player_index)
+                + self.FUTURE_HAND_WEIGHT * reserve_value
+                + self.TOMORROW_RESERVE_BONUS_WEIGHT
+                * tomorrow_reserve_bonus
             )
 
         value = own_score + self.FUTURE_WEIGHT * future_value
@@ -139,7 +163,11 @@ class MegamindAI(PlannerAI):
                 if index != player_index
             )
             margin = own_score - best_opponent
-            weight = 2.0 if game.day == DAYS_PER_GAME - 1 else 6.0
+            weight = (
+                self.PENULTIMATE_MARGIN_WEIGHT
+                if game.day == DAYS_PER_GAME - 1
+                else self.FINAL_MARGIN_WEIGHT
+            )
             value += weight * math.tanh(margin / 3.0)
         return value
 

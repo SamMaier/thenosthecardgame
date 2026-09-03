@@ -27,6 +27,13 @@ class GalaxybrainAI(MegamindAI):
     ROOT_WIDTH = 9
     FUTURE_WEIGHT = 0.50
     FUTURE_HAND_WEIGHT = 0.24
+    # Most future hand value exists with or without today's setup. Credit the
+    # improvement caused specifically by visible Tomorrow text almost at full
+    # future value, while slightly strengthening the existing late-game margin
+    # objective so raw setup value cannot displace a close competitive win.
+    TOMORROW_RESERVE_BONUS_WEIGHT = 0.80
+    PENULTIMATE_MARGIN_WEIGHT = 2.5
+    FINAL_MARGIN_WEIGHT = 6.5
 
     def _copy_game(self, game: Game) -> Game:
         return game.copy_for_simulation()
