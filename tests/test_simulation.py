@@ -104,7 +104,12 @@ class SimulationTests(unittest.TestCase):
             sum(card.free_pick_offers for card in report.cards.values()),
             4 * sum(card.free_picks for card in report.cards.values()),
         )
-        for card in report.cards.values():
+        for title, card in report.cards.items():
+            if title == "Read the Radar":
+                self.assertEqual(card.acquisitions, 0)
+                self.assertEqual(card.free_pick_offers, 0)
+                self.assertEqual(card.player_games_without_card, 40)
+                continue
             self.assertGreater(card.offers, 0)
             self.assertGreater(card.picks, 0)
             self.assertGreaterEqual(card.offers, card.picks)

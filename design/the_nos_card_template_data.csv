@@ -1,2 +1,5 @@
 Title,Tags,Cost,Effect,Flavor,Image
 CAMPFIRE,"SOCIAL · EVENT · OUTDOORS",2,"+2 Fun for every Tomorrow card.","When the lake goes quiet, the stories get louder.",photos/campfire.jpg
+Bougie Coffee Machine,"ITEM",4,"Draw 3 cards from the Trunk, playing any drawn Food cards for 0 Energy, ignoring any restrictions.", "I'll take a venti nonfat, sugar free vanilla, caramel macchiato quad shot, with whipped cream and 3 Splenda", photos/campfire.jpg
+Scout the Other Cottages,"SOCIAL · INDOORS",1,"Place an Energy cube on all cards in the Suitcase. After all scoring at end of day, add all cards that remain with your Energy cube on them to your hand.
+All cards played previously today score -1 Fun.","They brought up some sweet new games", photos/IMG_1357.jpg

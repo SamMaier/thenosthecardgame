@@ -21,6 +21,7 @@ from thenos.ais import (
 )
 from thenos.cards.catalog import CARD_REGISTRY, create_default_deck
 from thenos.game import Game, PLAYER_COUNT
+from thenos.daily_conditions import DAILY_CONDITIONS
 
 
 AIFactory = Callable[[random.Random], PlayerAI]
@@ -118,6 +119,39 @@ class SimulationReport:
     cards: dict[str, CardStatistics] = field(default_factory=dict)
     score_totals: Counter[str] = field(default_factory=Counter)
     ais: dict[str, AIStatistics] = field(default_factory=dict)
+    daily_conditions: bool = False
+    condition_days: Counter[str] = field(default_factory=Counter)
+    condition_fun: Counter[str] = field(default_factory=Counter)
+
+    def condition_rows(self) -> list[dict[str, int | float | str | None]]:
+        """Observed net daily Fun per player, relative to all condition-days.
+
+        Includes immediate and end-day Fun. This is an association, not a
+        counterfactual estimate of how much the condition itself caused.
+        """
+        if not self.daily_conditions:
+            return []
+        total_player_days = PLAYER_COUNT * sum(self.condition_days.values())
+        total_fun = sum(self.condition_fun.values())
+        baseline = total_fun / total_player_days if total_player_days else None
+        rows = []
+        for condition in DAILY_CONDITIONS:
+            days = self.condition_days[condition.title]
+            player_days = PLAYER_COUNT * days
+            fun = self.condition_fun[condition.title]
+            average = fun / player_days if player_days else None
+            rows.append({
+                "condition": condition.title,
+                "days": days,
+                "player_days": player_days,
+                "fun_total": fun,
+                "average_daily_fun": average,
+                "overall_player_days": total_player_days,
+                "overall_fun_total": total_fun,
+                "overall_average_daily_fun": baseline,
+                "fun_difference": average - baseline if average is not None and baseline is not None else None,
+            })
+        return rows
 
     def rows(self) -> list[dict[str, int | float | str]]:
         return [
@@ -153,14 +187,34 @@ def write_report_csv(
     *,
     metadata: Mapping[str, object] | None = None,
 ) -> Path:
-    """Atomically persist a complete card report as a self-contained CSV."""
+    """Persist card CSV and, when enabled, a daily-condition companion CSV.
+
+    Each file is replaced atomically before returning to human formatting.
+    """
     destination = Path(output)
-    destination.parent.mkdir(parents=True, exist_ok=True)
     rows = report.rows()
     if not rows:
         raise ValueError("simulation report contains no card rows")
-
     run_metadata = dict(metadata or {})
+    run_metadata["daily_conditions"] = report.daily_conditions
+    condition_rows = report.condition_rows()
+    # Validate both schemas before replacing either file.
+    for table in (rows, condition_rows):
+        if table and set(run_metadata).intersection(table[0]):
+            raise ValueError("metadata duplicates report fields")
+    _write_rows_csv(destination, rows, run_metadata)
+    if condition_rows:
+        _write_rows_csv(condition_report_path(destination), condition_rows, run_metadata)
+    return destination
+
+
+def condition_report_path(output: str | Path) -> Path:
+    destination = Path(output)
+    return destination.with_name(f"{destination.stem}.daily_conditions.csv")
+
+
+def _write_rows_csv(destination: Path, rows: list[dict], run_metadata: dict) -> Path:
+    destination.parent.mkdir(parents=True, exist_ok=True)
     duplicate_fields = set(run_metadata).intersection(rows[0])
     if duplicate_fields:
         duplicates = ", ".join(sorted(duplicate_fields))
@@ -197,6 +251,7 @@ def write_report_csv(
 class _GameJob:
     seed: int
     competitors: tuple[Competitor, ...]
+    daily_conditions: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -219,6 +274,8 @@ class _GameOutcome:
     card_plays: Counter[str]
     card_plays_without_acquisition: Counter[str]
     players: tuple[_PlayerOutcome, ...]
+    condition_days: Counter[str] = field(default_factory=Counter)
+    condition_fun: Counter[str] = field(default_factory=Counter)
 
 
 def _run_game(job: _GameJob) -> _GameOutcome:
@@ -228,9 +285,11 @@ def _run_game(job: _GameJob) -> _GameOutcome:
         competitor.factory(random.Random(game_rng.getrandbits(64)))
         for competitor in job.competitors
     ]
-    game = Game(create_default_deck(), ais, game_rng)
+    game = Game(create_default_deck(daily_conditions=job.daily_conditions), ais, game_rng, daily_conditions=job.daily_conditions)
     result = game.run()
     return _GameOutcome(
+        condition_days=game.stats.condition_days,
+        condition_fun=game.stats.condition_fun,
         free_pick_offers=game.stats.free_pick_offers,
         free_picks=game.stats.free_picks,
         suitcase_offers=game.stats.suitcase_offers,
@@ -260,6 +319,8 @@ def _run_game(job: _GameJob) -> _GameOutcome:
 
 
 def _merge_outcome(report: SimulationReport, outcome: _GameOutcome) -> None:
+    report.condition_days.update(outcome.condition_days)
+    report.condition_fun.update(outcome.condition_fun)
     titles = set(outcome.free_pick_offers)
     titles.update(outcome.free_picks)
     titles.update(outcome.suitcase_offers)
@@ -314,6 +375,7 @@ def simulate_games(
     *,
     rotate_seats: bool = False,
     workers: int = 16,
+    daily_conditions: bool = False,
 ) -> SimulationReport:
     """Run games and aggregate card and AI results.
 
@@ -342,6 +404,7 @@ def simulate_games(
     master_rng = random.Random(seed)
     report = SimulationReport(
         games=games,
+        daily_conditions=daily_conditions,
         cards={
             card.title: CardStatistics()
             for card in CARD_REGISTRY.values()
@@ -357,7 +420,7 @@ def simulate_games(
         else:
             seated_competitors = competitors
         jobs.append(
-            _GameJob(master_rng.getrandbits(64), seated_competitors)
+            _GameJob(master_rng.getrandbits(64), seated_competitors, daily_conditions)
         )
 
     progress_interval = 8 if games <= 100 else 64
@@ -400,6 +463,7 @@ def simulate_greedy_vs_random(
     seed: int | None = None,
     *,
     workers: int = 16,
+    daily_conditions: bool = False,
 ) -> SimulationReport:
     """Run a seat-balanced match of one Greedy AI against three Random AIs."""
     return simulate_games(
@@ -413,6 +477,7 @@ def simulate_greedy_vs_random(
         ),
         rotate_seats=True,
         workers=workers,
+        daily_conditions=daily_conditions,
     )
 
 
@@ -421,6 +486,7 @@ def simulate_four_galaxybrain(
     seed: int | None = None,
     *,
     workers: int = 16,
+    daily_conditions: bool = False,
 ) -> SimulationReport:
     """Run the standard seat-rotated four-Galaxybrain card-data batch."""
     return simulate_games(
@@ -432,6 +498,7 @@ def simulate_four_galaxybrain(
         ),
         rotate_seats=True,
         workers=workers,
+        daily_conditions=daily_conditions,
     )
 
 
@@ -440,6 +507,7 @@ def simulate_planner_vs_greedy(
     seed: int | None = None,
     *,
     workers: int = 16,
+    daily_conditions: bool = False,
 ) -> SimulationReport:
     """Run a seat-balanced match of one Planner against three Greedy AIs."""
     return simulate_games(
@@ -453,6 +521,7 @@ def simulate_planner_vs_greedy(
         ),
         rotate_seats=True,
         workers=workers,
+        daily_conditions=daily_conditions,
     )
 
 
@@ -461,6 +530,7 @@ def simulate_galaxybrain_vs_planner(
     seed: int | None = None,
     *,
     workers: int = 16,
+    daily_conditions: bool = False,
 ) -> SimulationReport:
     """Run a seat-balanced match of one Galaxybrain against three Planners."""
     return simulate_games(
@@ -474,4 +544,5 @@ def simulate_galaxybrain_vs_planner(
         ),
         rotate_seats=True,
         workers=workers,
+        daily_conditions=daily_conditions,
     )

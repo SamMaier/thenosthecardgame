@@ -25,8 +25,8 @@ class CardRunnerTests(unittest.TestCase):
         cls.rows = read_card_rows(REPO)
         cls.jobs = build_jobs(cls.rows)
 
-    def test_builds_five_groups_then_ninety_one_single_card_jobs(self) -> None:
-        self.assertEqual(len(self.jobs), 96)
+    def test_builds_five_groups_then_ninety_four_single_card_jobs(self) -> None:
+        self.assertEqual(len(self.jobs), 99)
         self.assertEqual(
             [len(job.cards) for job in self.jobs[:5]],
             [len(spec[2]) for spec in GROUP_SPECS],

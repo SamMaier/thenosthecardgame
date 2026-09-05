@@ -5,6 +5,7 @@ from __future__ import annotations
 from itertools import count
 
 from thenos.cards.base import CardDefinition, CardInstance
+from thenos.cards.new_cards import POTATO_PANCAKES, READ_THE_RADAR, POKER
 from thenos.cards.copy_effects import LAST_YEARS_SHORTS, WEDDING_ANNIVERSARY
 from thenos.cards.basic import (
     BIOGRAPHY,
@@ -163,6 +164,9 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         PAINT,
         PAINT_ROCKS,
         SCOUT_THE_OTHER_COTTAGES,
+        POTATO_PANCAKES,
+        READ_THE_RADAR,
+        POKER,
     )
 }
 
@@ -178,5 +182,6 @@ def make_card(slug: str) -> CardInstance:
     return CardInstance(next(_instance_ids), definition)
 
 
-def create_default_deck() -> list[CardInstance]:
-    return [make_card(slug) for slug in CARD_REGISTRY]
+def create_default_deck(*, daily_conditions: bool = False) -> list[CardInstance]:
+    return [make_card(slug) for slug in CARD_REGISTRY
+            if daily_conditions or slug != "read-the-radar"]

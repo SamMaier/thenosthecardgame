@@ -133,7 +133,7 @@ class GameTests(unittest.TestCase):
         self.assertEqual(events["tomorrow_card_plays"], 1)
 
     def test_default_deck_has_one_copy_of_each_implemented_card(self) -> None:
-        counts = Counter(card.title for card in create_default_deck())
+        counts = Counter(card.title for card in create_default_deck(daily_conditions=True))
         self.assertEqual(len(counts), len(CARD_REGISTRY))
         self.assertTrue(all(count == 1 for count in counts.values()))
 

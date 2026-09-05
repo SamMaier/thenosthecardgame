@@ -159,6 +159,7 @@ class GeniusAI(PlannerAI):
         seed = self.rng.getrandbits(64)
         planning_rng = random.Random(seed)
         simulation.rng = random.Random(seed)
+        simulation.sample_daily_conditions(own_index, planning_rng)
 
         known_cards = [*simulation.suitcase, *simulation.discard]
         for player in simulation.players:
@@ -170,6 +171,7 @@ class GeniusAI(PlannerAI):
             definition
             for definition in CARD_REGISTRY.values()
             if known_titles[definition.title] == 0
+            and (simulation.daily_conditions or definition.slug != "read-the-radar")
         ]
         required = len(simulation.trunk) + sum(
             len(player.hand)
@@ -365,7 +367,7 @@ class GeniusAI(PlannerAI):
         future_value = 0.0
         if game.day < DAYS_PER_GAME:
             scoring.day = game.day + 1
-            player.energy = DAILY_ENERGY
+            player.energy = scoring.prepare_condition_forecast(player_index)
             player.asleep = False
             for card in player.tomorrow_cards:
                 card.effective_behavior.on_start_day(scoring, player, card)

@@ -1,0 +1,9 @@
+Daily Condition Card Name	Effect
+Rainy Day	Every Outdoors card played today scores -1 Fun.
+Beautiful Day	Every Outdoors card played today scores +1 Fun.
+Plumbing Issue	Every Indoors card played today scores -1 Fun.
+Sickness Spreading	Players start with -1 Energy today.
+New Arrivals	Every Social card played today scores +1 Fun.
+Brutally Hot Day	Every Outdoors card played today costs +1 Energy, and every Indoors card costs -1 Energy.
+Everyone Booked	Every Social card played today scores -1 Fun.
+Normal day	No Effect.

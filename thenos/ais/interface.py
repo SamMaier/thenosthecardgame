@@ -8,10 +8,17 @@ from thenos.cards.base import CardInstance
 
 if TYPE_CHECKING:
     from thenos.game import Game
+    from thenos.daily_conditions import DailyCondition
 
 
 class PlayerAI(Protocol):
     """All choices the rules engine may delegate to a player policy."""
+
+    def choose_tag(self, game: Game, player_index: int, tags: Sequence[str]) -> str:
+        """Name a tag before a hidden card is revealed."""
+
+    def order_daily_conditions(self, game: Game, player_index: int, cards: Sequence[DailyCondition]) -> Sequence[int]:
+        """Order privately revealed conditions from next day onward."""
 
     def choose_player(
         self,

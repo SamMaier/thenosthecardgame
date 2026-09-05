@@ -116,7 +116,7 @@ class MegamindAI(PlannerAI):
 
         future_value = 0.0
         if game.day < DAYS_PER_GAME:
-            scored_player.energy = DAILY_ENERGY
+            scored_player.energy = scoring.prepare_condition_forecast(player_index)
             scored_player.asleep = False
             for card in scored_player.tomorrow_cards:
                 card.effective_behavior.on_start_day(

@@ -54,6 +54,7 @@ def timed_four_policy(
     factory: type[GalaxybrainAI] | type[MegamindAI],
     *,
     workers: int,
+    daily_conditions: bool = False,
 ) -> tuple[float, AIStatistics]:
     started = time.perf_counter()
     report = simulate_games(
@@ -62,6 +63,7 @@ def timed_four_policy(
         competitors=tuple(Competitor(name, factory) for _ in range(4)),
         rotate_seats=True,
         workers=workers,
+        daily_conditions=daily_conditions,
     )
     return time.perf_counter() - started, report.ais[name]
 
@@ -81,6 +83,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--workers", type=int, default=16)
     parser.add_argument("--output-dir", type=Path, default=Path("results"))
+    parser.add_argument("--daily-conditions", action="store_true")
     args = parser.parse_args()
 
     result: dict[str, object] = {
@@ -89,15 +92,16 @@ def main() -> int:
             "python": platform.python_version(),
             "workers": args.workers,
             "rotate_seats": True,
+            "daily_conditions": args.daily_conditions,
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         }
     }
 
     galaxy_seconds, galaxy_timing_stats = timed_four_policy(
-        "Galaxybrain", GalaxybrainAI, workers=args.workers
+        "Galaxybrain", GalaxybrainAI, workers=args.workers, daily_conditions=args.daily_conditions
     )
     mega_seconds, mega_timing_stats = timed_four_policy(
-        "Megamind", MegamindAI, workers=args.workers
+        "Megamind", MegamindAI, workers=args.workers, daily_conditions=args.daily_conditions
     )
     timing_passed = galaxy_seconds < mega_seconds
     result["timing"] = {
@@ -128,7 +132,7 @@ def main() -> int:
             seed=STRENGTH_SEED,
             competitors=competitors,
             rotate_seats=True,
-            workers=args.workers,
+            workers=args.workers, daily_conditions=args.daily_conditions,
         )
         strength_seconds = time.perf_counter() - started
         galaxy = report.ais["Galaxybrain"]

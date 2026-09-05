@@ -23,7 +23,7 @@ from typing import Sequence
 
 MODEL = "gpt-5.6-luna"
 REASONING_EFFORT = "high"
-EXPECTED_CARD_COUNT = 153
+EXPECTED_CARD_COUNT = 156
 
 # These cards share implementation patterns and can be handled in batches.
 # Titles are explicit so reordering cards.csv cannot change batch membership.
@@ -331,13 +331,13 @@ def build_prompt(
         f"""
         Implement this The Nos card batch: {job.label}.
 
-        First read AGENTS.md, rules.md, and the existing engine and tests. Implement only
+        First read AGENTS.md, rules.md, daily_conditions.tsv, and the existing engine and tests. Implement only
         the target cards below. Follow AGENTS.md exactly. Add each CardDefinition to the
         registry, add generic engine hooks only where the rules require them, and create a
         focused tests/test_<card_slug_with_hyphens_changed_to_underscores>.py for every
         target card. Run the complete unit test suite before finishing.
 
-        Do not edit cards.csv or rules.md. Do not create a Git commit; the outer runner owns
+        Do not edit cards.csv, rules.md, or daily_conditions.tsv. Do not create a Git commit; the outer runner owns
         verification and committing. Do not guess at ambiguous rules. If a behavior cannot
         be determined from the repository and the additional clarifications, stop and explain
         the ambiguity without claiming the card is implemented.

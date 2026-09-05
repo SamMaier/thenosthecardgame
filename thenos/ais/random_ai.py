@@ -151,3 +151,9 @@ class RandomAI:
     ) -> Sequence[int]:
         """Choose uniformly among all possible orderings."""
         return self.rng.sample(range(len(cards)), len(cards))
+
+    def choose_tag(self, game: Game, player_index: int, tags: Sequence[str]) -> str:
+        return self.rng.choice(tags)
+
+    def order_daily_conditions(self, game: Game, player_index: int, cards: Sequence) -> Sequence[int]:
+        return self.rng.sample(range(len(cards)), len(cards))

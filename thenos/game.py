@@ -12,6 +12,7 @@ from thenos.ais import PlayerAI, RandomAI
 from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.catalog import create_default_deck
 from thenos.models import GameStats, PlayerState
+from thenos.daily_conditions import DAILY_CONDITIONS, DailyCondition
 
 
 PLAYER_COUNT = 4
@@ -49,10 +50,17 @@ class Game:
         deck: list[CardInstance],
         ais: Sequence[PlayerAI],
         rng: random.Random | None = None,
+        *,
+        daily_conditions: bool = False,
     ) -> None:
         if len(ais) != PLAYER_COUNT:
             raise ValueError(f"The Nos requires exactly {PLAYER_COUNT} AIs")
         self.rng = rng or random.Random()
+        self.daily_conditions = daily_conditions
+        self.daily_condition: DailyCondition | None = None
+        self._condition_deck = list(DAILY_CONDITIONS) if daily_conditions else []
+        self.revealed_conditions: list[DailyCondition] = []
+        self._condition_knowledge: list[tuple[DailyCondition | None, ...]] = [() for _ in range(PLAYER_COUNT)]
         self.ais = list(ais)
         self.players = [PlayerState(f"Player {i + 1}") for i in range(PLAYER_COUNT)]
         self.trunk = list(deck)
@@ -163,6 +171,8 @@ class Game:
         simulation.discard = clone_zone(self.discard)
         simulation.suitcase = clone_zone(self.suitcase)
         simulation.stats = GameStats(
+            condition_days=self.stats.condition_days.copy(),
+            condition_fun=self.stats.condition_fun.copy(),
             free_pick_offers=self.stats.free_pick_offers.copy(),
             free_picks=self.stats.free_picks.copy(),
             suitcase_offers=self.stats.suitcase_offers.copy(),
@@ -174,19 +184,24 @@ class Game:
             ),
         )
         simulation.day = self.day
+        simulation.daily_conditions = self.daily_conditions
+        simulation.daily_condition = self.daily_condition
+        simulation._condition_deck = self._condition_deck.copy()
+        simulation.revealed_conditions = self.revealed_conditions.copy()
+        simulation._condition_knowledge = self._condition_knowledge.copy()
         simulation.starting_player = self.starting_player
         simulation._is_setup = self._is_setup
         simulation._fun_at_start_of_scoring = self._fun_at_start_of_scoring
         return simulation
 
     @classmethod
-    def default(cls, seed: int | None = None) -> Game:
+    def default(cls, seed: int | None = None, *, daily_conditions: bool = False) -> Game:
         rng = random.Random(seed)
         ais = [
             RandomAI(random.Random(rng.getrandbits(64)))
             for _ in range(PLAYER_COUNT)
         ]
-        return cls(create_default_deck(), ais, rng)
+        return cls(create_default_deck(daily_conditions=daily_conditions), ais, rng, daily_conditions=daily_conditions)
 
     def setup(self) -> None:
         if self._is_setup:
@@ -201,6 +216,8 @@ class Game:
         for _ in range(SUITCASE_SIZE):
             self.suitcase.append(self._draw_from_trunk())
         self._is_setup = True
+        if self.daily_conditions:
+            self.rng.shuffle(self._condition_deck)
 
     def _draw_from_trunk(self) -> CardInstance:
         if not self.trunk:
@@ -267,11 +284,53 @@ class Game:
         ]
 
     def start_day(self) -> None:
+        if self.daily_conditions:
+            self.daily_condition = self._condition_deck.pop()
+            self.revealed_conditions.append(self.daily_condition)
+            self._condition_knowledge = [known[1:] for known in self._condition_knowledge]
         for player in self.players:
-            player.energy = DAILY_ENERGY
+            player.energy = DAILY_ENERGY + (self.daily_condition.starting_energy_delta if self.daily_condition else 0)
             player.asleep = False
             for card in player.tomorrow_cards:
                 card.effective_behavior.on_start_day(self, player, card)
+
+    def known_daily_conditions(self, player_index: int) -> tuple[DailyCondition | None, ...]:
+        """Return only this player's privately known upcoming positions."""
+        return self._condition_knowledge[player_index]
+
+    def arrange_daily_conditions(self, player_index: int) -> None:
+        if not self.daily_conditions or not self._condition_deck:
+            return
+        count = min(3, len(self._condition_deck))
+        cards = tuple(reversed(self._condition_deck[-count:]))
+        order = tuple(self.ais[player_index].order_daily_conditions(self, player_index, cards))
+        if sorted(order) != list(range(count)):
+            raise ValueError("AI must order every revealed Daily Condition exactly once")
+        arranged = tuple(cards[index] for index in order)
+        self._condition_deck[-count:] = reversed(arranged)
+        # Another player's private reorder makes these positions unknown.
+        self._condition_knowledge = [
+            (arranged if index == player_index else (None,) * count) + known[count:]
+            for index, known in enumerate(self._condition_knowledge)
+        ]
+
+    def sample_daily_conditions(self, player_index: int, rng: random.Random) -> None:
+        """Replace hidden condition order on a planning copy using public data."""
+        if not self.daily_conditions:
+            return
+        known = self.known_daily_conditions(player_index)
+        remaining = [card for card in DAILY_CONDITIONS if card not in self.revealed_conditions and card not in known]
+        rng.shuffle(remaining)
+        top = [known[i] if i < len(known) and known[i] is not None else remaining.pop()
+               for i in range(len(DAILY_CONDITIONS) - len(self.revealed_conditions))]
+        self._condition_deck = list(reversed(top))
+        self._condition_knowledge = [known if i == player_index else () for i in range(PLAYER_COUNT)]
+
+    def prepare_condition_forecast(self, player_index: int) -> int:
+        """Use a known next condition, otherwise a neutral future estimate."""
+        known = self.known_daily_conditions(player_index)
+        self.daily_condition = known[0] if known else None
+        return DAILY_ENERGY + (self.daily_condition.starting_energy_delta if self.daily_condition else 0)
 
     def gain_energy(
         self,
@@ -562,8 +621,11 @@ class Game:
 
     def energy_cost(self, player_index: int, card: CardInstance) -> int:
         player = self.players[player_index]
+        cost = card.effective_cost
+        if self.daily_condition:
+            cost = self.daily_condition.modify_energy_cost(card.tags, cost)
         cost = card.effective_behavior.modify_own_energy_cost(
-            self, player, card, card.effective_cost
+            self, player, card, cost
         )
         for source in player.tomorrow_cards:
             cost = source.effective_behavior.modify_tomorrow_energy_cost(
@@ -799,6 +861,8 @@ class Game:
             return 0
         player = self.players[player_index]
         value = target.effective_behavior.fun_value(self, player, target)
+        if self.daily_condition:
+            value = self.daily_condition.modify_fun(target.tags, value)
         for source in player.tomorrow_cards:
             value = source.effective_behavior.modify_tomorrow_fun(
                 self, player, source, target, value
@@ -847,10 +911,17 @@ class Game:
         if self.day >= DAYS_PER_GAME:
             raise RuntimeError("All days have already been played")
         self.day += 1
+        fun_before_day = sum(player.fun for player in self.players)
         self.start_day()
         self.draw_phase()
         self.playing_phase()
         self.end_day()
+        if self.daily_conditions and self.daily_condition is not None:
+            title = self.daily_condition.title
+            self.stats.condition_days[title] += 1
+            self.stats.condition_fun[title] += (
+                sum(player.fun for player in self.players) - fun_before_day
+            )
 
     def result(self) -> GameResult:
         scores = tuple(player.fun for player in self.players)

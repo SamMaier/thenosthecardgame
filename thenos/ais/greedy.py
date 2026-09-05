@@ -48,6 +48,8 @@ class GreedyAI(RandomAI):
         return (
             id(game),
             game.day,
+            game.daily_condition,
+            game.known_daily_conditions(player_index),
             game.starting_player,
             player_index,
             player.energy,
@@ -95,6 +97,42 @@ class GreedyAI(RandomAI):
             [index for index, value in enumerate(values) if value == best]
         )
 
+    def choose_tag(self, game: Game, player_index: int, tags: Sequence[str]) -> str:
+        from thenos.cards.catalog import CARD_REGISTRY
+
+        visible = [*game.suitcase, *game.discard, *game.players[player_index].hand]
+        for player in game.players:
+            visible.extend(player.visible_cards)
+        seen = {card.title for card in visible}
+        candidates = [card for card in CARD_REGISTRY.values() if card.title not in seen
+                      and (game.daily_conditions or card.slug != "read-the-radar")]
+        counts = [sum(tag in card.tags for card in candidates) for tag in tags]
+        return tags[self._choose_best(counts)]
+
+    def order_daily_conditions(self, game: Game, player_index: int, cards: Sequence) -> Sequence[int]:
+        """Prefer conditions helping the known reserve hand on earlier days."""
+        from itertools import permutations
+        from thenos.game import DAYS_PER_GAME, DAILY_ENERGY
+
+        future = game.copy_for_simulation()
+        future.end_day()
+        player = future.players[player_index]
+        player.asleep = False
+        values = []
+        for condition in cards:
+            future.daily_condition = condition
+            player.energy = DAILY_ENERGY + condition.starting_energy_delta
+            value = condition.starting_energy_delta
+            for card in player.hand:
+                if card.effective_behavior.can_play(future, player, card):
+                    value += max(0, future.card_fun(player_index, card)) / (1 + future.energy_cost(player_index, card))
+            values.append(value)
+        orders = list(permutations(range(len(cards))))
+        remaining_days = DAYS_PER_GAME - game.day
+        scores = [sum(values[index] / (offset + 1) for offset, index in enumerate(order)
+                      if offset < remaining_days) for order in orders]
+        return orders[self._choose_best(scores)]
+
     @staticmethod
     def _printed_value(card: CardInstance) -> int:
         return card.effective_base_fun
@@ -111,13 +149,33 @@ class GreedyAI(RandomAI):
         player_index: int,
         hand_index: int,
     ) -> int:
-        simulation = copy.deepcopy(game)
+        simulation = self._public_play_copy(game, player_index)
         simulated_ai = simulation.ais[player_index]
         if isinstance(simulated_ai, GreedyAI):
             simulated_ai._evaluation_depth = self._evaluation_depth + 1
         simulation.play_card(player_index, hand_index)
         simulation.end_day()
         return simulation.players[player_index].fun
+
+    @staticmethod
+    def _public_play_copy(game: Game, player_index: int) -> Game:
+        """Sample hidden draws and conditions consistently for one-step choices."""
+        simulation = copy.deepcopy(game)
+        rng = random.Random(0)
+        simulation.sample_daily_conditions(player_index, rng)
+        unknown = list(simulation.trunk)
+        others = [p for i, p in enumerate(simulation.players) if i != player_index]
+        for player in others:
+            unknown.extend(player.hand)
+        unknown.sort(key=lambda card: card.instance_id)
+        rng.shuffle(unknown)
+        for player in others:
+            count = len(player.hand)
+            player.hand = unknown[:count]
+            del unknown[:count]
+        simulation.trunk = unknown
+        simulation.rng = rng
+        return simulation
 
     def choose_card_to_play(
         self,
@@ -195,7 +253,7 @@ class GreedyAI(RandomAI):
         *,
         extra_pick_cost: int = 0,
     ) -> int:
-        simulation = copy.deepcopy(game)
+        simulation = self._public_play_copy(game, player_index)
         simulated_ai = simulation.ais[player_index]
         if isinstance(simulated_ai, GreedyAI):
             simulated_ai._evaluation_depth = self._evaluation_depth + 1

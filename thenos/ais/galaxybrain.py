@@ -51,6 +51,7 @@ class GalaxybrainAI(MegamindAI):
         seed = self.rng.getrandbits(64)
         simulation.rng = random.Random(seed)
         planning_rng = random.Random(seed)
+        simulation.sample_daily_conditions(player_index, planning_rng)
 
         hidden_counts = {
             index: len(player.hand)

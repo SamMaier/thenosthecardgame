@@ -65,6 +65,8 @@ class PlannerAI(GreedyAI):
         seed = self.rng.getrandbits(64)
         simulation.rng = random.Random(seed)
         planning_rng = random.Random(seed)
+        if player_index is not None:
+            simulation.sample_daily_conditions(player_index, planning_rng)
         simulation.trunk.sort(key=lambda card: card.instance_id)
         planning_rng.shuffle(simulation.trunk)
         simulation.discard.sort(key=lambda card: card.instance_id)
@@ -126,7 +128,7 @@ class PlannerAI(GreedyAI):
         # Resolve only this player's already-visible Tomorrow setup. Start-day
         # actions apply here; cost and Fun modifiers are reflected when the
         # known hand is valued below. None of these paths consult hidden zones.
-        player.energy = DAILY_ENERGY
+        player.energy = scoring.prepare_condition_forecast(player_index)
         player.asleep = False
         for card in player.tomorrow_cards:
             card.effective_behavior.on_start_day(scoring, player, card)

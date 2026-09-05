@@ -27,35 +27,35 @@ RECTANGLE = , 0, 0, 2.74, 3.74, [paper]
 ; Full-bleed photo: it reaches the top and both side borders.
 ; PC keeps the aspect ratio and crops the excess to fill the frame.
 ; The badge is intentionally drawn later, so it sits over the photo.
-IMAGE = , [Image], 0, 0, 2.74, 2.16, 0, PC
+IMAGE = , [Image], 0, 0, 2.74, 2.00, 0, PC
 
 ; Information panel.
 ; It is allowed to extend into the bleed because it is plain paper.
-RECTANGLE = , 0, 2.16, 2.74, 1.58, [paper]
+RECTANGLE = , 0, 2.00, 2.74, 1.74, [paper]
 
 ; Energy cost badge - top-left, over the image.
 ; Its entire bounding box is inside the safe area.
 ROUNDRECT = , 0.30, 0.30, 0.32, 0.32, [paper], EMPTY, 0.012, 0.06, 0.06, R
-FONT = Montserrat, 11, BXT, [paper]
-TEXT = , [Cost], 0.30, 0.30, 0.32, 0.32, center, center
+FONT = Montserrat, 11, BT, [paper]
+TEXT = , [Cost], 0.30, 0.30, 0.32, 0.32, center, center, 0, 100, , , , 100, 110
 
 ; Title, tags, effect, and flavor text.
 ; T makes the TEXT background transparent instead of the default white.
-FONT = Montserrat, 18, BXT, [ink]
-TEXT = , [Title], 0.32, 2.22, 2.10, 0.34, left, center
+FONT = Montserrat, 14, BXT, [ink]
+TEXT = , [Title], 0.32, 2.03, 2.18, 0.26, left, center, 0, 100, , , , 100, 100
 
-RECTANGLE = , 0.32, 2.59, 0.26, 0.015, [accent]
+RECTANGLE = , 0.32, 2.34, 0.26, 0.015, [accent]
 
 FONT = Montserrat, 5, BT, [ink]
-TEXT = , [Tags], 0.32, 2.70, 2.10, 0.14, left, center
+TEXT = , [Tags], 0.32, 2.43, 2.18, 0.11, left, center, 0, 100, , , , 100, 110
 
-; wwtop wraps long rules from the top; X shrinks text if needed.
-FONT = Montserrat, 8, XT, [ink]
-TEXT = , [Effect], 0.32, 2.91, 2.10, 0.24, left, wwtop
+; wwtop wraps long rules from the top; keep the font at its natural proportions.
+FONT = Montserrat, 5.5, T, [ink]
+TEXT = , [Effect], 0.32, 2.63, 2.18, 0.53, left, wwtop, 0, 100, , , , 100, 110
 
 ; Optional flavor text below the effect, set in italics.
-FONT = Montserrat, 7, IXT, [ink]
-TEXT = , [Flavor], 0.32, 3.20, 2.10, 0.27, left, wwtop
+FONT = Montserrat, 5, IT, [ink]
+TEXT = , [Flavor], 0.32, 3.20, 2.18, 0.30, left, wwtop, 0, 100, , , , 100, 110
 
 ; Draw a quiet border on the safe-area boundary, last.
 ; It is decorative only; all critical content is inside it.

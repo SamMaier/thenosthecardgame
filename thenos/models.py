@@ -29,6 +29,8 @@ class PlayerState:
 
 @dataclass(slots=True)
 class GameStats:
+    condition_days: Counter[str] = field(default_factory=Counter)
+    condition_fun: Counter[str] = field(default_factory=Counter)
     free_pick_offers: Counter[str] = field(default_factory=Counter)
     free_picks: Counter[str] = field(default_factory=Counter)
     suitcase_offers: Counter[str] = field(default_factory=Counter)
