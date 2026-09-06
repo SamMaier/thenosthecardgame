@@ -152,6 +152,16 @@ class RandomAI:
         """Choose uniformly among all possible orderings."""
         return self.rng.sample(range(len(cards)), len(cards))
 
+    def choose_cards_for_trunk(
+        self,
+        game: Game,
+        player_index: int,
+        cards: Sequence[CardInstance],
+    ) -> Sequence[int]:
+        """Choose a random subset to place on the Trunk."""
+        count = self.rng.randrange(len(cards) + 1)
+        return self.rng.sample(range(len(cards)), count)
+
     def choose_tag(self, game: Game, player_index: int, tags: Sequence[str]) -> str:
         return self.rng.choice(tags)
 

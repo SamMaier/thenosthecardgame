@@ -11,14 +11,14 @@ class SingSongTests(unittest.TestCase):
         self.assertEqual(card.title, "Sing Song")
         self.assertEqual(card.definition.cost, 4)
         self.assertEqual(card.definition.base_fun, 4)
-        self.assertEqual(card.definition.tags, frozenset({"Event"}))
+        self.assertEqual(card.definition.tags, frozenset({"Social"}))
 
-    def test_costs_one_less_for_each_opponent_with_an_event_today(self) -> None:
+    def test_costs_one_less_for_each_opponent_with_a_social_today(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
         player.hand.append(make_card("sing-song"))
-        game.players[1].played_today.append(make_card("work-call"))
+        game.players[1].played_today.append(make_card("johnny-appleseed"))
         game.players[2].played_today.append(make_card("photo-shoot"))
         game.players[3].played_today.append(make_card("biography"))
 
@@ -33,7 +33,7 @@ class SingSongTests(unittest.TestCase):
         player.energy = 7
         player.hand.append(make_card("sing-song"))
         game.players[1].played_today.extend(
-            [make_card("work-call"), make_card("photo-shoot")]
+            [make_card("johnny-appleseed"), make_card("photo-shoot")]
         )
         self.assertEqual(game.energy_cost(0, player.hand[0]), 3)
 

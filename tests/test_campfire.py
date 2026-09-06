@@ -13,7 +13,7 @@ class CampfireTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(
             card.definition.tags,
-            frozenset({"Social", "Event", "Outdoors"}),
+            frozenset({"Social", "Outdoors"}),
         )
 
     def test_scores_two_fun_for_each_active_tomorrow_card(self) -> None:

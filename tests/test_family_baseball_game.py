@@ -13,7 +13,7 @@ class FamilyBaseballGameTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 5)
         self.assertEqual(
             card.definition.tags,
-            frozenset({"Exercise", "Event", "Outdoors"}),
+            frozenset({"Exercise", "Social", "Outdoors"}),
         )
 
     def test_scores_zero_for_all_board_games_played_today(self) -> None:

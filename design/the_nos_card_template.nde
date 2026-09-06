@@ -13,6 +13,7 @@ DPI = 600
 ; Palette: warm paper, charcoal ink, restrained cedar accent.
 [paper] = #F5F0E8
 [ink] = #1F2528
+[shade] = #1F2528
 [accent] = #C65532
 [rule] = #D9D0C3
 
@@ -35,27 +36,31 @@ RECTANGLE = , 0, 2.00, 2.74, 1.74, [paper]
 
 ; Energy cost badge - top-left, over the image.
 ; Its entire bounding box is inside the safe area.
+; Draw the dark-grey fill at 20% opacity, then the paper-colored outline.
+LAYER = 20
+ROUNDRECT = , 0.30, 0.30, 0.32, 0.32, [shade], [shade], 0.001, 0.06, 0.06, R
+ENDLAYER
 ROUNDRECT = , 0.30, 0.30, 0.32, 0.32, [paper], EMPTY, 0.012, 0.06, 0.06, R
 FONT = Montserrat, 11, BT, [paper]
 TEXT = , [Cost], 0.30, 0.30, 0.32, 0.32, center, center, 0, 100, , , , 100, 110
 
 ; Title, tags, effect, and flavor text.
 ; T makes the TEXT background transparent instead of the default white.
-FONT = Montserrat, 14, BXT, [ink]
-TEXT = , [Title], 0.32, 2.03, 2.18, 0.26, left, center, 0, 100, , , , 100, 100
+FONT = Montserrat, 13, BT, [ink]
+TEXT = , [Title], 0.32, 2.1, 2.18, 0.20, left, center, 0, 100, , , , 100, 100
 
-RECTANGLE = , 0.32, 2.34, 0.26, 0.015, [accent]
+RECTANGLE = , 0.32, 2.4, 0.26, 0.015, [accent]
 
 FONT = Montserrat, 5, BT, [ink]
-TEXT = , [Tags], 0.32, 2.43, 2.18, 0.11, left, center, 0, 100, , , , 100, 110
+TEXT = , [Tags], 0.32, 2.45, 2.18, 0.11, left, center, 0, 100, , , , 100, 110
 
 ; wwtop wraps long rules from the top; keep the font at its natural proportions.
 FONT = Montserrat, 5.5, T, [ink]
-TEXT = , [Effect], 0.32, 2.63, 2.18, 0.53, left, wwtop, 0, 100, , , , 100, 110
+TEXT = , [Effect], 0.32, 2.60, 2.18, 0.60, left, wwtop, 0, 100, , , , 100, 110
 
 ; Optional flavor text below the effect, set in italics.
 FONT = Montserrat, 5, IT, [ink]
-TEXT = , [Flavor], 0.32, 3.20, 2.18, 0.30, left, wwtop, 0, 100, , , , 100, 110
+TEXT = , [Flavor], 0.32, 3.14, 2.18, 0.36, left, wwtop, 0, 100, , , , 100, 110
 
 ; Draw a quiet border on the safe-area boundary, last.
 ; It is decorative only; all critical content is inside it.

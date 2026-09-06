@@ -567,7 +567,7 @@ TREKKING_THROUGH_HISTORY = CardDefinition(
 FAMILY_BASEBALL_GAME = CardDefinition(
     slug="family-baseball-game",
     title="Family Baseball Game",
-    tags=frozenset({"Exercise", "Event", "Outdoors"}),
+    tags=frozenset({"Exercise", "Social", "Outdoors"}),
     cost=3,
     base_fun=5,
     behavior=ZeroFunForTagTodayBehavior("Board Game"),
@@ -585,7 +585,7 @@ EUCHRE = CardDefinition(
 WORK_CALL = CardDefinition(
     slug="work-call",
     title="Work Call",
-    tags=frozenset({"Event", "Indoors"}),
+    tags=frozenset({"Relax", "Indoors"}),
     cost=1,
     base_fun=-4,
     behavior=FunForNextCardBehavior(2),
@@ -674,14 +674,6 @@ HIGH_END_WHITE = CardDefinition(
     behavior=FunForTagAfterBehavior("Food", 1),
 )
 
-NOS_SHIRT = CardDefinition(
-    slug="nos-shirt",
-    title="Nos Shirt",
-    tags=frozenset({"Item"}),
-    cost=1,
-    behavior=FunForTagAfterBehavior("Event", 2),
-)
-
 EPIC_PLAYLIST = CardDefinition(
     slug="epic-playlist",
     title="Epic Playlist",
@@ -703,16 +695,63 @@ PRIME_PICNIC_TABLE = CardDefinition(
     title="Prime Picnic Table",
     tags=frozenset({"Item"}),
     cost=3,
-    behavior=FunAndEnergyForTagAfterBehavior("Event", -1, 1),
+    behavior=FunAndEnergyForTagAfterBehavior("Outdoors", -1, 1),
 )
+
+class NosBookBehavior(CardBehavior):
+    """Collect end-of-day discards, keep one, and optionally stack the rest."""
+
+    def on_after_end_day(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        if card not in player.played_today:
+            return
+
+        candidates = [
+            candidate
+            for candidate_player in game.players
+            for candidate in (
+                *candidate_player.tomorrow_cards,
+                *candidate_player.played_today,
+            )
+            if candidate.is_tomorrow
+            or not candidate.effective_behavior.has_tomorrow_action
+        ]
+        if not candidates:
+            return
+
+        for candidate_player in game.players:
+            candidate_player.tomorrow_cards[:] = [
+                candidate for candidate in candidate_player.tomorrow_cards
+                if candidate not in candidates
+            ]
+            candidate_player.played_today[:] = [
+                candidate for candidate in candidate_player.played_today
+                if candidate not in candidates
+            ]
+
+        player_index = game.players.index(player)
+        for candidate in candidates:
+            candidate.is_tomorrow = False
+            candidate.markers.clear()
+        kept = game.choose_card_target(player_index, tuple(candidates))
+        candidates.remove(kept)
+        game.give_card(player_index, kept)
+
+        returned = game.choose_cards_for_trunk(player_index, candidates)
+        for remaining in candidates:
+            if remaining not in returned:
+                game.discard_card(remaining)
 
 NOS_BOOK = CardDefinition(
     slug="nos-book",
     title="Nos Book",
     tags=frozenset({"Item"}),
     cost=2,
-    base_fun=1,
-    behavior=FunForTagsBeforeAndAfterBehavior(frozenset({"Social", "Event"}), 1),
+    behavior=NosBookBehavior(),
 )
 
 SWEET_LAWN_CHAIR = CardDefinition(
@@ -747,7 +786,7 @@ JOHNNY_APPLESEED = CardDefinition(
     tags=frozenset({"Social"}),
     cost=1,
     base_fun=1,
-    behavior=FunForNextTagBehavior("Event", 2),
+    behavior=FunForNextTagBehavior("Food", 2),
 )
 
 AUNTERVIEW = CardDefinition(
@@ -794,7 +833,7 @@ HOLD_THE_BABY = CardDefinition(
 OUTDOOR_MOVIE = CardDefinition(
     slug="outdoor-movie",
     title="Outdoor Movie",
-    tags=frozenset({"Event", "Outdoors"}),
+    tags=frozenset({"Relax", "Outdoors"}),
     cost=2,
     base_fun=2,
     behavior=FunForTagBeforeBehavior("Relax", 1),
@@ -820,7 +859,7 @@ ICE_WINE = CardDefinition(
 EVENING_ON_THE_DOCK = CardDefinition(
     slug="evening-on-the-dock",
     title="Evening on the Dock",
-    tags=frozenset({"Relax", "Social"}),
+    tags=frozenset({"Relax", "Social", "Outdoors"}),
     cost=4,
     behavior=FunForAllCardsBeforeBehavior(1),
 )
@@ -844,7 +883,7 @@ WAKEBOARD = CardDefinition(
 TEACH_KID_TO_SKI = CardDefinition(
     slug="teach-kid-to-ski",
     title="Teach Kid to Ski",
-    tags=frozenset({"Event", "Outdoors"}),
+    tags=frozenset({"Exercise", "Outdoors"}),
     cost=2,
     behavior=TomorrowFunForTagBehavior("Exercise", 2),
 )
@@ -863,7 +902,6 @@ FUN_EFFECT_CARDS = (
     SCHWANK,
     HIGH_END_RED,
     HIGH_END_WHITE,
-    NOS_SHIRT,
     EPIC_PLAYLIST,
     BUG_SPRAY,
     PRIME_PICNIC_TABLE,

@@ -11,7 +11,7 @@ class TreatStoreRunTests(unittest.TestCase):
         self.assertEqual(card.title, "Treat Store Run")
         self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Food", "Event"}))
+        self.assertEqual(card.definition.tags, frozenset({"Food"}))
 
     def test_picks_all_currently_visible_food_cards_not_their_replacements(self) -> None:
         game = empty_game()

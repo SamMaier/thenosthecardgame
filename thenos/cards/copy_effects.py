@@ -45,13 +45,13 @@ class WeddingAnniversaryBehavior(CardBehavior):
 WEDDING_ANNIVERSARY = CardDefinition(
     slug="wedding-anniversary",
     title="Wedding Anniversary",
-    tags=frozenset({"Event"}),
+    tags=frozenset({"Social"}),
     cost=0,
     behavior=WeddingAnniversaryBehavior(),
 )
 
 
-class LastYearsShortsBehavior(CardBehavior):
+class CopyActiveItemBehavior(CardBehavior):
     """Copy one player's active Item card without copying its cost or tags."""
 
     def on_play(
@@ -82,6 +82,32 @@ class LastYearsShortsBehavior(CardBehavior):
             card,
             pay_source_cost=False,
         )
+
+
+NOS_SHIRT = CardDefinition(
+    slug="nos-shirt",
+    title="Nos Shirt",
+    tags=frozenset({"Item"}),
+    cost=1,
+    behavior=CopyActiveItemBehavior(),
+)
+
+
+class LastYearsShortsBehavior(CardBehavior):
+    """Take any card from the discard pile."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        if not game.discard:
+            return
+        player_index = game.players.index(player)
+        target = game.choose_card_target(player_index, tuple(game.discard))
+        game.discard.remove(target)
+        game.give_card(player_index, target)
 
 
 LAST_YEARS_SHORTS = CardDefinition(

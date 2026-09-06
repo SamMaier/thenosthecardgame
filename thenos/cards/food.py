@@ -525,7 +525,7 @@ class TreatStoreRunBehavior(CardBehavior):
 TREAT_STORE_RUN = CardDefinition(
     slug="treat-store-run",
     title="Treat Store Run",
-    tags=frozenset({"Food", "Event"}),
+    tags=frozenset({"Food"}),
     cost=1,
     behavior=TreatStoreRunBehavior(),
 )
@@ -598,7 +598,7 @@ class GroceryStoreRunBehavior(CardBehavior):
 GROCERY_STORE_RUN = CardDefinition(
     slug="grocery-store-run",
     title="Grocery Store Run",
-    tags=frozenset({"Food", "Event"}),
+    tags=frozenset({"Food"}),
     cost=3,
     behavior=GroceryStoreRunBehavior(),
 )

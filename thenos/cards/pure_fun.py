@@ -40,7 +40,7 @@ NEWFANGLED_TRES_FUTE = CardDefinition(
     slug="newfangled-tres-fute",
     title="Newfangled Tres Fute",
     tags=frozenset({"Board Game"}),
-    cost=4,
+    cost=3,
     base_fun=1,
     behavior=NewfangledTresFuteBehavior(),
 )

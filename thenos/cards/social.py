@@ -45,30 +45,20 @@ class DatesFirstNosBehavior(CardBehavior):
 
 
 class TellAStoryBehavior(CardBehavior):
-    """Score a bonus if this player played an Event earlier today."""
+    """Move a chosen discard card to the top of the Trunk."""
 
-    def fun_value(
+    def on_play(
         self,
         game: Game,
         player: PlayerState,
         card: CardInstance,
-    ) -> int:
-        card_position = next(
-            (
-                position
-                for position, played_card in enumerate(player.played_today)
-                if played_card is card
-            ),
-            None,
-        )
-        if card_position is None:
-            return card.effective_base_fun
-
-        has_previous_event = any(
-            "Event" in played_card.tags
-            for played_card in player.played_today[:card_position]
-        )
-        return card.effective_base_fun + (3 if has_previous_event else 0)
+    ) -> None:
+        if not game.discard:
+            return
+        player_index = game.players.index(player)
+        target = game.choose_card_target(player_index, tuple(game.discard))
+        game.discard.remove(target)
+        game.return_cards_to_trunk_top(player_index, (target,))
 
 
 class NewNosBookEntryBehavior(CardBehavior):
@@ -183,7 +173,7 @@ TELL_A_STORY = CardDefinition(
 NEW_NOS_BOOK_ENTRY = CardDefinition(
     slug="new-nos-book-entry",
     title="New Nos Book Entry",
-    tags=frozenset({"Social", "Event"}),
+    tags=frozenset({"Social"}),
     cost=2,
     base_fun=1,
     behavior=NewNosBookEntryBehavior(),
@@ -200,7 +190,7 @@ DATES_FIRST_NOS = CardDefinition(
 CAMPFIRE = CardDefinition(
     slug="campfire",
     title="Campfire",
-    tags=frozenset({"Social", "Event", "Outdoors"}),
+    tags=frozenset({"Social", "Outdoors"}),
     cost=2,
     behavior=CampfireBehavior(),
 )

@@ -13,7 +13,7 @@ class NewNosBookEntryTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 1)
         self.assertEqual(
             card.definition.tags,
-            frozenset({"Social", "Event"}),
+            frozenset({"Social"}),
         )
 
     def test_scores_only_base_fun_with_four_previous_cards(self) -> None:

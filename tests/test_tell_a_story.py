@@ -1,60 +1,57 @@
+import random
 import unittest
 
+from thenos.ai import RandomAI
 from thenos.cards import make_card
 from tests.helpers import empty_game
 
 
+class TargetDiscardAI(RandomAI):
+    def __init__(self, target_title, rng):
+        super().__init__(rng)
+        self.target_title = target_title
+
+    def choose_card_target(self, game, player_index, eligible_cards):
+        return next(
+            index for index, card in enumerate(eligible_cards)
+            if card.title == self.target_title
+        )
+
+
 class TellAStoryTests(unittest.TestCase):
     def test_printed_values_and_base_fun(self) -> None:
-        game = empty_game()
-        player = game.players[0]
-        player.energy = 7
-        player.hand.append(make_card("tell-a-story"))
-
-        card = game.play_card(0, 0)
+        card = make_card("tell-a-story")
 
         self.assertEqual(card.title, "Tell a Story")
         self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 2)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
-        self.assertEqual(player.energy, 4)
-        self.assertEqual(game.card_fun(0, card), 2)
 
-    def test_previous_event_adds_three_fun(self) -> None:
+    def test_moves_a_chosen_discard_to_the_top_of_the_trunk(self) -> None:
         game = empty_game()
+        game.ais[0] = TargetDiscardAI("Biography", random.Random(0))
         player = game.players[0]
-        player.energy = 3
-        player.hand.extend([make_card("stay-up-late"), make_card("tell-a-story")])
-
-        game.play_card(0, 0)
-        card = game.play_card(0, 0)
-
-        self.assertEqual(game.card_fun(0, card), 5)
-
-    def test_event_played_after_does_not_add_fun(self) -> None:
-        game = empty_game()
-        player = game.players[0]
-        player.energy = 5
-        player.hand.extend([make_card("tell-a-story"), make_card("work-call")])
-
-        card = game.play_card(0, 0)
-        game.play_card(0, 0)
-
-        self.assertEqual(game.card_fun(0, card), 2)
-
-    def test_active_tomorrow_event_does_not_count_as_previous(self) -> None:
-        game = empty_game()
-        tomorrow_event = make_card("work-call")
-        tomorrow_event.is_tomorrow = True
-        game.players[0].tomorrow_cards.append(tomorrow_event)
-
-        player = game.players[0]
-        player.energy = 3
+        player.energy = 7
+        fajitas = make_card("fajitas")
+        biography = make_card("biography")
+        game.discard.extend([fajitas, biography])
+        game.trunk.append(make_card("azul"))
         player.hand.append(make_card("tell-a-story"))
 
         card = game.play_card(0, 0)
 
         self.assertEqual(game.card_fun(0, card), 2)
+        self.assertEqual(game.discard, [fajitas])
+        self.assertIs(game.trunk[-1], biography)
+
+    def test_does_nothing_with_an_empty_discard_pile(self) -> None:
+        game = empty_game()
+        game.players[0].energy = 3
+        game.players[0].hand.append(make_card("tell-a-story"))
+
+        game.play_card(0, 0)
+
+        self.assertEqual(game.discard, [])
 
 
 if __name__ == "__main__":

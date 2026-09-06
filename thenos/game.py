@@ -597,6 +597,24 @@ class Game:
             raise ValueError(f"AI selected an invalid card index: {choice}")
         return eligible_cards[choice]
 
+    def choose_cards_for_trunk(
+        self,
+        player_index: int,
+        cards: Sequence[CardInstance],
+    ) -> list[CardInstance]:
+        """Choose and order any subset of visible cards for the Trunk top."""
+        indices = tuple(
+            self.ais[player_index].choose_cards_for_trunk(
+                self, player_index, tuple(cards)
+            )
+        )
+        if len(set(indices)) != len(indices):
+            raise ValueError("Cannot choose the same Trunk card more than once")
+        if any(index < 0 or index >= len(cards) for index in indices):
+            raise ValueError("Invalid card index in Trunk selection")
+        chosen = [cards[index] for index in indices]
+        return self.return_cards_to_trunk_top(player_index, chosen)
+
     def choose_energy_to_spend(
         self,
         player_index: int,
@@ -892,12 +910,16 @@ class Game:
                 card.effective_behavior.on_end_day(self, player, card)
 
         for player in self.players:
+            for card in tuple(player.played_today):
+                card.effective_behavior.on_after_end_day(self, player, card)
+
+        for player in self.players:
             previous_tomorrow = player.tomorrow_cards
             player.tomorrow_cards = []
             for card in previous_tomorrow:
                 self.discard_card(card)
 
-            for card in player.played_today:
+            for card in tuple(player.played_today):
                 if card.effective_behavior.has_tomorrow_action:
                     card.is_tomorrow = True
                     player.tomorrow_cards.append(card)

@@ -19,7 +19,7 @@ class PhotoShootTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, -1)
         self.assertEqual(
             card.definition.tags,
-            frozenset({"Event", "Outdoors"}),
+            frozenset({"Social", "Outdoors"}),
         )
 
     def test_tomorrow_picks_after_each_play(self) -> None:

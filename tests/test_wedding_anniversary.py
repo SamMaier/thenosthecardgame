@@ -26,7 +26,7 @@ class WeddingAnniversaryTests(unittest.TestCase):
         self.assertEqual(card.title, "Wedding Anniversary")
         self.assertEqual(card.definition.cost, 0)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Event"}))
+        self.assertEqual(card.definition.tags, frozenset({"Social"}))
 
     def test_copies_an_opponent_effect_and_pays_written_cost(self) -> None:
         game = empty_game()
@@ -47,7 +47,7 @@ class WeddingAnniversaryTests(unittest.TestCase):
         self.assertEqual(player.energy, 5)
         self.assertIs(card.effective_behavior, target.definition.behavior)
         self.assertEqual(card.effective_base_fun, target.definition.base_fun)
-        self.assertEqual(card.tags, frozenset({"Event"}))
+        self.assertEqual(card.tags, frozenset({"Social"}))
         self.assertTrue(target.markers["energy_cube"])
         self.assertEqual(player.fun, 1)
 
@@ -173,15 +173,15 @@ class WeddingAnniversaryTests(unittest.TestCase):
         self.assertEqual(player.energy, 12)
         self.assertTrue(food.markers["energy_cube"])
 
-    def test_copying_last_years_shorts_can_copy_a_different_item(self) -> None:
+    def test_copying_nos_shirt_can_copy_a_different_item(self) -> None:
         game = empty_game()
-        game.ais[0] = TargetCopyAI("Last Year's Shorts", game.rng)
+        game.ais[0] = TargetCopyAI("Nos Shirt", game.rng)
         player = game.players[0]
         player.energy = 10
         item = make_card("booby-prize")
         player.played_today.append(item)
         player.hand.append(make_card("wedding-anniversary"))
-        source = make_card("last-years-shorts")
+        source = make_card("nos-shirt")
         game.players[1].played_today.append(source)
         drawn = make_card("biography")
         game.trunk.append(drawn)
@@ -189,7 +189,7 @@ class WeddingAnniversaryTests(unittest.TestCase):
         wedding = game.play_card(0, 0)
 
         self.assertIs(wedding.effective_behavior, item.effective_behavior)
-        self.assertEqual(wedding.effective_cost, 2)
+        self.assertEqual(wedding.effective_cost, 1)
         self.assertIn(drawn, player.hand)
         self.assertTrue(item.markers["energy_cube"])
         self.assertTrue(source.markers["energy_cube"])

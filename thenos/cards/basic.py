@@ -489,7 +489,7 @@ SETTLERS_CITIES_AND_KNIGHTS = CardDefinition(
 EPIC_PRANK = CardDefinition(
     slug="epic-prank",
     title="Epic Prank",
-    tags=frozenset({"Event"}),
+    tags=frozenset({"Social"}),
     cost=4,
     base_fun=2,
     behavior=EpicPrankBehavior(),
@@ -525,7 +525,7 @@ EUCHRE_TOURNAMENT = CardDefinition(
 EUCHRE_TOURNAMENT_AWARDS_CEREMONY = CardDefinition(
     slug="euchre-tournament-awards-ceremony",
     title="Euchre Tournament Awards Ceremony",
-    tags=frozenset({"Event", "Outdoors"}),
+    tags=frozenset({"Social", "Outdoors"}),
     cost=3,
     behavior=EuchreTournamentAwardsCeremonyBehavior(),
 )

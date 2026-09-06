@@ -270,7 +270,7 @@ class AfterDinnerEntertainmentBehavior(EnergyForNextTagBehavior):
 FORCED_FAMILY_FUN = CardDefinition(
     slug="forced-family-fun",
     title="Forced Family Fun",
-    tags=frozenset({"Event", "Indoors"}),
+    tags=frozenset({"Board Game", "Indoors"}),
     cost=2,
     behavior=HalfEnergyForNextTagBehavior("Board Game"),
 )
@@ -278,7 +278,7 @@ FORCED_FAMILY_FUN = CardDefinition(
 BOAT_RIDE = CardDefinition(
     slug="boat-ride",
     title="Boat Ride",
-    tags=frozenset({"Event", "Outdoors"}),
+    tags=frozenset({"Relax", "Outdoors"}),
     cost=2,
     base_fun=1,
     behavior=SetEnergyForNextTagBehavior("Item", 0),
@@ -369,7 +369,7 @@ AFTER_DINNER_ENTERTAINMENT = CardDefinition(
 DISHWASHING = CardDefinition(
     slug="dishwashing",
     title="Dishwashing",
-    tags=frozenset({"Event"}),
+    tags=frozenset({"Food"}),
     cost=1,
     behavior=TomorrowEnergyForTagBehavior("Food", -1),
 )

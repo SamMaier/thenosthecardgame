@@ -22,7 +22,7 @@ class GroceryStoreRunTests(unittest.TestCase):
         self.assertEqual(card.title, "Grocery Store Run")
         self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Food", "Event"}))
+        self.assertEqual(card.definition.tags, frozenset({"Food"}))
 
     def test_acquires_food_and_returns_other_cards_in_chosen_order(self) -> None:
         game = empty_game()

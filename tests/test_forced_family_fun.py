@@ -19,7 +19,7 @@ class ForcedFamilyFunTests(unittest.TestCase):
 
         self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Event", "Indoors"}))
+        self.assertEqual(card.definition.tags, frozenset({"Board Game", "Indoors"}))
         self.assertEqual(game.energy_cost(0, later_board_game), 3)
         self.assertEqual(player.energy, 1)
         self.assertEqual(first_board_game.definition.cost, 3)

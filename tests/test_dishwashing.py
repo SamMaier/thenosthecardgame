@@ -15,7 +15,7 @@ class DishwashingTests(unittest.TestCase):
 
         self.assertEqual(dishwashing.definition.cost, 1)
         self.assertEqual(dishwashing.definition.base_fun, 0)
-        self.assertEqual(dishwashing.definition.tags, frozenset({"Event"}))
+        self.assertEqual(dishwashing.definition.tags, frozenset({"Food"}))
         self.assertEqual(player.energy, 6)
 
         player.hand.extend(

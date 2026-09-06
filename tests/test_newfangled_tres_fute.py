@@ -8,7 +8,7 @@ class NewfangledTresFuteTests(unittest.TestCase):
     def test_cost_tags_and_printed_fun(self) -> None:
         card = make_card("newfangled-tres-fute")
 
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.tags, frozenset({"Board Game"}))
         self.assertEqual(card.definition.base_fun, 1)
 

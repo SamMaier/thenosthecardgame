@@ -1,4 +1,4 @@
-"""Event card definitions."""
+"""Definitions for several Social cards with bespoke behavior."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class SingSongBehavior(CardBehavior):
-    """Cost one less for each opponent who played an Event today."""
+    """Cost one less for each opponent who played a Social card today."""
 
     def modify_own_energy_cost(
         self,
@@ -21,12 +21,12 @@ class SingSongBehavior(CardBehavior):
         card: CardInstance,
         current_cost: int,
     ) -> int:
-        event_opponents = sum(
-            any("Event" in played_card.tags for played_card in opponent.played_today)
+        social_opponents = sum(
+            any("Social" in played_card.tags for played_card in opponent.played_today)
             for opponent in game.players
             if opponent is not player
         )
-        return current_cost - event_opponents
+        return current_cost - social_opponents
 
 
 class ChristmasNameDrawBehavior(CardBehavior):
@@ -108,7 +108,7 @@ class PhotoShootBehavior(CardBehavior):
 SING_SONG = CardDefinition(
     slug="sing-song",
     title="Sing Song",
-    tags=frozenset({"Event"}),
+    tags=frozenset({"Social"}),
     cost=4,
     base_fun=4,
     behavior=SingSongBehavior(),
@@ -117,7 +117,7 @@ SING_SONG = CardDefinition(
 CHRISTMAS_NAME_DRAW = CardDefinition(
     slug="christmas-name-draw",
     title="Christmas Name Draw",
-    tags=frozenset({"Event"}),
+    tags=frozenset({"Social"}),
     cost=2,
     behavior=ChristmasNameDrawBehavior(),
 )
@@ -125,7 +125,7 @@ CHRISTMAS_NAME_DRAW = CardDefinition(
 STAY_UP_LATE = CardDefinition(
     slug="stay-up-late",
     title="Stay Up Late",
-    tags=frozenset({"Event", "Indoors"}),
+    tags=frozenset({"Social", "Indoors"}),
     cost=0,
     behavior=StayUpLateBehavior(),
 )
@@ -133,7 +133,7 @@ STAY_UP_LATE = CardDefinition(
 PHOTO_SHOOT = CardDefinition(
     slug="photo-shoot",
     title="Photo Shoot",
-    tags=frozenset({"Event", "Outdoors"}),
+    tags=frozenset({"Social", "Outdoors"}),
     cost=3,
     base_fun=-1,
     behavior=PhotoShootBehavior(),

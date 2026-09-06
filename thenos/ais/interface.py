@@ -132,3 +132,11 @@ class PlayerAI(Protocol):
         cards: Sequence[CardInstance],
     ) -> Sequence[int]:
         """Return card indices in the desired top-to-bottom Trunk order."""
+
+    def choose_cards_for_trunk(
+        self,
+        game: Game,
+        player_index: int,
+        cards: Sequence[CardInstance],
+    ) -> Sequence[int]:
+        """Choose distinct card indices to return to the Trunk."""

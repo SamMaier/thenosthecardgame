@@ -21,7 +21,7 @@ class EpicPrankTests(unittest.TestCase):
         self.assertEqual(card.title, "Epic Prank")
         self.assertEqual(card.definition.cost, 4)
         self.assertEqual(card.definition.base_fun, 2)
-        self.assertEqual(card.definition.tags, frozenset({"Event"}))
+        self.assertEqual(card.definition.tags, frozenset({"Social"}))
 
     def test_discards_selected_item_for_five_fun(self) -> None:
         game = empty_game()

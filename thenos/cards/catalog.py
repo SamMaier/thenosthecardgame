@@ -6,7 +6,7 @@ from itertools import count
 
 from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.new_cards import POTATO_PANCAKES, READ_THE_RADAR, POKER
-from thenos.cards.copy_effects import LAST_YEARS_SHORTS, WEDDING_ANNIVERSARY
+from thenos.cards.copy_effects import LAST_YEARS_SHORTS, NOS_SHIRT, WEDDING_ANNIVERSARY
 from thenos.cards.basic import (
     BIOGRAPHY,
     CARCASSONNE,
@@ -116,6 +116,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         WEDDING_ANNIVERSARY,
         EVENING_CHAT,
         LAST_YEARS_SHORTS,
+        NOS_SHIRT,
         BEACH_CONVERSATION,
         SING_SONG,
         CHRISTMAS_NAME_DRAW,

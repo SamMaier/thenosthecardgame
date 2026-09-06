@@ -25,7 +25,7 @@ class EveningOnTheDockTests(unittest.TestCase):
 
         self.assertEqual(card.definition.cost, 4)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Relax", "Social"}))
+        self.assertEqual(card.definition.tags, frozenset({"Relax", "Social", "Outdoors"}))
         self.assertEqual(game.card_fun(0, first_before), 3)
         self.assertEqual(game.card_fun(0, second_before), 4)
         self.assertEqual(game.card_fun(0, card), 0)

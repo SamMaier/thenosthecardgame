@@ -19,7 +19,7 @@ class EuchreTournamentAwardsCeremonyTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(
             card.definition.tags,
-            frozenset({"Event", "Outdoors"}),
+            frozenset({"Social", "Outdoors"}),
         )
 
     def test_picks_three_cards_sequentially_with_immediate_refills(self) -> None:

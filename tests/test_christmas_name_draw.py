@@ -22,7 +22,7 @@ class ChristmasNameDrawTests(unittest.TestCase):
         self.assertEqual(card.title, "Christmas Name Draw")
         self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Event"}))
+        self.assertEqual(card.definition.tags, frozenset({"Social"}))
 
     def test_targets_an_opponent_card_and_scores_for_matching_visible_cards(self) -> None:
         game = empty_game()

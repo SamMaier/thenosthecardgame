@@ -191,6 +191,15 @@ class CardBehavior:
         """Resolve an effect timed after Fun scoring and before cleanup."""
         pass
 
+    def on_after_end_day(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        """Resolve after every ordinary end-of-day effect, before cleanup."""
+        pass
+
 
 @dataclass(frozen=True, slots=True)
 class CardDefinition:
