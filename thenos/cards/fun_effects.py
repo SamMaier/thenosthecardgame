@@ -283,7 +283,7 @@ class FunFromOtherCardsWrittenCostBehavior(CardBehavior):
         card: CardInstance,
     ) -> int:
         written_cost_total = sum(
-            other_card.effective_cost
+            other_card.definition.cost
             for other_card in player.played_today
             if other_card is not card
         )
@@ -361,7 +361,7 @@ class FunForNextTagWrittenCostBehavior(CardBehavior):
             target,
             lambda card: self.tag in card.tags,
         ):
-            return current_fun + target.effective_cost
+            return current_fun + target.definition.cost
         return current_fun
 
 

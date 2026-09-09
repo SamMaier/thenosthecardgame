@@ -136,7 +136,7 @@ class SteakBehavior(CardBehavior):
             return
 
         has_high_cost_card = any(
-            played_card.effective_cost >= 5
+            played_card.definition.cost >= 5
             for played_card in player.played_today[:card_position]
         )
         if has_high_cost_card:

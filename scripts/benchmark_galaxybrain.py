@@ -55,6 +55,7 @@ def timed_four_policy(
     *,
     workers: int,
     daily_conditions: bool = False,
+    characters: bool = False,
 ) -> tuple[float, AIStatistics]:
     started = time.perf_counter()
     report = simulate_games(
@@ -64,6 +65,7 @@ def timed_four_policy(
         rotate_seats=True,
         workers=workers,
         daily_conditions=daily_conditions,
+        characters=characters,
     )
     return time.perf_counter() - started, report.ais[name]
 
@@ -84,6 +86,7 @@ def main() -> int:
     parser.add_argument("--workers", type=int, default=16)
     parser.add_argument("--output-dir", type=Path, default=Path("results"))
     parser.add_argument("--daily-conditions", action="store_true")
+    parser.add_argument("--characters", action="store_true")
     args = parser.parse_args()
 
     result: dict[str, object] = {
@@ -93,15 +96,24 @@ def main() -> int:
             "workers": args.workers,
             "rotate_seats": True,
             "daily_conditions": args.daily_conditions,
+            "characters": args.characters,
             "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         }
     }
 
     galaxy_seconds, galaxy_timing_stats = timed_four_policy(
-        "Galaxybrain", GalaxybrainAI, workers=args.workers, daily_conditions=args.daily_conditions
+        "Galaxybrain",
+        GalaxybrainAI,
+        workers=args.workers,
+        daily_conditions=args.daily_conditions,
+        characters=args.characters,
     )
     mega_seconds, mega_timing_stats = timed_four_policy(
-        "Megamind", MegamindAI, workers=args.workers, daily_conditions=args.daily_conditions
+        "Megamind",
+        MegamindAI,
+        workers=args.workers,
+        daily_conditions=args.daily_conditions,
+        characters=args.characters,
     )
     timing_passed = galaxy_seconds < mega_seconds
     result["timing"] = {
@@ -132,7 +144,9 @@ def main() -> int:
             seed=STRENGTH_SEED,
             competitors=competitors,
             rotate_seats=True,
-            workers=args.workers, daily_conditions=args.daily_conditions,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
         )
         strength_seconds = time.perf_counter() - started
         galaxy = report.ais["Galaxybrain"]

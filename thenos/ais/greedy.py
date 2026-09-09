@@ -112,7 +112,7 @@ class GreedyAI(RandomAI):
     def order_daily_conditions(self, game: Game, player_index: int, cards: Sequence) -> Sequence[int]:
         """Prefer conditions helping the known reserve hand on earlier days."""
         from itertools import permutations
-        from thenos.game import DAYS_PER_GAME, DAILY_ENERGY
+        from thenos.game import DAYS_PER_GAME
 
         future = game.copy_for_simulation()
         future.end_day()
@@ -121,7 +121,7 @@ class GreedyAI(RandomAI):
         values = []
         for condition in cards:
             future.daily_condition = condition
-            player.energy = DAILY_ENERGY + condition.starting_energy_delta
+            player.energy = future.starting_energy(player_index, condition)
             value = condition.starting_energy_delta
             for card in player.hand:
                 if card.effective_behavior.can_play(future, player, card):

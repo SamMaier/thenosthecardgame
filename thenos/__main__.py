@@ -8,6 +8,7 @@ import time
 from pathlib import Path
 
 from thenos.simulation import (
+    character_report_path,
     condition_report_path,
     simulate_four_galaxybrain,
     simulate_galaxybrain_vs_planner,
@@ -79,6 +80,11 @@ def main() -> None:
         help="atomically write the complete card report to this CSV file",
     )
     parser.add_argument("--daily-conditions", action="store_true", help="enable the optional Daily Condition deck and Read the Radar")
+    parser.add_argument(
+        "--characters",
+        action="store_true",
+        help="randomly assign each player a persistent character bonus",
+    )
     args = parser.parse_args()
 
     matchup_modes = sum(
@@ -100,34 +106,56 @@ def main() -> None:
     started = time.perf_counter()
     if args.four_galaxybrain:
         report = simulate_four_galaxybrain(
-            args.games, args.seed, workers=args.workers, daily_conditions=args.daily_conditions
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
         )
         run_mode = "four-galaxybrain"
         competitors = "Galaxybrain,Galaxybrain,Galaxybrain,Galaxybrain"
         rotate_seats = True
     elif args.galaxybrain_vs_planner:
         report = simulate_galaxybrain_vs_planner(
-            args.games, args.seed, workers=args.workers, daily_conditions=args.daily_conditions
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
         )
         run_mode = "galaxybrain-vs-planner"
         competitors = "Galaxybrain,Planner,Planner,Planner"
         rotate_seats = True
     elif args.planner_vs_greedy:
         report = simulate_planner_vs_greedy(
-            args.games, args.seed, workers=args.workers, daily_conditions=args.daily_conditions
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
         )
         run_mode = "planner-vs-greedy"
         competitors = "Planner,Greedy,Greedy,Greedy"
         rotate_seats = True
     elif args.greedy_vs_random:
         report = simulate_greedy_vs_random(
-            args.games, args.seed, workers=args.workers, daily_conditions=args.daily_conditions
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
         )
         run_mode = "greedy-vs-random"
         competitors = "Greedy,Random,Random,Random"
         rotate_seats = True
     else:
-        report = simulate_games(args.games, args.seed, workers=args.workers, daily_conditions=args.daily_conditions)
+        report = simulate_games(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
         run_mode = "four-random"
         competitors = "Random,Random,Random,Random"
         rotate_seats = False
@@ -144,6 +172,7 @@ def main() -> None:
                 "competitors": competitors,
                 "rotate_seats": rotate_seats,
                 "daily_conditions": args.daily_conditions,
+                "characters": args.characters,
                 "workers": args.workers,
                 "code_revision": revision,
                 "elapsed_seconds": f"{elapsed_seconds:.3f}",
@@ -152,8 +181,11 @@ def main() -> None:
         print(f"Output file: {output.resolve()}")
         if report.daily_conditions:
             print(f"Daily condition output: {condition_report_path(output).resolve()}")
+        if report.characters:
+            print(f"Character output: {character_report_path(output).resolve()}")
     print(f"Games: {report.games}")
     print(f"Daily conditions: {args.daily_conditions}")
+    print(f"Characters: {args.characters}")
     if matchup_modes:
         print("AI          Games  Avg score  Win rate")
         for name, stats in report.ais.items():
@@ -182,6 +214,21 @@ def main() -> None:
             average_text = "n/a" if average is None else f"{average:.2f}"
             difference_text = "n/a" if difference is None else f"{difference:+.2f}"
             print(f"{row['condition']:<22} {row['days']:>8} {average_text:>10} {difference_text:>12}")
+    if report.characters:
+        print("\nCharacters: final results per assigned player-game")
+        print("Difference compares with the overall Fun average for this run.")
+        print(f"{'Character':<12} {'Games':>8} {'Avg Fun':>10} {'Win rate':>10} {'Difference':>12}")
+        for row in report.character_rows():
+            average = row["average_fun"]
+            win_rate = row["win_rate"]
+            difference = row["fun_difference"]
+            average_text = "n/a" if average is None else f"{average:.2f}"
+            win_rate_text = "n/a" if win_rate is None else f"{win_rate:.1%}"
+            difference_text = "n/a" if difference is None else f"{difference:+.2f}"
+            print(
+                f"{row['character']:<12} {row['player_games']:>8} "
+                f"{average_text:>10} {win_rate_text:>10} {difference_text:>12}"
+            )
 
 
 if __name__ == "__main__":

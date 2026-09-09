@@ -5,8 +5,9 @@ engine and card catalog primarily support reproducible card-strength studies.
 Current work should prioritize trustworthy card metrics, long four-Galaxybrain
 batches, reproducible seeds, and clear reporting over adding more policies.
 
-`cards.csv` is the source of truth for card wording and `rules.md` is the source
-of truth for general rules. 
+`cards.csv` is the source of truth for card wording, `characters.tsv` is the
+source of truth for character wording, and `rules.md` is the source of truth
+for general rules.
 
 ## Project map
 
@@ -22,6 +23,8 @@ of truth for general rules.
 - `thenos/ais/interface.py`: the stable `PlayerAI` decision protocol.
 - `thenos/cards/`: stateless card behaviors; per-copy state belongs in
   `CardInstance.markers`.
+- `thenos/characters.py`: optional persistent player bonuses sourced from
+  `characters.tsv`.
 - `tests/test_simulation.py` and `tests/test_game.py`: metric semantics,
   reproducibility, process parity, and engine integration.
 
@@ -229,6 +232,14 @@ Preserve these core invariants:
 - discard after scoring unless a card moves to Tomorrow, followed by discard
   after its active Tomorrow day; and
 - one total win credit split across tied winners.
+
+Characters are optional and must remain disabled by default. When enabled,
+assign four distinct characters before play and retain each assignment for all
+six days. Character category bonuses apply before visible card modifiers, while
+Child's Food score is forced to zero after all modifiers. Start-of-day Character
+Energy and Fun apply before Tomorrow effects. Planner starts with six cards
+instead of three, and Gear Guy's Item cards cost 1 less Energy before visible
+card modifiers, with the final cost limited to zero.
 
 Only visible cards affect Energy cost and scoring modifiers. Active Tomorrow
 cards apply only their Tomorrow text: they do not score printed Fun or trigger

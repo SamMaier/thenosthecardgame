@@ -4,8 +4,12 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from thenos.cards.base import CardInstance
+
+if TYPE_CHECKING:
+    from thenos.characters import Character
 
 
 @dataclass(slots=True)
@@ -20,6 +24,7 @@ class PlayerState:
     skipped_turns: int = 0
     picked_cards: Counter[str] = field(default_factory=Counter)
     acquired_cards: Counter[str] = field(default_factory=Counter)
+    character: Character | None = None
 
     @property
     def visible_cards(self) -> list[CardInstance]:

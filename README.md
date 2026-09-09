@@ -94,3 +94,30 @@ baseline's counts and totals. Unobserved averages are blank in CSV and `n/a` in
 the console. Programmatic consumers can use `report.condition_rows()`; calling
 `write_report_csv` saves both reports. Runs without `--daily-conditions` do not
 collect or print condition statistics.
+
+## Optional Characters
+
+Characters are disabled by default. Add `--characters` to any simulation mode
+to assign four distinct characters at random before each game, for example:
+
+```powershell
+wsl.exe python3 -m thenos 8 --seed 20260908 --workers 16 --four-galaxybrain --characters --output results/characters-smoke.csv
+```
+
+Each character is public and remains with its player for all six days. Foodie,
+Gamer, Athlete, Extrovert, and Introvert add 1 Fun to cards with their matching
+tag before ordinary card modifiers. Old Fogey gets 2 Fun and 1 less Energy each
+day. Child gets 1 extra Energy each day, but every Food card scores 0 Fun after
+all modifiers. Planner starts with six cards instead of three. Gear Guy's Item
+cards cost 1 less Energy, applied before ordinary card modifiers and with a
+minimum final cost of zero.
+
+The Python API accepts `characters=True` in `Game.default`, `Game`, and all
+`simulate_*` entry points. It can be combined with `daily_conditions=True`, and
+the benchmark script also accepts `--characters`. CSV metadata records the mode.
+
+Enabled simulations print a character table with player-game counts, average
+final Fun, fractional win rate, and the Fun difference from the run-wide player
+average. With `--output results/run.csv`, the same table is saved atomically to
+`results/run.characters.csv`; programmatic consumers can use
+`report.character_rows()`.

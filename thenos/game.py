@@ -11,6 +11,7 @@ from typing import Sequence
 from thenos.ais import PlayerAI, RandomAI
 from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.catalog import create_default_deck
+from thenos.characters import CHARACTERS
 from thenos.models import GameStats, PlayerState
 from thenos.daily_conditions import DAILY_CONDITIONS, DailyCondition
 
@@ -52,11 +53,13 @@ class Game:
         rng: random.Random | None = None,
         *,
         daily_conditions: bool = False,
+        characters: bool = False,
     ) -> None:
         if len(ais) != PLAYER_COUNT:
             raise ValueError(f"The Nos requires exactly {PLAYER_COUNT} AIs")
         self.rng = rng or random.Random()
         self.daily_conditions = daily_conditions
+        self.characters = characters
         self.daily_condition: DailyCondition | None = None
         self._condition_deck = list(DAILY_CONDITIONS) if daily_conditions else []
         self.revealed_conditions: list[DailyCondition] = []
@@ -155,6 +158,7 @@ class Game:
         simulation.players = [
             PlayerState(
                 name=player.name,
+                character=player.character,
                 hand=clone_zone(player.hand),
                 played_today=clone_zone(player.played_today),
                 tomorrow_cards=clone_zone(player.tomorrow_cards),
@@ -185,6 +189,7 @@ class Game:
         )
         simulation.day = self.day
         simulation.daily_conditions = self.daily_conditions
+        simulation.characters = self.characters
         simulation.daily_condition = self.daily_condition
         simulation._condition_deck = self._condition_deck.copy()
         simulation.revealed_conditions = self.revealed_conditions.copy()
@@ -195,24 +200,50 @@ class Game:
         return simulation
 
     @classmethod
-    def default(cls, seed: int | None = None, *, daily_conditions: bool = False) -> Game:
+    def default(
+        cls,
+        seed: int | None = None,
+        *,
+        daily_conditions: bool = False,
+        characters: bool = False,
+    ) -> Game:
         rng = random.Random(seed)
         ais = [
             RandomAI(random.Random(rng.getrandbits(64)))
             for _ in range(PLAYER_COUNT)
         ]
-        return cls(create_default_deck(daily_conditions=daily_conditions), ais, rng, daily_conditions=daily_conditions)
+        return cls(
+            create_default_deck(daily_conditions=daily_conditions),
+            ais,
+            rng,
+            daily_conditions=daily_conditions,
+            characters=characters,
+        )
 
     def setup(self) -> None:
         if self._is_setup:
             raise RuntimeError("Game is already set up")
-        minimum_size = PLAYER_COUNT * STARTING_HAND_SIZE + SUITCASE_SIZE
+        assigned = (
+            self.rng.sample(CHARACTERS, PLAYER_COUNT)
+            if self.characters
+            else [None] * PLAYER_COUNT
+        )
+        starting_hand_sizes = [
+            STARTING_HAND_SIZE
+            + (character.starting_hand_delta if character else 0)
+            for character in assigned
+        ]
+        minimum_size = sum(starting_hand_sizes) + SUITCASE_SIZE
         if len(self.trunk) < minimum_size:
             raise ValueError(f"Deck needs at least {minimum_size} cards")
+        if self.characters:
+            for player, character in zip(self.players, assigned, strict=True):
+                player.character = character
         self.rng.shuffle(self.trunk)
-        for _ in range(STARTING_HAND_SIZE):
-            for player_index in range(PLAYER_COUNT):
-                self.give_card(player_index, self._draw_from_trunk())
+        for card_number in range(max(starting_hand_sizes)):
+            for player_index, hand_size in enumerate(starting_hand_sizes):
+                if card_number < hand_size:
+                    self.give_card(player_index, self._draw_from_trunk())
         for _ in range(SUITCASE_SIZE):
             self.suitcase.append(self._draw_from_trunk())
         self._is_setup = True
@@ -288,8 +319,10 @@ class Game:
             self.daily_condition = self._condition_deck.pop()
             self.revealed_conditions.append(self.daily_condition)
             self._condition_knowledge = [known[1:] for known in self._condition_knowledge]
-        for player in self.players:
-            player.energy = DAILY_ENERGY + (self.daily_condition.starting_energy_delta if self.daily_condition else 0)
+        for player_index, player in enumerate(self.players):
+            player.energy = self.starting_energy(player_index)
+            if player.character is not None:
+                player.fun += player.character.daily_fun_delta
             player.asleep = False
             for card in player.tomorrow_cards:
                 card.effective_behavior.on_start_day(self, player, card)
@@ -330,7 +363,22 @@ class Game:
         """Use a known next condition, otherwise a neutral future estimate."""
         known = self.known_daily_conditions(player_index)
         self.daily_condition = known[0] if known else None
-        return DAILY_ENERGY + (self.daily_condition.starting_energy_delta if self.daily_condition else 0)
+        return self.starting_energy(player_index)
+
+    def starting_energy(
+        self,
+        player_index: int,
+        condition: DailyCondition | None = None,
+    ) -> int:
+        """Return a player's Energy before visible Tomorrow effects."""
+        if condition is None:
+            condition = self.daily_condition
+        character = self.players[player_index].character
+        return (
+            DAILY_ENERGY
+            + (condition.starting_energy_delta if condition else 0)
+            + (character.daily_energy_delta if character else 0)
+        )
 
     def gain_energy(
         self,
@@ -642,6 +690,8 @@ class Game:
         cost = card.effective_cost
         if self.daily_condition:
             cost = self.daily_condition.modify_energy_cost(card.tags, cost)
+        if player.character:
+            cost = player.character.modify_energy_cost(card.tags, cost)
         cost = card.effective_behavior.modify_own_energy_cost(
             self, player, card, cost
         )
@@ -881,6 +931,8 @@ class Game:
         value = target.effective_behavior.fun_value(self, player, target)
         if self.daily_condition:
             value = self.daily_condition.modify_fun(target.tags, value)
+        if player.character:
+            value = player.character.modify_fun(target.tags, value)
         for source in player.tomorrow_cards:
             value = source.effective_behavior.modify_tomorrow_fun(
                 self, player, source, target, value
@@ -889,6 +941,8 @@ class Game:
             value = source.effective_behavior.modify_fun(
                 self, player, source, target, value
             )
+        if player.character:
+            value = player.character.finalize_fun(target.tags, value)
         return value
 
     def end_day(self) -> None:
