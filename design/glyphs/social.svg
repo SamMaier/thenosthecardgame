@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Minimal glyph of two abstract people</title>
+  <g fill="#F3D34A" stroke="#B18A00" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+    <circle cx="42" cy="30" r="11"/>
+    <circle cx="78" cy="30" r="11"/>
+    <path d="M18 104c0-20 10-33 24-33s24 13 24 33Z"/>
+    <path d="M54 104c0-20 10-33 24-33s24 13 24 33Z"/>
+  </g>
+</svg>

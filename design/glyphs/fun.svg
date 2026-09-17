@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Minimal sun glyph</title>
+  <path d="M60 13c6 0 8 7 14 8 5 1 9-4 14-1 5 3 2 10 6 14 4 4 11 2 13 8 2 6-5 9-4 15 0 6 7 10 5 16-2 6-9 5-12 10-3 5 1 11-4 15-5 4-10-1-15 1-5 2-7 9-13 9s-8-7-14-8c-5-1-9 5-14 2-5-3-2-10-6-14-4-4-11-1-13-7-2-6 5-9 4-15-1-6-8-10-6-16 2-6 9-5 12-10 3-5-1-11 4-15 5-4 10 1 15-1 5-2 8-9 14-9Z" fill="#FFD34E" stroke="#C58A00" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+  <circle cx="60" cy="60" r="24" fill="#FFE789" stroke="#C58A00" stroke-width="5"/>
+</svg>

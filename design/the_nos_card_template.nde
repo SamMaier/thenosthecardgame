@@ -21,6 +21,24 @@ DPI = 600
 ; Title, Tags, Cost, Effect, Flavor, Image
 ; Tags is a quoted ~-delimited list, for example:
 ; "Board Game~Social~Outdoors" or "Item". Up to three tags are shown.
+; The main text fields use HTMLTEXT so future image keys can be embedded in them.
+HTMLFONT = effect_text, Montserrat, 5.5, , [ink]
+HTMLFONT = flavor_text, Montserrat, 5, I, [ink]
+LINKUNI = ON
+
+; Inline glyphs for HTMLTEXT.  Put the parenthesized key in a CSV text field,
+; for example: "Take a walk (tree)".  The PNG companions are in glyphs/png.
+HTMLIMAGE = , "(boardgame)", "glyphs/png/boardgame.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(energy)", "glyphs/png/energy.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(exercise)", "glyphs/png/exercise.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(food)", "glyphs/png/food.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(indoors)", "glyphs/png/indoors.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(item)", "glyphs/png/item.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(relax)", "glyphs/png/relax.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(social)", "glyphs/png/social.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(fun)", "glyphs/png/fun.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(tree)", "glyphs/png/tree.png", 0.11, 0.11, PB
+
 LINKCSV = UTF8
 LINK = "the_nos_card_template_data.csv"
 
@@ -105,13 +123,12 @@ TEXT = LABELRANGE([tag3], <>), [tag3], 1.52, 2.28, 0.52, 0.08, center, center, 0
 TEXT = LABELRANGE([tag2], <>), ".", 0.86, 2.28, 0.04, 0.08, center, center, 0, 100, , , , 100, 100
 TEXT = LABELRANGE([tag3], <>), ".", 1.46, 2.28, 0.04, 0.08, center, center, 0, 100, , , , 100, 100
 
-; wwtop wraps long rules from the top; keep the font at its natural proportions.
-FONT = Montserrat, 5.5, T, [ink]
-TEXT = , [Effect], 0.32, 2.60, 2.18, 0.60, left, wwtop, 0, 100, , , , 100, 110
+; HTMLTEXT wraps long rules automatically and leaves room for future
+; HTMLIMAGE/HTMLKEY replacements embedded in the Effect field.
+HTMLTEXT = , [Effect], 0.32, 2.60, 2.18, 0.60, [paper], 0, ET, 100, effect_text
 
 ; Optional flavor text below the effect, set in italics.
-FONT = Montserrat, 5, IT, [ink]
-TEXT = , [Flavor], 0.32, 3.14, 2.18, 0.36, left, wwtop, 0, 100, , , , 100, 110
+HTMLTEXT = , [Flavor], 0.32, 3.14, 2.18, 0.36, [paper], 0, ET, 100, flavor_text
 
 ; Draw a quiet border on the safe-area boundary, last.
 ; It is decorative only; all critical content is inside it.

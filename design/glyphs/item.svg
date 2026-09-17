@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Minimal blue cardboard box glyph</title>
+  <g stroke="#235B91" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+    <path d="m20 41 40-20 40 20-40 20Z" fill="#8CC8F0"/>
+    <path d="M20 41v42l40 20V61ZM100 41v42l-40 20V61Z" fill="#5CA8DF"/>
+    <path d="M60 21v40M60 61v42" fill="none"/>
+    <path d="m48 27 12 6 12-6" fill="none"/>
+  </g>
+</svg>

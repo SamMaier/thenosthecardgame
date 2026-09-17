@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Minimal pink bed glyph</title>
+  <g stroke="#B83F72" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+    <path d="M19 46v51M101 46v51" fill="none"/>
+    <path d="M19 58h82v29H19Z" fill="#F49BBC"/>
+    <rect x="28" y="62" width="28" height="14" rx="5" fill="#FFD0DE"/>
+    <path d="M19 87h82M28 97v7M92 97v7" fill="none"/>
+  </g>
+</svg>
