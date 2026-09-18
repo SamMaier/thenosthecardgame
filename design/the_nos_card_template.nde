@@ -29,6 +29,9 @@ LINKUNI = ON
 ; Inline glyphs for HTMLTEXT.  Put the parenthesized key in a CSV text field,
 ; for example: "Take a walk (tree)".  The PNG companions are in glyphs/png.
 HTMLIMAGE = , "(boardgame)", "glyphs/png/boardgame.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(arrow_left)", "glyphs/png/arrow_left.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(arrow_right)", "glyphs/png/arrow_right.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(card)", "glyphs/png/card.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(energy)", "glyphs/png/energy.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(exercise)", "glyphs/png/exercise.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(food)", "glyphs/png/food.png", 0.11, 0.11, PB
@@ -36,8 +39,10 @@ HTMLIMAGE = , "(indoors)", "glyphs/png/indoors.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(item)", "glyphs/png/item.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(relax)", "glyphs/png/relax.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(social)", "glyphs/png/social.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(suitcase)", "glyphs/png/suitcase.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(fun)", "glyphs/png/fun.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(tree)", "glyphs/png/tree.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(trunk)", "glyphs/png/trunk.png", 0.11, 0.11, PB
 
 LINKCSV = UTF8
 LINK = "the_nos_card_template_data.csv"

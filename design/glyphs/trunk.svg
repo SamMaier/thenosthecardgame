@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Open car trunk glyph</title>
+  <path d="M12 72c4-12 15-20 29-20h37c9 0 17 4 23 11l8 9v17H12z" fill="#AEB4B9" stroke="#1F2528" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M78 63 96 25l12 5-14 40" fill="#D9DDE1" stroke="#1F2528" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M76 63h18" fill="none" stroke="#1F2528" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="31" cy="91" r="10" fill="#D9DDE1" stroke="#1F2528" stroke-width="6"/>
+  <circle cx="91" cy="91" r="10" fill="#D9DDE1" stroke="#1F2528" stroke-width="6"/>
+</svg>

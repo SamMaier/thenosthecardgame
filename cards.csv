@@ -1,240 +1,265 @@
 Title,Tags,Cost,Effect,Flavor text
-Tres Fute,Board Game,0,1 Fun.,You left us all junk!
-Splendor,Board Game,1,2 Fun.,Who doesn't love jewels?
-The Crew,Board Game,1,"1 Fun.
-+2 Fun if at least half of your opponents have played a Board Game previously today (place an energy cube on this to indicate).","I don't want to tabletalk, but..."
-7 Wonders,Board Game,2,3 Fun.,I hope nobody notices I'm the only one going for science...
-Carcassonne,Board Game,2,"1 Fun.
-+4 Fun if this card has been played directly between (with no other cards between) 2 other Board Games today.",No points for longest road?
-Poker,Board Game,2,"1 Fun.
-Say a card tag, then reveal and discard the top card of the Trunk. If that card has the tag you said, +4 Fun.","""I fold"" - ""you're allowed to check here"" <<<OR NOS BOOK POKER"
-Trekking Through History,Board Game,2,All Board Game cards you played previously and after this today score +1 Fun.,I'm not even going to look - all the good cards are going to be gone before I can go again
-Wingspan,Board Game,2,"1 Fun.
-Score fun for this card immediately, and score again as normal at end of day.","Common Raven + Killdeer in my first hand, do we even need to play this out?"
-5 10 15,Board Game,3,"2 Fun.
-Pick a card from the Suitcase.",Playing via E-Transfer has made this game a lot more cumbersome
-Azul,Board Game,3,4 Fun.,Arts and crafts meets cutthroat strategy
-Dumbed Down Settlers,Board Game,3,4 Fun.,"While we're at it, lets remove the robber and development cards"
-Newfangled Tres Fute,Board Game,3,"1 Fun.
-+1 Fun for each unique tag you played by end of day.","So, your teal dice can convert to foxes, or you can reroll them for a yellow-white combo"
-San Juan,Board Game,3,"2 Fun.
-Pick a player who has 2 or less cards played (place an energy cube to indicate). If they do not play a Board Game today, +3 Fun.",Hope I can snag a Guild Hall
-Solo,Board Game,3,"3 Fun.
-+2 Fun if none of your opponents have played a Board Game previously today (place an energy cube to indicate).",Euchre but I can actually play on the same team as my spouse
-Puerto Rico,Board Game,4,"3 Fun.
-Place an energy cube on a card in the suitcase. If that card remains in the suitcase by end of day, +3 Fun.
-Must be one of your first two cards you play today.","Oof, stuck with prospector"
-Agricola,Board Game,5,6 Fun.,The closest we get to farming
-Settlers (Cities and Knights),Board Game,5,"4 Fun.
-Discard one card for +3 Fun.","Don't trade with him, he's winning!"
-Terra Mystica,Board Game,6,7 Fun.,Remember - this isn't Settlers - buildings are not worth points
-Risk,Board Game,7,8 Fun.,Don't let him get Australia!
-Epic Duels,"Board Game, Indoors",2,"2 Fun.
+5 10 15,BOARD GAME,3,"2 FUN.
+Pick a SUITCASE card.",Playing via E-Transfer has made this game a lot more cumbersome
+7 WONDERS,BOARD GAME,2,3 FUN.,I hope nobody notices I'm the only one going for science...
+ADDRESS THE FOOD,"FOOD, SOCIAL",2,"Pick a FOOD card in the SUITCASE, then immediately play it for 0 ENERGY.","If you use the word ""gourmet"", it means it's better"
+ADVENTURE RACE,"EXERCISE, OUTDOORS",12,20 FUN.,Should we sign up for the 24-hour one next year?
+AFTER DINNER ENTERTAINMENT,SOCIAL,2,The next SOCIAL card you play today costs -2 ENERGY and scores +2 FUN.,<<<REFER TO NOS BOOK
+AFTERNOON COFFEE,FOOD,1,"Gain 3 ENERGY.
+Must be your 3rd or later card today.",Gotta make bringing that coffee machine worth it!
+AGRICOLA,BOARD GAME,5,6 FUN.,The closest we get to farming
+ASSORTED CUTLERY,ITEM,3,"Play the top card of the TRUNK for 0 ENERGY, ignoring any restrictions.",Does anyone have any extra spoons? Our cottage has 4
+AUNTERVIEW,SOCIAL,2,"1 FUN.
+TOMORROW: All SOCIAL cards score +2 FUN.",So... Any girls you're interested in?
+AZUL,BOARD GAME,3,4 FUN.,Arts and crafts meets cutthroat strategy
+BEACH CONVERSATION,"SOCIAL, OUTDOORS",2,"2 FUN.
+If your previous card is an OUTDOORS card, gain 2 ENERGY.",
+BEACH VOLLEYBALL,"EXERCISE, OUTDOORS",4,"4 FUN.
+If your next card played today is an INDOORS card, gain 2 ENERGY.",Nos rules!
+BEAVER BURGERS,FOOD,3,"5 FUN.
+Cards you play after this today cost +1 ENERGY.",Friendship is: calling your buddy when taking your pregnant wife to the hospital to let claim your roadkill
+BEND THE RULES,"BOARD GAME, SOCIAL",2,All BOARD GAME cards you play after this today cost -2 ENERGY.,"Oh, we've always played this way at my house"
+BIOGRAPHY,RELAX,1,2 FUN.,
+BOAT RIDE,"RELAX, OUTDOORS",2,"1 FUN.
+The next ITEM card you play today costs 0 ENERGY to play.",Hold on to your hat!
+BOHNANZA,BOARD GAME,2,"1 FUN.
+You may trash cards played previously today for +1 FUN. These cards no longer have effects or score FUN.
+(cubes)",I'm drowning in future considerations
+BOOBY PRIZE,ITEM,0,Draw a card from the TRUNK.,"It was your partner's fault, really"
+BOUGIE COFFEE MACHINE,"FOOD, ITEM, INDOORS",4,"Draw 3 TRUNK cards, playing any drawn FOOD cards for 0 ENERGY, ignoring any restrictions.","I'll take a venti nonfat, sugar free vanilla, caramel macchiato quad shot, with whipped cream and 3 Splenda"
+BRACELET MAKING,RELAX,3,"1 FUN.
+The next SOCIAL card you play today scores +4 FUN.",It is mandatory to drop the bucket of beads at least once
+BRING A FRIEND,SOCIAL,1,"For cards you play after this today, ENERGY costs are doubled, and FUN scored on those cards is doubled.","""This has got to be the most competitive family ever seen!"" Marc-André"
+BUBLY,FOOD,0,+2 FUN if any card you played previously today has given you ENERGY.,"Really, you bought lime?"
+BUG SPRAY,"ITEM, OUTDOORS",1,OUTDOORS cards you play after this today score +1 FUN.,<<DEET QUOTE NOS>>
+BUTTER TARTS,FOOD,3,Double your current ENERGY (after paying the ENERGY cost for this card).,Never disappoints
+CALZONES,FOOD,3,"2 FUN.
+Gain 3 ENERGY.
+TOMORROW: EXERCISE cards cost +1 ENERGY.",I never would have guessed that deep-fried pizza would taste good
+CAMP CROSSROADS DESSERT,FOOD,1,Gain 1 ENERGY for each EXERCISE card you played previously today.,An all-time classic
+CAMPFIRE,"SOCIAL, OUTDOORS",2,"+2 FUN for each ""TOMORROW"" card you have today (played yesterday).",Has anyone tried doing spider würstchen?
+CANOE,"EXERCISE, OUTDOORS",3,"2 FUN.
+The next ITEM card you play today scores bonus FUN equal to its written ENERGY cost.",Do you even know how to J-stroke?
+CARCASSONNE,BOARD GAME,2,"1 FUN.
++4 FUN if the card before and after are both BOARD GAME cards.",No points for longest road?
+CHALK ART,"RELAX, OUTDOORS",0,1 FUN.,
+CHARCUTERIE,FOOD,2,"2 FUN.
+Gain 1 ENERGY.",This cheese smells like Chris' socks after a triathlon
+CHEAP RED,FOOD,2,"2 FUN.
+The next FOOD card you play today scores +2 FUN.","Diesel with notes of dirt, in a bad way"
+CHEAP WHITE,FOOD,2,3 FUN.,"Was this bottle corked? No, that's just how it tastes"
+CHEESY PHONE GAME,RELAX,1,"1 FUN.
++3 FUN if at least half of your opponents have played a RELAX card by END OF DAY.",Let me just watch this 4 minute ad for 3 free gems
+CHRISTMAS NAME DRAW,SOCIAL,2,"Choose an opponent's card.
++1 FUN for each card you played today that shares at least 1 tag with the marked card.
+(cubes)",CLOTHES
+CHUCK A FRISBEE,"EXERCISE, OUTDOORS",3,"3 FUN.
+After END OF DAY scoring is completed, return to your hand.",Hammer toss - go long
+CITIES AND KNIGHTS,BOARD GAME,5,"4 FUN.
+You may discard one card for +3 FUN.","Don't trade with him, he's winning!"
+CIVILIZATION THE BOARD GAME,"BOARD GAME, INDOORS",10,14 FUN.,It's no Campaign for North Africa
+CLASSIC BOOK,RELAX,2,"2 FUN.
+Costs 1 ENERGY less per RELAX card you played previously today.",
+CLIFF CLIMBING,"EXERCISE, OUTDOORS",4,"2 FUN.
+OUTDOORS cards you played previously today score +3 FUN.","If you're going to fall, PUSH OFF"
+COLOURING,RELAX,3,"1 FUN.
+TOMORROW: The cards you play count as having all tags.",
+COUCH TUBE,"EXERCISE, OUTDOORS",4,Score +FUN for the total written ENERGY cost on other cards you played today.,<<NOZ BOOK QUOTE JACKIE I THINK?
+DATE'S FIRST NOS,SOCIAL,7,TOMORROW: Each card you play scores +2 FUN.,Keep em away from the uncles
+DECAF,FOOD,0,"At END OF DAY, each leftover ENERGY is worth +1 FUN.","Well, if it's decaf..."
+DISHWASHING,FOOD,1,TOMORROW: FOOD cards cost -1 ENERGY.,"Turns out, dishwashing soap is different from dishwashing detergent"
+DOCK FISHING,"RELAX, OUTDOORS",1,2 FUN.,A valuable lesson in disappointment
+DORITOS,FOOD,0,"If you have played a FOOD card previously today, gain 2 ENERGY.",Sweet Chili Heat? Cool Ranch? Zesty?
+DOXOLOGY,SOCIAL,2,SOCIAL cards you play after this today score +2 FUN.,Aaaaaaaammmeeeeennnnnnnn
+DUMBED DOWN SETTLERS,BOARD GAME,3,4 FUN.,"While we're at it, lets remove the robber and development cards"
+EARLY BEDTIME,"RELAX, INDOORS",1,"Go to BED.
+Must be your 3rd or earlier card today.
+TOMORROW: Start the day with +3 ENERGY.","We're on vacation, we should rest"
+EPIC DUELS,"BOARD GAME, INDOORS",2,"2 FUN.
 You may play as many cards as you wish this turn, paying and resolving effects as normal.","Oh no, Darth Maul has 10 cards"
-Euchre,"Board Game, Indoors",2,"2 Fun.
-All Social cards you play after this today score +1 Fun.","""Lose the lead as fast as you can"" - Gord "
-Forced Family Fun,"Board Game, Indoors",2,The next Board Game you play today costs half Energy (rounded down).,"If you play this card during an actual FFF, you get to choose what the fam is playing next"
-Fit to Print,"Board Game, Indoors",3,"1 Fun.
-If you have played more cards than all of your opponents at end of day, +4 Fun.",Your green articles are touching
-Euchre Tournament,"Board Game, Indoors",7,"5 Fun.
-Draw 4 cards from the Trunk. Then, discard 4 cards from your hand.",The pinnacle of card playing
-Civilization the Board Game,"Board Game, Indoors",10,14 Fun.,It's no Campaign for North Africa
-Scrabble,"Board Game, Outdoors",3,"2 Fun.
-You may discard as many cards as you wish, then pick that many from the Suitcase.",Wo or woah? I don't think the horse would care how it's spelled
-Stretch,Exercise,1,All Exercise cards you play after this today score +2 Fun.,This is as far as I can reach
-Play With the Kids,Exercise,4,3 Fun. +3 Fun if you have more cards in your hand at end of day than all opponents.,
-Zumba,Exercise,4,"1 Fun.
-Tomorrow: Start the day with +4 Energy.",If only we had 15 Dance Dance Revolution mats
-Wrestle the Kids,Exercise,5,"1 Fun
-+1 Fun for every card in your hand at end of day.","Probably ending in tears, but fun while it lasted"
-Morning Walk,"Exercise, Outdoors",1,"Tomorrow: Start the day with +2 Energy.
-Must be the first card you play today.","Be bold, start cold"
-Kayak,"Exercise, Outdoors",2,"2 Fun.
-You may choose to spend any number of additional Energy, gain that amount of +Fun. Place energy cubes to indicate.",
-Teach Kid to Ski,"Exercise, Outdoors",2,Tomorrow: Exercise cards score +2 Fun.,How many Camp Iawah ski instructors does it take to make a 7 year old ski?
-Throw a Baseball,"Exercise, Outdoors",2,"1 Fun.
-Pick one card from the Suitcase.",Get it before it gets into the water!
-Canoe,"Exercise, Outdoors",3,"2 Fun.
-The next Item card you play today scores bonus Fun equal to its written Energy cost.",Do you even know how to J-stroke?
-Chuck a Frisbee,"Exercise, Outdoors",3,"3 Fun.
-After end of day scoring is completed, return to your hand.",Hammer toss - go long
-Morning Bike,"Exercise, Outdoors",3,"Tomorrow: Start the day with +5 Energy.
-Must be the first card you play today.",Let's see if we can sneak up Sir Sam's
-Paddleboard,"Exercise, Outdoors",3,"2 Fun.
-Discard your hand, then pick that many cards from the Suitcase.",You're going to fall in at some point
-Paddleboat,"Exercise, Outdoors",3,+2 Fun for each card picked or drawn after this today (place an energy cube on this card to track).,A lot of work for how slow you go
-Wakesurf,"Exercise, Outdoors",3,"1 Fun.
-+5 Fun if you have no cards in your hand at end of day.",Blame your falls on the driver
-Water Trampoline,"Exercise, Outdoors",3,"1 Fun.
-If your next card played today is a Relax card, double Fun scored on that card.",Actually more difficult to jump on than hard ground
-Beach Volleyball,"Exercise, Outdoors",4,"4 Fun.
-If your next card played today is an Indoors card, gain 2 Energy.",Nos rules!
-Cliff Climbing,"Exercise, Outdoors",4,"2 Fun.
-All Outdoors cards you played previously today score +2 Fun.","If you're going to fall, PUSH OFF"
-Couch Tube,"Exercise, Outdoors",4,Score +Fun for the total written Energy cost on other cards you played previously or after this today.,<<NOZ BOOK QUOTE JACKIE I THINK?
-Kneeboard,"Exercise, Outdoors",4,5 Fun.,Try not to traumatize the children by putting them in too tight
-Slalom Start,"Exercise, Outdoors",4,"2 Fun.
-+5 Fun if you have exactly 1 card in your hand at end of day.",HIT IT
-Water Volleyball,"Exercise, Outdoors",4,"2 Fun.
-The next Exercise card you play today scores +4 Fun.",You gotta spike the serve!
-Morning Run,"Exercise, Outdoors",5,"Tomorrow: Start the day with +7 Energy.
-Must be the first card you play today.","Sorry, I totally would come, but I forgot my Fitbit"
-Ski on Cousin's Shoulders,"Exercise, Outdoors",5,"3 Fun.
-If your total score is lower than at least half of your opponents, +5 Fun.",What's next? A kneeboarding human pyramid?
-Waterski,"Exercise, Outdoors",5,6 Fun.,Vintage Nos
-Spikeball,"Exercise, Outdoors",6,7 Fun.,Rim!
-Screamer Battle,"Exercise, Outdoors",7,8 Fun.,
-Navy SEALing,"Exercise, Outdoors",8,"4 Fun.
-You may discard any number of cards. Each card discarded, +2 Fun. Place that number of Energy cubes onto this card to indicate.",This will test the limits of your drawstring
-Wakeboard,"Exercise, Outdoors",8,10 Fun.,Do a backflip!
-Adventure Race,"Exercise, Outdoors",12,20 Fun.,Should we sign up for the 24-hour one next year?
-Family Baseball Game,"Exercise, Social, Outdoors",3,5 Fun. You score 0 Fun for all Board Games played today.,Not quite the Blue Jays
-Bubly,Food,0,+2 Fun if any card you played previously today has given you Energy.,"Really, you bought lime?"
-Decaf,Food,0,"At end of day, each leftover Energy is worth +1 Fun.","Well, if it's decaf..."
-Doritos,Food,0,"If you have played a Food card previously today, gain 2 Energy.",Sweet Chili Heat? Cool Ranch? Zesty?
-M&Ms,Food,0,Gain 1 Energy.,Take the bowl away from me
-Weird Chip Flavor,Food,0,"-2 Fun.
-Gain 2 Energy.",Did anyone really think this was going to be better than salt and vinegar?
-Afternoon Coffee,Food,1,"Gain 3 Energy.
-Cannot be played as one of your first 2 cards today.",Gotta make bringing that coffee machine worth it!
-Camp Crossroads Dessert,Food,1,Gain 1 Energy for each Exercise card you played previously today.,An all-time classic
-Dishwashing,Food,1,Tomorrow: Food cards cost -1 Energy.,"Turns out, dishwashing soap is different from dishwashing detergent"
-Morning Coffee,Food,1,"Gain 3 Energy.
-Must be first card you play today.",Required before I can be friendly
-Pudding Chômeur,Food,1,"Gain 3 Energy.
-Discard a card from your hand if you have one.","Sure uses a lot of maple syrup for ""unemployed pudding"""
-Schwank,Food,1,The 3rd Exercise card you play after this today scores double Fun.,Earlidale? Stemmlers? Noah Martin?
-Treat Store Run,Food,1,Pick all Food cards currently visible in the Suitcase (does not apply to their replacements).,Because we're notoriously short on junk food
-Charcuterie,Food,2,"2 Fun.
-Gain 1 Energy.",This cheese smells like Chris' socks after a triathlon
-Cheap Red,Food,2,"2 Fun.
-The next Food card you play today today scores +2 Fun.","Diesel with notes of dirt, in a bad way"
-Cheap White,Food,2,3 Fun.,"Was this bottle corked? No, that's just how it tastes"
-Ice Cream Sandwich,Food,2,"1 Fun.
-If you have played a Food card previously today, gain 3 Energy.",How did we go through a 20 pack by the second day?
-Keeper,Food,2,"2 Fun.
-Gain 1 Energy.",I caught you a delicious bass
-Leftovers,Food,2,"Copy the effects (but not the tags, and not the cost) of a Food card you played previously today (place an energy cube to indicate).",Never would have guessed that 1.4 lbs of meat per person was too much
-Potato Pancakes,Food,2,Gain 2 Energy for every Relax card you played previously today.,
-Steak,Food,2,"1 Fun.
-If you have played a card with a written cost of 5 or more previously today, gain 3 Energy.",Nothing quite like cooking on a BBQ that costs less than the meat you have on it
-Treat Cereal,Food,2,The next Exercise card you play today costs -4 Energy.,No way am I eating Raisin Bran at the Nos
-Beaver Burger,Food,3,5 Fun. Cards you play after this today cost +1 Energy.,Friendship is: calling your buddy when taking your pregnant wife to the hospital to let claim your roadkill
-Butter Tarts,Food,3,Double your current Energy (after paying the energy cost for this card).,Never disappoints
-Calzones,Food,3,"2 Fun.
-Gain 3 Energy.
-Tomorrow: Exercise cards cost +1 Energy.",I never would have guessed that deep-fried pizza would taste good
-Fajitas,Food,3,Gain 4 Energy.,"""Fajitas are my favorite Italian dish"" - Vern"
-Grocery Store Run,Food,3,"Draw 5 cards face up from the Trunk. Add all Food cards to your hand. Then, privately place the other cards back on top of the Trunk in any order.",Do you need me to grab you anything while I'm out?
-High-End Red,Food,3,All Food cards you play after this today score +2 Fun.,"Diesel with notes of dirt, in a good way"
-High-End White,Food,3,"2 Fun.
-All Food cards you play after this today score +1 Fun.","Boasts delicate notes of white peach, wet river stone, and the subtle sting of a backhanded compliment"
-Rouladen,Food,4,All cards you play after this today cost -1 Energy.,Pickles or no pickles?
-Würstchen,Food,4,"When played, gain 1 Energy for every card in your hand.",Tastes a lot better than it looks
-Ice Wine,Food,5,All Food cards you played previously today score +3 Fun.,Basically expensive juice
-Group Dinner,"Food, Social, Outdoors",3,"4 Fun.
-All players gain 1 Energy.
-You may not play this card if any players have gone to bed.",An ancient Nos tradition
-Booby Prize,Item,0,Draw a card from the Trunk.,"It was your partner's fault, really"
-Epic Playlist,Item,1,All Social cards you play after this today score +2 Fun.,Some Latin beach vibes? Maybe some Elvis? Bob Dylan?
-Nos Shirt,Item,1,Copies the effects (but not the tags or the cost) of any player's active Item card as if you played it here (place an energy cube on their card to indicate),"""My nos shirt is losing its lustre"" - Grandpa, 2006"
-Zero Gravity Chair,Item,1,All Relax cards you play after this today cost -1 Energy.,The La-Z-Boy of the beach
-Bug Spray,Item,2,All Outdoors cards you play after this today score +1 Fun.,<<DEET QUOTE NOS>>
-Fancy Floatie,Item,2,"Pick all Relax cards from the Suitcase (does not apply to their replacements).
-Tomorrow: Relax cards score +1 Fun.",It has a back massager
-Fishing Boat,Item,2,"Reveal cards from the Trunk until an Outdoors card is shown, add the Outdoors card to your hand and privately re-place the cards on the Trunk in any order.","If the motor starts, it'll be lots of fun"
-Last Year's Shorts,Item,2,Pick any card from the discard pile.,"Hmmm, what else is behind some furniture?"
-Nos Book,Item,2,"After end of day, collect all cards that would be discarded from all players. Add one card to your hand. Place as many as you wish of the rest in any order on top of the Trunk.",
-Ponyback,Item,2,"1 Fun.
-Tomorrow: Outdoors cards cost -1 Energy.",Still waiting for a Nos Shirt pattern
-Ski Boat,Item,2,"Reveal cards from the Trunk until an Exercise card is shown, add the Exercise card to your hand and privately re-place the cards on the Trunk in any order.",Bust Out Another Thousand
-Sunscreen,Item,2,All Outdoors cards you play after this today cost -1 Energy.,Anyone have 100spf? OR <<NOZ BOOK ENTRY ABOUT SUNSCREEN APPLICATION
-Assorted Cutlery,Item,3,"Play the top card of the Trunk for 0 Energy, ignoring any restrictions.",Does anyone have any extra spoons? Our cottage has 4
-Prime Picnic Table,Item,3,All Outdoors cards you play after this today cost -1 Energy and score +1 Fun.,"Under a tree, a view of the beach, perfectly level, what more could you ask for"
-Sweet Lawn Chair,Item,3,All Relax cards you play after this today score +1 Fun.,It even has an eating tray!
-Bougie Coffee Machine,Item,4,"Draw 3 cards from the Trunk, playing any drawn Food cards for 0 Energy, ignoring any restrictions.","I'll take a venti nonfat, sugar free vanilla, caramel macchiato quad shot, with whipped cream and 3 Splenda"
-Chalk Art,Relax,0,1 Fun.,
-Biography,Relax,1,2 Fun.,
-Cheesy Phone Game,Relax,1,1 Fun. +3 Fun if at least half your opponents have played a Relax card previously today (indicate if this was true by placing an energy cube on this card),Let me just watch this 4 minute ad for 3 free gems
-Early Bedtime,Relax,1,"Go to bed immediately.
-Cannot be played as 4th or later card.
-Tomorrow: start the day with +3 energy.","We're on vacation, we should rest"
-Read the Radar,Relax,1,Privately view the next 3 Daily Condition cards. Arrange them in any order and re-place them.,"Accuweather says we're in trouble, but the weather network says we're good"
-Wildlife Spotting,Relax,1,"1 Fun.
-Tomorrow: If your first card played is an Outdoors card, that card scores +2 Fun.","Foxes, deer, groundhogs - a North Bay feast!"
-Classic Book,Relax,2,2 Fun. Costs 1 Energy less per Relax card you play previously today.,
-Fancy Craft,Relax,2,The next item you play scores Fun double its written Energy cost.,Takes more prep than rouladen
-Shady Spot,Relax,2,The next Outdoors card you play costs half (rounded down) Energy.,"""Just because you're under a tree, doesn't mean you're out of the woods"" - Gord"
-Sunrise,Relax,2,"4 Fun.
-Must be the first card you play today.",Just enjoy it with a shirt on
-Thriller Book,Relax,2,3 Fun.,
-Bracelet Making,Relax,3,1 Fun. The next Social card you play today scores +4 Fun.,It is mandatory to drop the bucket of beads at least once
-Colouring,Relax,3,"2 Fun.
-Draw 1 card from the Trunk.",
-Paint,Relax,3,"4 Fun.
+EPIC PLAYLIST,ITEM,1,SOCIAL cards you play after this today score +1 FUN.,Some Latin beach vibes? Maybe some Elvis? Bob Dylan?
+EPIC PRANK,SOCIAL,4,"2 FUN.
+Optionally discard an ITEM card for +5 FUN.
+(cubes)",Sponsored by SC Johnson
+EUCHRE,"BOARD GAME, INDOORS",2,"2 FUN.
+SOCIAL cards you play after this today score +1 FUN.","""Lose the lead as fast as you can"" - Gord "
+EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",3,"Each card you play after this today, pick a SUITCASE card.","""The Mount Everest of competition"" - Scott"
+EUCHRE TOURNAMENT,"BOARD GAME, INDOORS",7,"5 FUN.
+Draw 4 TRUNK cards. Then, discard 4 cards from your hand.",The pinnacle of card playing
+EVENING CHAT,"SOCIAL, INDOORS",3,"5 FUN.
+Go to BED.
+TOMORROW: Start the day with -1 ENERGY.",
+EVENING ON THE DOCK,"RELAX, SOCIAL, OUTDOORS",4,Cards you played previously today score +1 FUN.,Hope the bugs aren't too bad
+FAJITAS,FOOD,3,Gain 4 ENERGY.,"""Fajitas are my favorite Italian dish"" - Vern"
+FAMILY BASEBALL GAME,"EXERCISE, SOCIAL, OUTDOORS",3,"5 FUN.
+You score 0 FUN for all RELAX and BOARD GAME cards played today.",Not quite the Blue Jays
+FANCY CRAFT,RELAX,2,The next ITEM card you play today scores bonus FUN double its written ENERGY cost.,Takes more prep than rouladen
+FANCY FLOATIE,"RELAX, ITEM, OUTDOORS",2,"Pick all RELAX cards in the SUITCASE (not the replacements).
+TOMORROW: RELAX cards score +1 FUN.",It has a back massager
+FISHING BOAT,"RELAX, ITEM, OUTDOORS",2,Reveal TRUNK cards until an OUTDOORS card is shown. Add it to your hand and place the rest on the TRUNK in any order.,"If the motor starts, it'll be lots of FUN"
+FISHING EVENING,"RELAX, OUTDOORS",3,"5 FUN.
+Must be your 4th or later card today.",When trolling had a different meaning
+FISHING MORNING,"RELAX, OUTDOORS",3,"5 FUN.
+Must be your 1st card today.",That seaweed really gave a good fight
+FIT TO PRINT,"BOARD GAME, INDOORS",2,+4 FUN if you have played more cards than all of your opponents at END OF DAY.,Your green articles are touching
+FLOATING,"RELAX, OUTDOORS",1,"Gain 3 ENERGY.
+TOMORROW: Start the day with -1 ENERGY.",The most stressful way to RELAX in a chair
+FORCED FAMILY FUN,"BOARD GAME, INDOORS",2,The next BOARD GAME card you play today costs half ENERGY (rounded down).,"If you play this card during an actual FFF, you get to choose what the fam is playing next"
+GROCERY STORE RUN,FOOD,3,Reveal 5 TRUNK cards. Add all FOOD cards to your hand. Re-place the rest on the TRUNK in any order.,Do you need me to grab you anything while I'm out?
+GROUP DINNER,"FOOD, SOCIAL, OUTDOORS",3,"4 FUN.
+All players gain 1 ENERGY.
+You may not play this card if any players have gone to BED.",An ancient Nos tradition
+HIGH-END RED,FOOD,3,FOOD cards you play after this today score +3 FUN.,"Diesel with notes of dirt, in a good way"
+HIGH-END WHITE,FOOD,3,"2 FUN.
+FOOD cards you play after this today score +2 FUN.","Boasts delicate notes of white peach, wet river stone, and the subtle sting of a backhanded compliment"
+HOLD THE BABY,SOCIAL,1,Cards you play after this today cost +1 ENERGY and score +2 FUN.,Do you smell something?
+ICE CREAM SANDWICH,FOOD,2,"1 FUN.
+If you have played a FOOD card previously today, gain 3 ENERGY.",How did we go through a 20 pack by the second day?
+ICE WINE,FOOD,3,FOOD cards you played previously today score +3 FUN.,Basically expensive juice
+ISTANBUL,BOARD GAME,3,"1 FUN.
+Discard any number of cards. Gain 2 ENERGY for each card discarded.",Gotta dump this load at the Large Market
+JOHNNY APPLESEED,SOCIAL,1,"1 FUN.
+The next FOOD card you play today scores +2 FUN.",Amen Amen Amen
+KAYAK,"EXERCISE, OUTDOORS",2,"2 FUN.
+You may choose to spend any number of additional ENERGY, score that much bonus FUN.
+(cubes)",
+KEEPER,FOOD,2,"1 FUN.
+Gain 1 ENERGY for each OUTDOORS card played previously today.",I caught you a delicious bass
+KNEEBOARD,"EXERCISE, OUTDOORS",4,5 FUN.,Try not to traumatize the children by putting them in too tight
+LAST YEAR'S SHORTS,ITEM,2,Add 1 card from the discard pile to your hand.,"Hmmm, what else is behind some furniture?"
+LEFTOVERS,FOOD,2,"Copy the effects (but not tags or cost) of a FOOD card you played previously today.
+(cubes)",Never would have guessed that 1.4 lbs of meat per person was too much
+LONG DISTANCE VISITORS,SOCIAL,4,"Pick 3 SUITCASE cards.
+SOCIAL cards you play after this today score +1 FUN.",We love an international Nos
+M&MS,FOOD,0,Gain 1 ENERGY.,Take the bowl away from me
+MAKE PLANS,SOCIAL,2,Pick 2 SUITCASE cards.,My cottage or yours?
+MEDICAL ADVICE,SOCIAL,1,"Pick 3 SUITCASE cards.
+Cards played previously today score -1 FUN.
+Cards you play after this today cost +1 ENERGY.","So much medical education, so little help"
+MORNING BIKE,"EXERCISE, OUTDOORS",3,"TOMORROW: Start the day with +5 ENERGY.
+Must be your 1st card today.",Let's see if we can sneak up Sir Sam's
+MORNING COFFEE,FOOD,1,"Gain 3 ENERGY.
+Must be your 1st card today.",Required before I can be friendly
+MORNING RUN,"EXERCISE, OUTDOORS",5,"TOMORROW: Start the day with +7 ENERGY.
+Must be your 1st card today.","Sorry, I totally would come, but I forgot my Fitbit"
+MORNING WALK,"EXERCISE, OUTDOORS",1,"TOMORROW: Start the day with +2 ENERGY.
+Must be your 1st card today.","Be bold, start cold"
+MOVIE,"RELAX, INDOORS",1,"1 FUN.
+INDOORS cards you play after this today score +2 FUN.","Nunchuk skills, bowhunting skills, computer hacking skills"
+NAP,RELAX,0,Gain 1 ENERGY.,How long was I out?
+NAVY SEALING,"EXERCISE, OUTDOORS",8,"4 FUN.
+Discard any number of cards. +2 FUN for each discard.
+(cubes)",This will test the limits of your drawstring
+NEW NOS BOOK ENTRY,SOCIAL,2,"1 FUN.
+If you have played 4 or more cards previously today, +4 FUN.",
+NEWFANGLED TRÈS FUTÉ,BOARD GAME,3,"1 FUN.
++1 FUN for each unique tag you played by END OF DAY.","So, your teal dice can convert to foxes, or you can reroll them for a yellow-white combo"
+NOS BOOK,ITEM,2,"After END OF DAY, collect all discarding cards from all players. Add one to your hand. Place any number on the TRUNK. The rest are discarded.",
+NOS SHIRT,ITEM,1,"Copy the effects (but not tags or cost) of any player's ITEM card.
+(cubes)","""My nos shirt is losing its lustre"" - Grandpa, 2006"
+OUTDOOR MOVIE,"RELAX, OUTDOORS",2,"1 FUN.
+RELAX cards you played previously today score +2 FUN.","Tina, you fat lard!"
+PADDLEBOARD,"EXERCISE, OUTDOORS",3,"2 FUN.
+Discard your hand, then pick that many SUITCASE cards.",You're going to fall in at some point
+PADDLEBOAT,"EXERCISE, OUTDOORS",3,"+2 FUN for each card aquired (from the TRUNK, SUITCASE, or discard pile) after this today.
+(cubes)",A lot of work for how slow you go
+PAINT,RELAX,3,"4 FUN.
 Your next turn is skipped.",How long does this take to dry?
-Nap,"Relax, Indoors",0,Gain 1 Energy.,How long was I out?
-Sleep In,"Relax, Indoors",0,"Gain +2 Energy.
-Must be the first card you play today.
-You do not gain additional Energy from any other sources today.",Someone else will get the kids
-Movie,"Relax, Indoors",1,"1 Fun.
-All Indoors cards you play after this today score +2 Fun.","Nunchuk skills, bowhunting skills, computer hacking skills"
-Work Call,"Relax, Indoors",1,-4 Fun. The next card you play today scores double Fun.,Hopefully reception is ok
-Dock Fishing,"Relax, Outdoors",1,2 Fun.,A valuable lesson in disappointment
-Floating,"Relax, Outdoors",1,"Gain 3 energy.
-Tomorrow: Start the day with -1 Energy.",The most stressful way to relax in a chair
-Boat Ride,"Relax, Outdoors",2,"1 Fun.
-Your next Item card costs 0 Energy to play.",Hold on to your hat!
-Outdoor Movie,"Relax, Outdoors",2,"2 Fun.
-All Relax cards you played previously today score +1 Fun.","Tina, you fat lard!"
-Paint Rocks,"Relax, Outdoors",2,"2 Fun.
-+2 Fun if you've played at least 2 other Outdoors cards previously today.",
-Fishing Evening,"Relax, Outdoors",3,"5 Fun.
-Must be 4th or later card you play today.",When trolling had a different meaning
-Fishing Morning,"Relax, Outdoors",3,"5 Fun.
-Must be the first card you play today.",That seaweed really gave a good fight
-Tanning,"Relax, Outdoors",3,"5 Fun.
-Must be your first Outdoors card played today.
-All Outdoors cards you play after this today score -1 Fun.
-Tomorrow: All Outdoors cards you play score -1 Fun.",
-Evening on the Dock,"Relax, Social, Outdoors",4,All cards you played previously today score +1 Fun.,Hope the bugs aren't too bad
-Wedding Anniversary,Social,0,Copies the effect (but not the tags) of any opponent's active card played today as if you played it here (place an energy cube on their card to indicate). You must immediately pay that card's written Energy cost.,But not the wooden legged man
-Bend the Rules,Social,1,All Board Game cards you play after this today cost -1 energy.,"Oh, we've always played this way at my house"
-Bring a Friend,Social,1,"For all cards you play after this today, Energy costs are doubled, and Fun scored on those cards is doubled.","""This has got to be the most competitive family ever seen!"" Marc-André"
-Doxology,Social,1,All Social cards you play after this today score +1 Fun.,Aaaaaaaammmeeeeennnnnnnn
-Johnny Appleseed,Social,1,"1 Fun.
-The next Food card you play today scores +2 Fun.",Amen Amen Amen
-Medical Advice,Social,1,"Pick 3 cards from the Suitcase.
-Cards you played previously today score -1 Fun.
-Cards you play after this today cost +1 Energy.","So much medical education, so little help"
-Address the Food,Social,2,"Pick a Food card from the Suitcase, then immediately play it for free.","If you use the word ""gourmet"", it means it's better"
-After Dinner Entertainment,Social,2,Your next Social card you play today costs -2 Energy and scores +2 Fun.,<<<REFER TO NOS BOOK
-Aunterview,Social,2,"1 Fun.
-Tomorrow: All Social cards score +2 Fun.",So... Any girls you're interested in?
-Christmas Name Draw,Social,2,"Pick an opponent's active card, placing an energy cube to indicate. At end of day, gain +1 Fun for each card you have matching at least one of card's tags.",CLOTHES
-Hold the Baby,Social,2,All cards you play after this today cost +1 Energy and score +2 Fun.,Do you smell something?
-Make Plans,Social,2,Pick 2 cards from the Suitcase.,My cottage or yours?
-New Nos Book Entry,Social,2,"1 Fun.
-If you have played 5 or more cards previously today, +4 Fun.",
-Tell a Story,Social,3,"2 Fun.
-Choose a card from the discard pile and put it on top of the Trunk.",
-Epic Prank,Social,4,2 Fun. Discard an item card for +5 Fun (place an Energy cube to indicate).,Sponsored by SC Johnson
-Long Distance Visitors,Social,4,"Pick 3 cards from the Suitcase.
-All Social cards you play after this today score +1 Fun.",We love an international Nos
-Sing Song,Social,4,"4 Fun.
-This card costs -1 Energy for every opponent who has played a Social card today.","""Give me a C"" - Uncle Alf"
-Date's First Nos,Social,6,"Every card you play after this today, pick a card from the Suitcase.
-Tomorrow: Every card you play scores +1 Fun.",Keep em away from the uncles
-Stay Up Late,"Social, Indoors",0,"Gain 2 energy.
-Tomorrow: Start the day with -2 Energy.","We're on vacation, who needs rest?"
-Scout the Other Cottages,"Social, Indoors",1,"Place an Energy cube on all cards in the Suitcase. After all scoring at end of day, add all cards that remain with your Energy cube on them to your hand.
-All cards played previously today score -1 Fun.",They brought up some sweet new games
-Evening Chat,"Social, Indoors",3,"5 Fun.
-Immediately go to bed.
-Tomorrow: Start the day with -1 Energy.",
-Beach Conversation,"Social, Outdoors",2,"2 Fun.
-If the last card you played was an Outdoors card, gain 2 Energy.",
-Campfire,"Social, Outdoors",2,"+2 Fun for every ""Tomorrow"" card you have today (played yesterday).",Has anyone tried doing spider würstchen?
-Euchre Tournament Awards Ceremony,"Social, Outdoors",3,Pick 3 cards from the Suitcase.,"""The Mount Everest of competition"" - Scott"
-Photo Shoot,"Social, Outdoors",3,"-1 Fun.
-Tomorrow: whenever you play a card, pick a card from the Suitcase.",The closest thing to being taken hostage most men will experience
+PAINT ROCKS,RELAX,2,"2 FUN.
++2 FUN if you have played at least 2 OUTDOORS cards previously today.",
+PHOTO SHOOT,"SOCIAL, OUTDOORS",3,"-1 FUN.
+TOMORROW: Whenever you play a card, pick a SUITCASE card.",The closest thing to being taken hostage most men will experience
+PLAY WITH THE KIDS,EXERCISE,4,"3 FUN.
++3 FUN if you have more cards in your hand at END OF DAY than all opponents.",
+POKER,BOARD GAME,2,"1 FUN.
+Say a card tag, then reveal and discard a TRUNK card. If that card had the tag, +4 FUN.","""I fold"" - ""you're allowed to check here"" <<<OR NOS BOOK POKER"
+PONYBACK,ITEM,2,"1 FUN.
+TOMORROW: OUTDOORS cards cost -1 ENERGY.",Still waiting for a Nos Shirt pattern
+POTATO PANCAKES,"FOOD, OUTDOORS",2,Gain 2 ENERGY for each RELAX card you played previously today.,
+PRIME PICNIC TABLE,"ITEM, OUTDOORS",3,OUTDOORS cards you play after this today cost -1 ENERGY and score +1 FUN.,"Under a tree, a view of the beach, perfectly level, what more could you ask for"
+PUDDING CHÔMEUR,FOOD,1,"Gain 3 ENERGY.
+Discard a card from your hand.","Sure uses a lot of maple syrup for ""unemployed pudding"""
+PUERTO RICO,BOARD GAME,4,"3 FUN.
+Place 1 (cubes) on a SUITCASE card. If the marked card remains by END OF DAY, +3 FUN.
+Must be your 1st card today.","Oof, stuck with prospector"
+QUACKS,BOARD GAME,1,"Reveal and discard TRUNK cards, stopping any time. +1 FUN for each card. If an OUTDOORS card is revealed, this card scores 0 FUN.
+(cubes)",Surely I won't pull another white one this time
+READ THE RADAR,RELAX,1,Privately view the next 3 Daily Condition cards. Arrange them in any order and re-place them.,"Accuweather says we're in trouble, but the weather network says we're good"
+RISK,BOARD GAME,7,8 FUN.,Don't let him get Australia!
+ROULADEN,FOOD,4,Cards you play after this today cost -2 ENERGY.,Pickles or no pickles?
+SAN JUAN,BOARD GAME,3,"2 FUN.
+Choose a player who has 2 or fewer cards played. If they do not play a BOARD GAME today, +3 FUN.
+(cubes)",Hope I can snag a Guild Hall
+SCHWANK,FOOD,2,The 2nd EXERCISE card you play after this today scores double FUN.,Earlidale? Stemmlers? Noah Martin?
+SCOUT OTHER COTTAGES,"SOCIAL, INDOORS",1,"Place (cubes) on all SUITCASE cards. After END OF DAY, add remaining marked cards to your hand.
+Cards played previously today score -1 FUN.",They brought up some sweet new games
+SCRABBLE,"BOARD GAME, OUTDOORS",3,"2 FUN.
+Discard as many cards as you wish, then pick that many SUITCASE cards.",Wo or woah? I don't think the horse would care how it's spelled
+SCREAMER BATTLE,"EXERCISE, OUTDOORS",7,8 FUN.,
+SHADY SPOT,"RELAX, OUTDOORS",2,The next OUTDOORS card you play today costs half ENERGY (rounded down).,"""Just because you're under a tree, doesn't mean you're out of the woods"" - Gord"
+SING SONG,SOCIAL,4,"4 FUN.
+This card costs -1 ENERGY for each opponent who has played a SOCIAL card today.","""Give me a C"" - Uncle Alf"
+SKI BOAT,"EXERCISE, ITEM, OUTDOORS",2,Reveal TRUNK cards until an EXERCISE card is shown. Add it to your hand and place the rest on the TRUNK in any order.,Bust Out Another Thousand
+SKI ON SHOULDERS,"EXERCISE, OUTDOORS",5,"3 FUN.
+If your current FUN total is lower than at least half of your opponents' scores, +5 FUN.
+(cubes)",What's next? A kneeboarding human pyramid?
+SLALOM START,"EXERCISE, OUTDOORS",4,"2 FUN.
++5 FUN if you have exactly 1 card in your hand at END OF DAY.",HIT IT
+SLEEP IN,"RELAX, INDOORS",0,"Gain 2 ENERGY.
+You do not gain additional ENERGY from any other source today.
+Must be your 1st card today.",Someone else will get the kids
+SOLO,BOARD GAME,3,"3 FUN.
++2 FUN if none of your opponents have played a BOARD GAME yet today.
+(cubes)",Euchre but I can actually play on the same team as my spouse
+SPIKEBALL,"EXERCISE, OUTDOORS",6,7 FUN.,Rim!
+SPLENDOR,BOARD GAME,1,2 FUN.,Who doesn't love jewels?
+STAY UP LATE,"SOCIAL, INDOORS",0,"Gain 2 ENERGY.
+TOMORROW: Start the day with -2 ENERGY.","We're on vacation, who needs rest?"
+STEAK,FOOD,2,"1 FUN.
+If you have played a card with a written cost of 5 or more previously today, gain 3 ENERGY.",Nothing quite like cooking on a BBQ that costs less than the meat you have on it
+STRETCH,EXERCISE,1,EXERCISE cards you play after this today score +2 FUN.,This is as far as I can reach
+SUNRISE,RELAX,2,"4 FUN.
+Must be your 1st card today.",Just enjoy it with a shirt on
+SUNSCREEN,"ITEM, OUTDOORS",1,OUTDOORS cards you play after this today cost -1 ENERGY.,Anyone have 100spf? OR <<NOZ BOOK ENTRY ABOUT SUNSCREEN APPLICATION
+SWEET LAWN CHAIR,"RELAX, ITEM",2,RELAX cards you play after this today score +2 FUN.,It even has an eating tray!
+TANNING,"RELAX, OUTDOORS",3,"5 FUN.
+OUTDOORS cards you play after this today score -1 FUN.
+TOMORROW: OUTDOORS cards you play score -1 FUN.",
+TEACH KID TO SKI,"EXERCISE, OUTDOORS",2,TOMORROW: EXERCISE cards score +2 FUN.,How many Camp Iawah ski instructors does it take to make a 7 year old ski?
+TELL A STORY,SOCIAL,2,"2 FUN.
+Choose a card from the discard pile and put it on the TRUNK.",
+TERRA MYSTICA,BOARD GAME,6,7 FUN.,Remember - this isn't Settlers - buildings are not worth points
+THE CREW,BOARD GAME,1,"1 FUN.
++2 FUN if at least half of your opponents have played a BOARD GAME already today.
+(cubes)","I don't want to tabletalk, but..."
+THRILLER BOOK,RELAX,2,3 FUN.,
+THROW A BASEBALL,"EXERCISE, OUTDOORS",2,"1 FUN.
+Pick a SUITCASE card.",Get it before it gets into the water!
+TREAT CEREAL,FOOD,2,The next EXERCISE card you play today costs -4 ENERGY.,No way am I eating Raisin Bran at the Nos
+TREAT STORE RUN,FOOD,1,Pick all FOOD cards in the SUITCASE (not the replacements).,Because we're notoriously short on junk FOOD
+TREKKING THROUGH HISTORY,BOARD GAME,2,BOARD GAME cards you played previously and after this today score +2 FUN.,I'm not even going to look - all the good cards are going to be gone before I can go again
+TRÈS FUTÉ,BOARD GAME,0,1 FUN.,You left us all junk!
+WAKEBOARD,"EXERCISE, OUTDOORS",8,10 FUN.,Do a backflip!
+WAKESURF,"EXERCISE, OUTDOORS",3,"2 FUN.
++5 FUN if you have no cards in your hand at END OF DAY.",Blame your falls on the driver
+WATER TRAMPOLINE,"EXERCISE, OUTDOORS",3,"1 FUN.
+Your next RELAX card scores double FUN.",Actually more difficult to jump on than hard ground
+WATER VOLLEYBALL,"EXERCISE, OUTDOORS",4,"2 FUN.
+The next EXERCISE card you play today scores +4 FUN.",You gotta spike the serve!
+WATERSKI,"EXERCISE, OUTDOORS",5,6 FUN.,Vintage Nos
+WEDDING ANNIVERSARY,SOCIAL,0,"Copy the effect (but not tags) of an opponent's card. Pay that card's written ENERGY cost.
+(cubes)",But not the wooden legged man
+WEIRD CHIP FLAVOUR,FOOD,0,"-2 FUN.
+Gain 2 ENERGY.",Did anyone really think this was going to be better than salt and vinegar?
+WILDLIFE SPOTTING,RELAX,1,"1 FUN.
+TOMORROW: If your 1st card played is an OUTDOORS card, it scores +2 FUN.","Foxes, deer, groundhogs - a North Bay feast!"
+WINGSPAN,BOARD GAME,2,"1 FUN.
+Score FUN for this card immediately, and score again as normal at END OF DAY.","Common Raven + Killdeer in my first hand, do we even need to play this out?"
+WORK CALL,"RELAX, INDOORS",1,"-4 FUN.
+The next card you play today scores double FUN.",Hopefully reception is ok
+WRESTLE THE KIDS,EXERCISE,5,"1 FUN.
++1 FUN for each card in your hand at END OF DAY.","Probably ending in tears, but FUN while it lasted"
+WÜRSTCHEN,FOOD,4,Gain 1 ENERGY for each card in your hand.,Tastes a lot better than it looks
+ZERO GRAVITY CHAIR,"RELAX, ITEM",1,RELAX cards you play after this today cost -1 ENERGY.,The La-Z-Boy of the beach
+ZUMBA,EXERCISE,4,"1 FUN.
+TOMORROW: Start the day with +4 ENERGY.",If only we had 15 Dance Dance Revolution mats
