@@ -13,6 +13,9 @@ class TargetDiscardAI(RandomAI):
     def choose_card_to_discard(self, game, player_index, hand):
         return self.discard_index
 
+    def choose_optional_action(self, game, player_index, action):
+        return True
+
 
 class EpicPrankTests(unittest.TestCase):
     def test_printed_values_and_base_fun(self) -> None:

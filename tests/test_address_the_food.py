@@ -17,7 +17,7 @@ class AddressTheFoodTests(unittest.TestCase):
         self.assertEqual(card.title, "Address the Food")
         self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Social"}))
+        self.assertEqual(card.definition.tags, frozenset({"Food", "Social"}))
 
     def test_picks_food_refills_and_plays_it_for_free(self) -> None:
         game = empty_game()

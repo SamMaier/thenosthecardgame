@@ -14,7 +14,7 @@ class NapTests(unittest.TestCase):
         card = game.play_card(0, 0)
 
         self.assertEqual(card.definition.cost, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Relax", "Indoors"}))
+        self.assertEqual(card.definition.tags, frozenset({"Relax"}))
         self.assertEqual(player.energy, 1)
         self.assertEqual(game.card_fun(0, card), 0)
 

@@ -14,8 +14,8 @@ class BugSprayTests(unittest.TestCase):
         card = game.play_card(0, 0)
         outdoors = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 2)
-        self.assertEqual(card.definition.tags, frozenset({"Item"}))
+        self.assertEqual(card.definition.cost, 1)
+        self.assertEqual(card.definition.tags, frozenset({"Item", "Outdoors"}))
         self.assertEqual(game.card_fun(0, card), 0)
         self.assertEqual(game.card_fun(0, outdoors), 3)
 

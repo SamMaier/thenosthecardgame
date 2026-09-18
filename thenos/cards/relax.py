@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.cards.fun_effects import (
-    FunEqualToNextTagWrittenCostBehavior,
+    FunForNextTagWrittenCostBehavior,
     FunForTagAfterBehavior,
 )
 
@@ -46,7 +46,7 @@ class EarlyBedtimeBehavior(CardBehavior):
 
 
 class CheesyPhoneGameBehavior(CardBehavior):
-    """Remember whether enough opponents played Relax cards before this."""
+    """Score a bonus when enough opponents played Relax cards by day's end."""
 
     def on_play(
         self,
@@ -54,14 +54,7 @@ class CheesyPhoneGameBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        opponents = [opponent for opponent in game.players if opponent is not player]
-        relax_opponents = sum(
-            any("Relax" in played_card.tags for played_card in opponent.played_today)
-            for opponent in opponents
-        )
-        if relax_opponents * 2 >= len(opponents):
-            card.markers["energy_cube"] = True
-            card.markers["_cheesy_phone_game_energy_cube"] = True
+        pass
 
     def fun_value(
         self,
@@ -69,16 +62,20 @@ class CheesyPhoneGameBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        return card.effective_base_fun + (
-            3 if card.markers.get("_cheesy_phone_game_energy_cube") else 0
+        opponents = [opponent for opponent in game.players if opponent is not player]
+        relax_opponents = sum(
+            any("Relax" in played_card.tags for played_card in opponent.played_today)
+            for opponent in opponents
         )
+        bonus = 3 if relax_opponents * 2 >= len(opponents) else 0
+        return card.effective_base_fun + bonus
 
 
-class FancyCraftBehavior(FunEqualToNextTagWrittenCostBehavior):
-    """Set the next Item card's Fun to twice its printed Energy cost."""
+class FancyCraftBehavior(FunForNextTagWrittenCostBehavior):
+    """Give the next Item card bonus Fun equal to twice its printed cost."""
 
     def __init__(self) -> None:
-        super().__init__("Item")
+        super().__init__("Item", multiplier=2)
 
 
 class ClassicBookBehavior(CardBehavior):
@@ -173,10 +170,7 @@ class TanningBehavior(FunForTagAfterBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return not any(
-            "Outdoors" in played_card.tags
-            for played_card in game.cards_played_before(player, card)
-        )
+        return True
 
 
 class SleepInBehavior(CardBehavior):
@@ -231,7 +225,10 @@ class FloatingBehavior(CardBehavior):
 
 
 class ColouringBehavior(CardBehavior):
-    """Draw one card from the Trunk into the player's hand."""
+    """Make cards played tomorrow count as having all tags."""
+
+    has_tomorrow_action = True
+    tomorrow_all_tags = True
 
     def on_play(
         self,
@@ -239,9 +236,7 @@ class ColouringBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player_index = game.players.index(player)
-        drawn_card = game.draw_from_trunk(player_index, 1)[0]
-        game.give_card(player_index, drawn_card)
+        pass
 
 
 class PaintBehavior(CardBehavior):
@@ -304,7 +299,7 @@ class WildlifeSpottingBehavior(CardBehavior):
 EARLY_BEDTIME = CardDefinition(
     slug="early-bedtime",
     title="Early Bedtime",
-    tags=frozenset({"Relax"}),
+    tags=frozenset({"Relax", "Indoors"}),
     cost=1,
     behavior=EarlyBedtimeBehavior(),
 )
@@ -401,7 +396,7 @@ COLOURING = CardDefinition(
     title="Colouring",
     tags=frozenset({"Relax"}),
     cost=3,
-    base_fun=2,
+    base_fun=1,
     behavior=ColouringBehavior(),
 )
 
@@ -417,7 +412,7 @@ PAINT = CardDefinition(
 PAINT_ROCKS = CardDefinition(
     slug="paint-rocks",
     title="Paint Rocks",
-    tags=frozenset({"Relax", "Outdoors"}),
+    tags=frozenset({"Relax"}),
     cost=2,
     base_fun=2,
     behavior=PaintRocksBehavior(),

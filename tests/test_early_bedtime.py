@@ -11,7 +11,7 @@ class EarlyBedtimeTests(unittest.TestCase):
         self.assertEqual(card.title, "Early Bedtime")
         self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Relax"}))
+        self.assertEqual(card.definition.tags, frozenset({"Relax", "Indoors"}))
 
     def test_cannot_be_played_as_fourth_card(self) -> None:
         game = empty_game()

@@ -11,7 +11,10 @@ class FancyFloatieTests(unittest.TestCase):
         self.assertEqual(card.title, "Fancy Floatie")
         self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Item"}))
+        self.assertEqual(
+            card.definition.tags,
+            frozenset({"Relax", "Item", "Outdoors"}),
+        )
 
     def test_picks_all_currently_visible_relax_cards_not_their_replacements(self) -> None:
         game = empty_game()

@@ -5,7 +5,14 @@ from __future__ import annotations
 from itertools import count
 
 from thenos.cards.base import CardDefinition, CardInstance
-from thenos.cards.new_cards import POTATO_PANCAKES, READ_THE_RADAR, POKER
+from thenos.cards.new_cards import (
+    BOHNANZA,
+    ISTANBUL,
+    POKER,
+    POTATO_PANCAKES,
+    QUACKS,
+    READ_THE_RADAR,
+)
 from thenos.cards.copy_effects import LAST_YEARS_SHORTS, NOS_SHIRT, WEDDING_ANNIVERSARY
 from thenos.cards.basic import (
     BIOGRAPHY,
@@ -168,14 +175,27 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         POTATO_PANCAKES,
         READ_THE_RADAR,
         POKER,
+        BOHNANZA,
+        ISTANBUL,
+        QUACKS,
     )
 }
 
 _instance_ids = count()
 
+_SLUG_ALIASES = {
+    "beaver-burger": "beaver-burgers",
+    "euchre-tournament-awards-ceremony": "euchre-awards-ceremony",
+    "settlers-cities-and-knights": "cities-and-knights",
+    "scout-the-other-cottages": "scout-other-cottages",
+    "ski-on-cousins-shoulders": "ski-on-shoulders",
+    "weird-chip-flavor": "weird-chip-flavour",
+}
+
 
 def make_card(slug: str) -> CardInstance:
     """Create one physical copy of a registered card."""
+    slug = _SLUG_ALIASES.get(slug, slug)
     try:
         definition = CARD_REGISTRY[slug]
     except KeyError as error:

@@ -23,7 +23,7 @@ class IceWineTests(unittest.TestCase):
         card = game.play_card(0, 0)
         food_after = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 5)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
         self.assertEqual(game.card_fun(0, food_before), 6)

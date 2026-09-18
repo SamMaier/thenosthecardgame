@@ -19,9 +19,9 @@ class TrekkingThroughHistoryTests(unittest.TestCase):
 
         self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.tags, frozenset({"Board Game"}))
-        self.assertEqual(game.card_fun(0, before), 3)
+        self.assertEqual(game.card_fun(0, before), 4)
         self.assertEqual(game.card_fun(0, card), 0)
-        self.assertEqual(game.card_fun(0, after), 2)
+        self.assertEqual(game.card_fun(0, after), 3)
 
 
 if __name__ == "__main__":

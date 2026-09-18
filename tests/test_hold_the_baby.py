@@ -22,7 +22,7 @@ class HoldTheBabyTests(unittest.TestCase):
         card = game.play_card(0, 0)
 
         self.assertEqual(card.title, "Hold the Baby")
-        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
         self.assertEqual(game.energy_cost(0, player.hand[0]), 2)
@@ -31,7 +31,7 @@ class HoldTheBabyTests(unittest.TestCase):
         social = game.play_card(0, 0)
         exercise = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 1)
+        self.assertEqual(player.energy, 2)
         self.assertEqual(game.card_fun(0, before), 2)
         self.assertEqual(game.card_fun(0, card), 0)
         self.assertEqual(game.card_fun(0, social), 3)

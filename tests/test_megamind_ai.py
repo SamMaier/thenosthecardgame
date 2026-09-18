@@ -267,7 +267,7 @@ class MegamindAITests(unittest.TestCase):
             opponent.energy = 7
             opponent.hand = [make_card("fajitas") for _ in range(4)]
 
-        self.assertEqual(game.ais[0]._state_value(game, 0), 1.0)
+        self.assertEqual(game.ais[0]._state_value(game, 0), 0.0)
 
 
 if __name__ == "__main__":

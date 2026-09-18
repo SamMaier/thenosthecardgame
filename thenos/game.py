@@ -687,23 +687,48 @@ class Game:
 
     def energy_cost(self, player_index: int, card: CardInstance) -> int:
         player = self.players[player_index]
-        cost = card.effective_cost
-        if self.daily_condition:
-            cost = self.daily_condition.modify_energy_cost(card.tags, cost)
-        if player.character:
-            cost = player.character.modify_energy_cost(card.tags, cost)
-        cost = card.effective_behavior.modify_own_energy_cost(
-            self, player, card, cost
+        temporary_all_tags = (
+            self._tomorrow_grants_all_tags(player)
+            and "_all_tags" not in card.markers
         )
-        for source in player.tomorrow_cards:
-            cost = source.effective_behavior.modify_tomorrow_energy_cost(
-                self, player, source, card, cost
+        if temporary_all_tags:
+            card.markers["_all_tags"] = True
+        try:
+            cost = card.effective_cost
+            if self.daily_condition:
+                cost = self.daily_condition.modify_energy_cost(card.tags, cost)
+            if player.character:
+                cost = player.character.modify_energy_cost(card.tags, cost)
+            cost = card.effective_behavior.modify_own_energy_cost(
+                self, player, card, cost
             )
-        for source in player.played_today:
-            cost = source.effective_behavior.modify_energy_cost(
-                self, player, source, card, cost
-            )
-        return max(0, cost)
+            for source in player.tomorrow_cards:
+                cost = source.effective_behavior.modify_tomorrow_energy_cost(
+                    self, player, source, card, cost
+                )
+            for source in player.played_today:
+                cost = source.effective_behavior.modify_energy_cost(
+                    self, player, source, card, cost
+                )
+            return max(0, cost)
+        finally:
+            if temporary_all_tags:
+                card.markers.pop("_all_tags", None)
+
+    @staticmethod
+    def _tomorrow_grants_all_tags(player: PlayerState) -> bool:
+        return any(
+            getattr(source.effective_behavior, "tomorrow_all_tags", False)
+            for source in player.tomorrow_cards
+        )
+
+    @staticmethod
+    def _apply_tomorrow_tag_effects(
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        if Game._tomorrow_grants_all_tags(player):
+            card.markers["_all_tags"] = True
 
     def playable_hand_indices(self, player_index: int) -> list[int]:
         player = self.players[player_index]
@@ -732,6 +757,7 @@ class Game:
         player.energy -= cost
         player.hand.pop(hand_index)
         player.played_today.append(card)
+        self._apply_tomorrow_tag_effects(player, card)
         self.stats.card_plays[card.title] += 1
         card.effective_behavior.on_play(self, player, card)
         for source in tuple(player.tomorrow_cards):
@@ -802,6 +828,7 @@ class Game:
             player.hand.remove(card)
         player.energy -= cost
         player.played_today.append(card)
+        self._apply_tomorrow_tag_effects(player, card)
         self.stats.card_plays[card.title] += 1
         if acquired_from_effect:
             self.stats.card_plays_without_acquisition[card.title] += 1
@@ -928,6 +955,8 @@ class Game:
         if target.is_tomorrow:
             return 0
         player = self.players[player_index]
+        if any(played_card is target for played_card in player.played_today):
+            self._apply_tomorrow_tag_effects(player, target)
         value = target.effective_behavior.fun_value(self, player, target)
         if self.daily_condition:
             value = self.daily_condition.modify_fun(target.tags, value)

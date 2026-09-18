@@ -63,8 +63,8 @@ class ChristmasNameDrawBehavior(CardBehavior):
             return card.effective_base_fun
 
         return card.effective_base_fun + sum(
-            bool(target.tags.intersection(visible_card.tags))
-            for visible_card in player.visible_cards
+            bool(target.tags.intersection(played_card.tags))
+            for played_card in player.played_today
         )
 
 

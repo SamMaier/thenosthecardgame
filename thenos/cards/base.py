@@ -17,6 +17,7 @@ class CardBehavior:
     """Default behavior for a card with no special rules text."""
 
     has_tomorrow_action = False
+    tomorrow_all_tags = False
 
     def can_play(
         self,
@@ -251,5 +252,14 @@ class CardInstance:
 
     @property
     def tags(self) -> frozenset[str]:
-        """The card's printed tags, which copied effects do not replace."""
+        """The tags currently used by rules, preserving printed copy tags."""
+        if self.markers.get("_all_tags"):
+            # Import lazily to avoid the catalog/base module cycle.
+            from thenos.cards.catalog import CARD_REGISTRY
+
+            return frozenset(
+                tag
+                for definition in CARD_REGISTRY.values()
+                for tag in definition.tags
+            )
         return self.definition.tags

@@ -34,7 +34,6 @@ class CheesyPhoneGameTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertTrue(card.markers["energy_cube"])
         self.assertEqual(game.card_fun(0, card), 4)
 
     def test_one_opponent_or_non_relax_cards_do_not_qualify(self) -> None:

@@ -11,7 +11,7 @@ class PaintRocksTests(unittest.TestCase):
         self.assertEqual(card.title, "Paint Rocks")
         self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 2)
-        self.assertEqual(card.definition.tags, frozenset({"Relax", "Outdoors"}))
+        self.assertEqual(card.definition.tags, frozenset({"Relax"}))
 
     def test_scores_bonus_after_two_previous_outdoors_cards(self) -> None:
         game = empty_game()

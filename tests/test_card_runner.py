@@ -25,8 +25,8 @@ class CardRunnerTests(unittest.TestCase):
         cls.rows = read_card_rows(REPO)
         cls.jobs = build_jobs(cls.rows)
 
-    def test_builds_five_groups_then_ninety_four_single_card_jobs(self) -> None:
-        self.assertEqual(len(self.jobs), 99)
+    def test_builds_five_groups_then_ninety_seven_single_card_jobs(self) -> None:
+        self.assertEqual(len(self.jobs), 102)
         self.assertEqual(
             [len(job.cards) for job in self.jobs[:5]],
             [len(spec[2]) for spec in GROUP_SPECS],
@@ -34,12 +34,12 @@ class CardRunnerTests(unittest.TestCase):
         self.assertTrue(all(len(job.cards) == 1 for job in self.jobs[5:]))
 
     def test_sorted_boundaries_match_expected_cards(self) -> None:
-        self.assertEqual(self.jobs[0].cards[0].title, "Tres Fute")
-        self.assertEqual(self.jobs[0].cards[-1].title, "Dock Fishing")
-        self.assertEqual(self.jobs[1].cards[0].title, "M&Ms")
-        self.assertEqual(self.jobs[4].cards[-1].title, "After Dinner Entertainment")
-        self.assertEqual(self.jobs[5].cards[0].title, "The Crew")
-        self.assertEqual(self.jobs[2].cards[-1].title, "Hold the Baby")
+        self.assertEqual(self.jobs[0].cards[0].title, "TRÈS FUTÉ")
+        self.assertEqual(self.jobs[0].cards[-1].title, "DOCK FISHING")
+        self.assertEqual(self.jobs[1].cards[0].title, "M&MS")
+        self.assertEqual(self.jobs[4].cards[-1].title, "AFTER DINNER ENTERTAINMENT")
+        self.assertEqual(self.jobs[5].cards[0].title, "5 10 15")
+        self.assertEqual(self.jobs[2].cards[-1].title, "HOLD THE BABY")
 
     def test_existing_cards_are_removed_from_pending_group(self) -> None:
         pending = pending_cards(
@@ -49,27 +49,33 @@ class CardRunnerTests(unittest.TestCase):
         self.assertNotIn("Biography", {card.title for card in pending})
 
     def test_implemented_card_is_skipped_despite_title_formatting(self) -> None:
-        unique_card = self.jobs[5]
+        unique_card = next(
+            job for job in self.jobs if job.cards[0].title == "THE CREW"
+        )
         registry = {"THE-CREW!": "unrelated-slug"}
 
         self.assertEqual(pending_cards(unique_card, registry), ())
 
     def test_implemented_card_is_skipped_by_registered_slug(self) -> None:
-        unique_card = self.jobs[5]
+        unique_card = next(
+            job for job in self.jobs if job.cards[0].title == "THE CREW"
+        )
         registry = {"A display title that differs": "the-crew"}
 
         self.assertEqual(pending_cards(unique_card, registry), ())
 
     def test_can_select_group_or_unique_card(self) -> None:
         self.assertEqual(select_jobs(self.jobs, "pure-energy", None)[0].key, "pure-energy")
-        selected = select_jobs(self.jobs, None, "The Crew")
-        self.assertEqual(selected[0].cards[0].title, "The Crew")
+        selected = select_jobs(self.jobs, None, "THE CREW")
+        self.assertEqual(selected[0].cards[0].title, "THE CREW")
 
     def test_prompt_forbids_commits_and_includes_exact_card_data(self) -> None:
-        job = self.jobs[5]
+        job = next(
+            job for job in self.jobs if job.cards[0].title == "THE CREW"
+        )
         prompt = build_prompt(job, job.cards, "Use clarification X.")
         self.assertIn("Do not create a Git commit", prompt)
-        self.assertIn("Title: The Crew", prompt)
+        self.assertIn("Title: THE CREW", prompt)
         self.assertIn("Use clarification X.", prompt)
 
     def test_codex_command_uses_luna_high_workspace_write(self) -> None:

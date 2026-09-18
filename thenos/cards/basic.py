@@ -190,7 +190,7 @@ class PuertoRicoBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> bool:
-        return len(game.cards_played_before(player, card)) < 2
+        return len(game.cards_played_before(player, card)) < 1
 
     def on_play(
         self,
@@ -223,7 +223,7 @@ class PuertoRicoBehavior(CardBehavior):
 
 
 class SettlersCitiesAndKnightsBehavior(CardBehavior):
-    """Discard one card from hand to gain this card's Fun bonus."""
+    """Optionally discard one card from hand for this card's Fun bonus."""
 
     def on_play(
         self,
@@ -235,6 +235,10 @@ class SettlersCitiesAndKnightsBehavior(CardBehavior):
             return
 
         player_index = game.players.index(player)
+        if not game.choose_optional_action(
+            player_index, "discard one card for Cities and Knights"
+        ):
+            return
         hand = tuple(player.hand)
         choice = game.ais[player_index].choose_card_to_discard(
             game, player_index, hand
@@ -271,6 +275,10 @@ class EpicPrankBehavior(CardBehavior):
             return
 
         player_index = game.players.index(player)
+        if not game.choose_optional_action(
+            player_index, "discard an Item card for Epic Prank"
+        ):
+            return
         choice = game.ais[player_index].choose_card_to_discard(
             game, player_index, item_cards
         )
@@ -478,8 +486,8 @@ PUERTO_RICO = CardDefinition(
 )
 
 SETTLERS_CITIES_AND_KNIGHTS = CardDefinition(
-    slug="settlers-cities-and-knights",
-    title="Settlers (Cities and Knights)",
+    slug="cities-and-knights",
+    title="Cities and Knights",
     tags=frozenset({"Board Game"}),
     cost=5,
     base_fun=4,
@@ -508,8 +516,8 @@ FIT_TO_PRINT = CardDefinition(
     slug="fit-to-print",
     title="Fit to Print",
     tags=frozenset({"Board Game", "Indoors"}),
-    cost=3,
-    base_fun=1,
+    cost=2,
+    base_fun=0,
     behavior=FitToPrintBehavior(),
 )
 
@@ -523,8 +531,8 @@ EUCHRE_TOURNAMENT = CardDefinition(
 )
 
 EUCHRE_TOURNAMENT_AWARDS_CEREMONY = CardDefinition(
-    slug="euchre-tournament-awards-ceremony",
-    title="Euchre Tournament Awards Ceremony",
+    slug="euchre-awards-ceremony",
+    title="Euchre Awards Ceremony",
     tags=frozenset({"Social", "Outdoors"}),
     cost=3,
     behavior=EuchreTournamentAwardsCeremonyBehavior(),

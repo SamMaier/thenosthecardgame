@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.cards.fun_effects import (
     FunForAllCardsBeforeBehavior,
-    _is_after,
     _today_position,
 )
 
@@ -17,19 +16,9 @@ if TYPE_CHECKING:
 
 
 class DatesFirstNosBehavior(CardBehavior):
-    """Pick from the Suitcase after later plays, then boost Tomorrow's plays."""
+    """Boost every card played tomorrow."""
 
     has_tomorrow_action = True
-
-    def on_card_play(
-        self,
-        game: Game,
-        player: PlayerState,
-        source: CardInstance,
-        played_card: CardInstance,
-    ) -> None:
-        if _is_after(player, source, played_card):
-            game.pick_from_suitcase(game.players.index(player))
 
     def modify_tomorrow_fun(
         self,
@@ -40,7 +29,7 @@ class DatesFirstNosBehavior(CardBehavior):
         current_fun: int,
     ) -> int:
         if _today_position(player, target) is not None:
-            return current_fun + 1
+            return current_fun + 2
         return current_fun
 
 
@@ -62,7 +51,7 @@ class TellAStoryBehavior(CardBehavior):
 
 
 class NewNosBookEntryBehavior(CardBehavior):
-    """Score a bonus when at least five cards were played earlier today."""
+    """Score a bonus when at least four cards were played earlier today."""
 
     def fun_value(
         self,
@@ -74,7 +63,7 @@ class NewNosBookEntryBehavior(CardBehavior):
         if card_position is None:
             return card.effective_base_fun
 
-        bonus = 4 if card_position >= 5 else 0
+        bonus = 4 if card_position >= 4 else 0
         return card.effective_base_fun + bonus
 
 
@@ -165,7 +154,7 @@ TELL_A_STORY = CardDefinition(
     slug="tell-a-story",
     title="Tell a Story",
     tags=frozenset({"Social"}),
-    cost=3,
+    cost=2,
     base_fun=2,
     behavior=TellAStoryBehavior(),
 )
@@ -183,7 +172,7 @@ DATES_FIRST_NOS = CardDefinition(
     slug="dates-first-nos",
     title="Date's First Nos",
     tags=frozenset({"Social"}),
-    cost=6,
+    cost=7,
     behavior=DatesFirstNosBehavior(),
 )
 
@@ -196,8 +185,8 @@ CAMPFIRE = CardDefinition(
 )
 
 SCOUT_THE_OTHER_COTTAGES = CardDefinition(
-    slug="scout-the-other-cottages",
-    title="Scout the Other Cottages",
+    slug="scout-other-cottages",
+    title="Scout Other Cottages",
     tags=frozenset({"Social", "Indoors"}),
     cost=1,
     behavior=ScoutTheOtherCottagesBehavior(),

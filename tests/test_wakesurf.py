@@ -10,7 +10,7 @@ class WakesurfTests(unittest.TestCase):
 
         self.assertEqual(card.title, "Wakesurf")
         self.assertEqual(card.definition.cost, 3)
-        self.assertEqual(card.definition.base_fun, 1)
+        self.assertEqual(card.definition.base_fun, 2)
         self.assertEqual(
             card.definition.tags,
             frozenset({"Exercise", "Outdoors"}),
@@ -25,10 +25,10 @@ class WakesurfTests(unittest.TestCase):
         card = game.play_card(0, 0)
 
         self.assertEqual(player.energy, 0)
-        self.assertEqual(game.card_fun(0, card), 6)
+        self.assertEqual(game.card_fun(0, card), 7)
         game.end_day()
 
-        self.assertEqual(player.fun, 6)
+        self.assertEqual(player.fun, 7)
 
     def test_scores_only_base_fun_when_hand_is_not_empty_at_end_of_day(self) -> None:
         game = empty_game()
@@ -38,10 +38,10 @@ class WakesurfTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(game.card_fun(0, card), 1)
+        self.assertEqual(game.card_fun(0, card), 2)
         game.end_day()
 
-        self.assertEqual(player.fun, 1)
+        self.assertEqual(player.fun, 2)
 
 
 if __name__ == "__main__":

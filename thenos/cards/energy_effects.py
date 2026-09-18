@@ -293,8 +293,8 @@ TREAT_CEREAL = CardDefinition(
 )
 
 BEAVER_BURGER = CardDefinition(
-    slug="beaver-burger",
-    title="Beaver Burger",
+    slug="beaver-burgers",
+    title="Beaver Burgers",
     tags=frozenset({"Food"}),
     cost=3,
     base_fun=5,
@@ -306,7 +306,7 @@ ROULADEN = CardDefinition(
     title="Rouladen",
     tags=frozenset({"Food"}),
     cost=4,
-    behavior=EnergyForAllCardsAfterBehavior(-1),
+    behavior=EnergyForAllCardsAfterBehavior(-2),
 )
 
 PONYBACK = CardDefinition(
@@ -321,7 +321,7 @@ PONYBACK = CardDefinition(
 ZERO_GRAVITY_CHAIR = CardDefinition(
     slug="zero-gravity-chair",
     title="Zero Gravity Chair",
-    tags=frozenset({"Item"}),
+    tags=frozenset({"Relax", "Item"}),
     cost=1,
     behavior=EnergyForTagAfterBehavior("Relax", -1),
 )
@@ -329,15 +329,15 @@ ZERO_GRAVITY_CHAIR = CardDefinition(
 SUNSCREEN = CardDefinition(
     slug="sunscreen",
     title="Sunscreen",
-    tags=frozenset({"Item"}),
-    cost=2,
+    tags=frozenset({"Item", "Outdoors"}),
+    cost=1,
     behavior=EnergyForTagAfterBehavior("Outdoors", -1),
 )
 
 SHADY_SPOT = CardDefinition(
     slug="shady-spot",
     title="Shady Spot",
-    tags=frozenset({"Relax"}),
+    tags=frozenset({"Relax", "Outdoors"}),
     cost=2,
     behavior=HalfEnergyForNextTagBehavior("Outdoors"),
 )
@@ -345,9 +345,9 @@ SHADY_SPOT = CardDefinition(
 BEND_THE_RULES = CardDefinition(
     slug="bend-the-rules",
     title="Bend the Rules",
-    tags=frozenset({"Social"}),
-    cost=1,
-    behavior=EnergyForTagAfterBehavior("Board Game", -1),
+    tags=frozenset({"Board Game", "Social"}),
+    cost=2,
+    behavior=EnergyForTagAfterBehavior("Board Game", -2),
 )
 
 MEDICAL_ADVICE = CardDefinition(

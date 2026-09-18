@@ -100,7 +100,7 @@ class WeddingAnniversaryTests(unittest.TestCase):
         self.assertIs(card.effective_behavior, target.effective_behavior)
         self.assertEqual(player.energy, 9)
 
-    def test_second_slot_can_copy_puerto_rico(self) -> None:
+    def test_second_slot_cannot_copy_puerto_rico(self) -> None:
         game = empty_game()
         target = make_card("puerto-rico")
         game.ais[0] = TargetCopyAI(target.title, game.rng)
@@ -113,8 +113,9 @@ class WeddingAnniversaryTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertIs(card.effective_behavior, target.effective_behavior)
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(game.ais[0].eligible_titles, None)
+        self.assertIs(card.effective_behavior, card.definition.behavior)
+        self.assertEqual(player.energy, 7)
 
     def test_third_slot_can_copy_early_bedtime(self) -> None:
         game = empty_game()

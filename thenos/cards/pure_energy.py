@@ -32,7 +32,7 @@ M_AND_MS = CardDefinition(
 NAP = CardDefinition(
     slug="nap",
     title="Nap",
-    tags=frozenset({"Relax", "Indoors"}),
+    tags=frozenset({"Relax"}),
     cost=0,
     behavior=GainOneEnergyBehavior(),
 )

@@ -8,7 +8,7 @@ class SkiOnCousinsShouldersTests(unittest.TestCase):
     def test_printed_values(self) -> None:
         card = make_card("ski-on-cousins-shoulders")
 
-        self.assertEqual(card.title, "Ski on Cousin's Shoulders")
+        self.assertEqual(card.title, "Ski on Shoulders")
         self.assertEqual(card.definition.cost, 5)
         self.assertEqual(card.definition.base_fun, 3)
         self.assertEqual(

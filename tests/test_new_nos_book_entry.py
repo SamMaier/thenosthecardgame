@@ -16,7 +16,7 @@ class NewNosBookEntryTests(unittest.TestCase):
             frozenset({"Social"}),
         )
 
-    def test_scores_only_base_fun_with_four_previous_cards(self) -> None:
+    def test_scores_bonus_with_four_previous_cards(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 2
@@ -25,7 +25,7 @@ class NewNosBookEntryTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(game.card_fun(0, card), 1)
+        self.assertEqual(game.card_fun(0, card), 5)
 
     def test_scores_bonus_with_five_previous_cards(self) -> None:
         game = empty_game()

@@ -22,7 +22,10 @@ class FishingBoatTests(unittest.TestCase):
         self.assertEqual(card.title, "Fishing Boat")
         self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Item"}))
+        self.assertEqual(
+            card.definition.tags,
+            frozenset({"Relax", "Item", "Outdoors"}),
+        )
 
     def test_adds_first_outdoors_card_and_reorders_non_outdoors_cards(self) -> None:
         game = empty_game()

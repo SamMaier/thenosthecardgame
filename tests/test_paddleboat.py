@@ -51,7 +51,7 @@ class PaddleboatTests(unittest.TestCase):
 
         self.assertNotIn("energy_cubes", paddleboat.markers)
 
-    def test_non_pick_or_draw_acquisition_does_not_trigger(self) -> None:
+    def test_any_card_acquisition_after_play_triggers(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
@@ -61,8 +61,8 @@ class PaddleboatTests(unittest.TestCase):
         game.play_card(0, 0)
         game.give_card(0, make_card("biography"))
 
-        self.assertNotIn("energy_cubes", paddleboat.markers)
-        self.assertEqual(game.card_fun(0, paddleboat), 0)
+        self.assertEqual(paddleboat.markers["energy_cubes"], 1)
+        self.assertEqual(game.card_fun(0, paddleboat), 2)
 
     def test_drawn_card_after_play_adds_two_fun(self) -> None:
         game = empty_game()

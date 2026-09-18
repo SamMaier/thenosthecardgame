@@ -8,7 +8,7 @@ class WeirdChipFlavorTests(unittest.TestCase):
     def test_printed_values(self) -> None:
         card = make_card("weird-chip-flavor")
 
-        self.assertEqual(card.title, "Weird Chip Flavor")
+        self.assertEqual(card.title, "Weird Chip Flavour")
         self.assertEqual(card.definition.cost, 0)
         self.assertEqual(card.definition.base_fun, -2)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))

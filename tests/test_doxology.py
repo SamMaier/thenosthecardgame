@@ -5,7 +5,7 @@ from tests.helpers import empty_game
 
 
 class DoxologyTests(unittest.TestCase):
-    def test_social_cards_after_score_one_extra_fun(self) -> None:
+    def test_social_cards_after_score_two_extra_fun(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
@@ -14,10 +14,10 @@ class DoxologyTests(unittest.TestCase):
         card = game.play_card(0, 0)
         social = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 1)
+        self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
         self.assertEqual(game.card_fun(0, card), 0)
-        self.assertEqual(game.card_fun(0, social), 2)
+        self.assertEqual(game.card_fun(0, social), 3)
 
 
 if __name__ == "__main__":

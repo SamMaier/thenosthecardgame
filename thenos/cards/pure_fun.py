@@ -152,7 +152,7 @@ CHEAP_WHITE = CardDefinition(
 CHALK_ART = CardDefinition(
     slug="chalk-art",
     title="Chalk Art",
-    tags=frozenset({"Relax"}),
+    tags=frozenset({"Relax", "Outdoors"}),
     cost=0,
     base_fun=1,
 )

@@ -15,11 +15,11 @@ class DatesFirstNosTests(unittest.TestCase):
         card = make_card("dates-first-nos")
 
         self.assertEqual(card.title, "Date's First Nos")
-        self.assertEqual(card.definition.cost, 6)
+        self.assertEqual(card.definition.cost, 7)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
 
-    def test_picks_after_each_later_play_but_not_when_played(self) -> None:
+    def test_does_not_pick_after_later_plays_today(self) -> None:
         game = empty_game()
         game.ais[0] = FirstSuitcaseAI(game.rng)
         player = game.players[0]
@@ -44,12 +44,12 @@ class DatesFirstNosTests(unittest.TestCase):
         game.play_card(0, 0)
         game.play_card(0, 0)
 
-        self.assertIn(first_pick, player.hand)
-        self.assertIn(second_pick, player.hand)
-        self.assertEqual(sum(player.picked_cards.values()), 2)
+        self.assertNotIn(first_pick, player.hand)
+        self.assertNotIn(second_pick, player.hand)
+        self.assertEqual(sum(player.picked_cards.values()), 0)
         self.assertEqual(game.card_fun(0, date), 0)
 
-    def test_tomorrow_every_card_played_scores_one_more_fun(self) -> None:
+    def test_tomorrow_every_card_played_scores_two_more_fun(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
@@ -63,7 +63,7 @@ class DatesFirstNosTests(unittest.TestCase):
         played_tomorrow = game.play_card(0, 0)
 
         self.assertEqual(game.card_fun(0, date), 0)
-        self.assertEqual(game.card_fun(0, played_tomorrow), 3)
+        self.assertEqual(game.card_fun(0, played_tomorrow), 4)
 
 
 if __name__ == "__main__":

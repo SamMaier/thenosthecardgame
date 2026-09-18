@@ -120,7 +120,7 @@ class PuertoRicoTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "cannot legally be played"):
             game.play_card(0, 0)
 
-    def test_can_be_played_as_the_second_card_today(self) -> None:
+    def test_cannot_be_played_as_the_second_card_today(self) -> None:
         game = empty_game()
         game.ais[0] = TargetSuitcaseAI(0, game.rng)
         player = game.players[0]
@@ -129,10 +129,9 @@ class PuertoRicoTests(unittest.TestCase):
         game.suitcase = [make_card("fajitas") for _ in range(4)]
 
         game.play_card(0, 0)
-        card = game.play_card(0, 0)
-
-        self.assertEqual(card.title, "Puerto Rico")
-        self.assertEqual(len(player.played_today), 2)
+        self.assertNotIn(0, game.playable_hand_indices(0))
+        with self.assertRaisesRegex(ValueError, "cannot legally be played"):
+            game.play_card(0, 0)
 
 
 if __name__ == "__main__":

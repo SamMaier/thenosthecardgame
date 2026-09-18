@@ -16,7 +16,7 @@ class FamilyBaseballGameTests(unittest.TestCase):
             frozenset({"Exercise", "Social", "Outdoors"}),
         )
 
-    def test_scores_zero_for_all_board_games_played_today(self) -> None:
+    def test_scores_zero_for_relax_and_board_game_cards_played_today(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 8
@@ -37,11 +37,11 @@ class FamilyBaseballGameTests(unittest.TestCase):
         self.assertEqual(game.card_fun(0, board_game_before), 0)
         self.assertEqual(game.card_fun(0, family_baseball_game), 5)
         self.assertEqual(game.card_fun(0, board_game_after), 0)
-        self.assertEqual(game.card_fun(0, non_board_game), 2)
+        self.assertEqual(game.card_fun(0, non_board_game), 0)
 
         game.end_day()
 
-        self.assertEqual(player.fun, 7)
+        self.assertEqual(player.fun, 5)
 
 
 if __name__ == "__main__":

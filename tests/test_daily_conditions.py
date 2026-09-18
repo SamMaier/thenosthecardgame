@@ -13,6 +13,7 @@ from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.catalog import CARD_REGISTRY, create_default_deck, make_card
 from thenos.daily_conditions import DAILY_CONDITIONS
 from thenos.game import Game
+from scripts.implement_cards import normalized_title
 from thenos.simulation import simulate_games, simulate_four_galaxybrain, write_report_csv
 
 
@@ -36,8 +37,18 @@ class DailyConditionTests(unittest.TestCase):
     def test_main_catalog_matches_csv(self):
         with (Path(__file__).resolve().parents[1] / "cards.csv").open(encoding="utf-8-sig") as source:
             rows = list(csv.DictReader(source))
-        actual = {c.title: (c.tags, c.cost) for c in CARD_REGISTRY.values()}
-        self.assertEqual(actual, {r["Title"]: (frozenset(t.strip() for t in r["Tags"].split(",")), int(r["Cost"])) for r in rows})
+        actual = {
+            normalized_title(c.title): (c.tags, c.cost)
+            for c in CARD_REGISTRY.values()
+        }
+        expected = {
+            normalized_title(r["Title"]): (
+                frozenset(t.strip().title() for t in r["Tags"].split(",")),
+                int(r["Cost"]),
+            )
+            for r in rows
+        }
+        self.assertEqual(actual, expected)
 
     def test_disabled_is_default_and_does_not_consume_condition_randomness(self):
         implicit, explicit = Game.default(901), Game.default(901, daily_conditions=False)

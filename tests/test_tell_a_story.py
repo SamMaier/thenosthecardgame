@@ -23,7 +23,7 @@ class TellAStoryTests(unittest.TestCase):
         card = make_card("tell-a-story")
 
         self.assertEqual(card.title, "Tell a Story")
-        self.assertEqual(card.definition.cost, 3)
+        self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 2)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
 

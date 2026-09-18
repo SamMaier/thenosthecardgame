@@ -46,7 +46,7 @@ class ChuckAFrisbeeTests(unittest.TestCase):
 
                 game.end_day()
 
-                self.assertEqual(game.players[fit_player_index].fun, 1)
+                self.assertEqual(game.players[fit_player_index].fun, 0)
 
 
 if __name__ == "__main__":

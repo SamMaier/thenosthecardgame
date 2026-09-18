@@ -17,7 +17,7 @@ class JohnnyAppleseedTests(unittest.TestCase):
         self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
         self.assertEqual(game.card_fun(0, card), 1)
-        self.assertEqual(game.card_fun(0, food), 4)
+        self.assertEqual(game.card_fun(0, food), 3)
 
 
 if __name__ == "__main__":

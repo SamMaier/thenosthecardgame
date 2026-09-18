@@ -19,27 +19,27 @@ class BeachVolleyballTests(unittest.TestCase):
     def test_next_indoors_card_gains_two_energy(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 4
+        player.energy = 5
         player.hand.extend(
-            [make_card("beach-volleyball"), make_card("nap")]
+            [make_card("beach-volleyball"), make_card("early-bedtime")]
         )
 
         card = game.play_card(0, 0)
         indoors = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(player.energy, 2)
         self.assertEqual(game.card_fun(0, card), 4)
         self.assertEqual(indoors.tags, frozenset({"Relax", "Indoors"}))
 
     def test_non_indoors_next_card_does_not_trigger_later_indoors_card(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 5
+        player.energy = 6
         player.hand.extend(
             [
                 make_card("beach-volleyball"),
                 make_card("biography"),
-                make_card("nap"),
+                make_card("early-bedtime"),
             ]
         )
 
@@ -47,7 +47,7 @@ class BeachVolleyballTests(unittest.TestCase):
         game.play_card(0, 0)
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 1)
+        self.assertEqual(player.energy, 0)
 
 
 if __name__ == "__main__":

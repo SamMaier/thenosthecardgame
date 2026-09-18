@@ -14,7 +14,7 @@ class EuchreTournamentAwardsCeremonyTests(unittest.TestCase):
     def test_printed_values_and_base_fun(self) -> None:
         card = make_card("euchre-tournament-awards-ceremony")
 
-        self.assertEqual(card.title, "Euchre Tournament Awards Ceremony")
+        self.assertEqual(card.title, "Euchre Awards Ceremony")
         self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(

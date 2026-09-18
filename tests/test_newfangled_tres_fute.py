@@ -30,14 +30,14 @@ class NewfangledTresFuteTests(unittest.TestCase):
         m_and_ms = game.play_card(0, 0)
         duplicate_relax = game.play_card(0, 0)
 
-        self.assertEqual(game.card_fun(0, newfangled), 5)
+        self.assertEqual(game.card_fun(0, newfangled), 4)
         self.assertEqual(game.card_fun(0, nap), 0)
         self.assertEqual(game.card_fun(0, m_and_ms), 0)
         self.assertEqual(game.card_fun(0, duplicate_relax), 0)
 
         game.end_day()
 
-        self.assertEqual(player.fun, 5)
+        self.assertEqual(player.fun, 4)
 
 
 if __name__ == "__main__":

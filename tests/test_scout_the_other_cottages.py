@@ -8,7 +8,7 @@ class ScoutTheOtherCottagesTests(unittest.TestCase):
     def test_printed_values_and_tags(self) -> None:
         card = make_card("scout-the-other-cottages")
 
-        self.assertEqual(card.title, "Scout the Other Cottages")
+        self.assertEqual(card.title, "Scout Other Cottages")
         self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(

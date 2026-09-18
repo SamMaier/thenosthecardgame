@@ -13,12 +13,15 @@ class TargetDiscardAI(RandomAI):
     def choose_card_to_discard(self, game, player_index, hand):
         return self.discard_index
 
+    def choose_optional_action(self, game, player_index, action):
+        return True
+
 
 class SettlersCitiesAndKnightsTests(unittest.TestCase):
     def test_printed_values_and_base_fun(self) -> None:
-        card = make_card("settlers-cities-and-knights")
+        card = make_card("cities-and-knights")
 
-        self.assertEqual(card.title, "Settlers (Cities and Knights)")
+        self.assertEqual(card.title, "Cities and Knights")
         self.assertEqual(card.definition.cost, 5)
         self.assertEqual(card.definition.base_fun, 4)
         self.assertEqual(card.definition.tags, frozenset({"Board Game"}))
@@ -31,7 +34,7 @@ class SettlersCitiesAndKnightsTests(unittest.TestCase):
         discarded = make_card("biography")
         retained = make_card("nap")
         player.hand.extend(
-            [make_card("settlers-cities-and-knights"), discarded, retained]
+            [make_card("cities-and-knights"), discarded, retained]
         )
 
         card = game.play_card(0, 0)

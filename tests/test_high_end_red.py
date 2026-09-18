@@ -5,7 +5,7 @@ from tests.helpers import empty_game
 
 
 class HighEndRedTests(unittest.TestCase):
-    def test_food_cards_after_score_two_extra_fun(self) -> None:
+    def test_food_cards_after_score_three_extra_fun(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 8
@@ -20,8 +20,8 @@ class HighEndRedTests(unittest.TestCase):
         self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
         self.assertEqual(game.card_fun(0, card), 0)
-        self.assertEqual(game.card_fun(0, first_food), 5)
-        self.assertEqual(game.card_fun(0, second_food), 4)
+        self.assertEqual(game.card_fun(0, first_food), 6)
+        self.assertEqual(game.card_fun(0, second_food), 5)
 
 
 if __name__ == "__main__":

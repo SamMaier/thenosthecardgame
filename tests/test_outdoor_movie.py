@@ -24,11 +24,11 @@ class OutdoorMovieTests(unittest.TestCase):
         relax_after = game.play_card(0, 0)
 
         self.assertEqual(card.definition.cost, 2)
-        self.assertEqual(card.definition.base_fun, 2)
+        self.assertEqual(card.definition.base_fun, 1)
         self.assertEqual(card.definition.tags, frozenset({"Relax", "Outdoors"}))
-        self.assertEqual(game.card_fun(0, relax_before), 3)
+        self.assertEqual(game.card_fun(0, relax_before), 4)
         self.assertEqual(game.card_fun(0, outdoors_before), 6)
-        self.assertEqual(game.card_fun(0, card), 2)
+        self.assertEqual(game.card_fun(0, card), 1)
         self.assertEqual(game.card_fun(0, relax_after), 2)
 
 

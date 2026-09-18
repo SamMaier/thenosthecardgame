@@ -149,6 +149,29 @@ class ZeroFunForTagTodayBehavior(CardBehavior):
         return current_fun
 
 
+class ZeroFunForTagsTodayBehavior(CardBehavior):
+    """Set every card with any of several tags played today to zero Fun."""
+
+    def __init__(self, tags: frozenset[str]) -> None:
+        self.tags = tags
+
+    def modify_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if _is_today_and_matches(
+            player,
+            target,
+            lambda card: bool(self.tags.intersection(card.tags)),
+        ):
+            return 0
+        return current_fun
+
+
 class TomorrowFunForTagBehavior(CardBehavior):
     """Add Fun to matching cards while this card is active Tomorrow."""
 
@@ -344,8 +367,9 @@ class FunForNextCardBehavior(CardBehavior):
 class FunForNextTagWrittenCostBehavior(CardBehavior):
     """Add a matching card's printed Energy cost to its Fun."""
 
-    def __init__(self, tag: str) -> None:
+    def __init__(self, tag: str, multiplier: int = 1) -> None:
         self.tag = tag
+        self.multiplier = multiplier
 
     def modify_fun(
         self,
@@ -361,7 +385,7 @@ class FunForNextTagWrittenCostBehavior(CardBehavior):
             target,
             lambda card: self.tag in card.tags,
         ):
-            return current_fun + target.definition.cost
+            return current_fun + self.multiplier * target.definition.cost
         return current_fun
 
 
@@ -561,7 +585,7 @@ TREKKING_THROUGH_HISTORY = CardDefinition(
     title="Trekking Through History",
     tags=frozenset({"Board Game"}),
     cost=2,
-    behavior=FunForTagsBeforeAndAfterBehavior(frozenset({"Board Game"}), 1),
+    behavior=FunForTagsBeforeAndAfterBehavior(frozenset({"Board Game"}), 2),
 )
 
 FAMILY_BASEBALL_GAME = CardDefinition(
@@ -570,7 +594,7 @@ FAMILY_BASEBALL_GAME = CardDefinition(
     tags=frozenset({"Exercise", "Social", "Outdoors"}),
     cost=3,
     base_fun=5,
-    behavior=ZeroFunForTagTodayBehavior("Board Game"),
+    behavior=ZeroFunForTagsTodayBehavior(frozenset({"Relax", "Board Game"})),
 )
 
 EUCHRE = CardDefinition(
@@ -608,7 +632,9 @@ CANOE = CardDefinition(
     behavior=FunForNextTagWrittenCostBehavior("Item"),
 )
 
-class WaterTrampolineBehavior(FunForNextCardBehavior):
+class WaterTrampolineBehavior(CardBehavior):
+    """Double Fun on the next Relax card played today."""
+
     def modify_fun(
         self,
         game: Game,
@@ -617,7 +643,9 @@ class WaterTrampolineBehavior(FunForNextCardBehavior):
         target: CardInstance,
         current_fun: int,
     ) -> int:
-        if _is_next_card(player, source, target) and "Relax" in target.tags:
+        if _is_next_matching(
+            player, source, target, lambda card: "Relax" in card.tags
+        ):
             return current_fun * 2
         return current_fun
 
@@ -628,7 +656,7 @@ WATER_TRAMPOLINE = CardDefinition(
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=3,
     base_fun=1,
-    behavior=WaterTrampolineBehavior(2),
+    behavior=WaterTrampolineBehavior(),
 )
 
 WATER_VOLLEYBALL = CardDefinition(
@@ -653,8 +681,8 @@ SCHWANK = CardDefinition(
     slug="schwank",
     title="Schwank",
     tags=frozenset({"Food"}),
-    cost=1,
-    behavior=FunForNthTagDoubleBehavior("Exercise", 3),
+    cost=2,
+    behavior=FunForNthTagDoubleBehavior("Exercise", 2),
 )
 
 HIGH_END_RED = CardDefinition(
@@ -662,7 +690,7 @@ HIGH_END_RED = CardDefinition(
     title="High-End Red",
     tags=frozenset({"Food"}),
     cost=3,
-    behavior=FunForTagAfterBehavior("Food", 2),
+    behavior=FunForTagAfterBehavior("Food", 3),
 )
 
 HIGH_END_WHITE = CardDefinition(
@@ -671,7 +699,7 @@ HIGH_END_WHITE = CardDefinition(
     tags=frozenset({"Food"}),
     cost=3,
     base_fun=2,
-    behavior=FunForTagAfterBehavior("Food", 1),
+    behavior=FunForTagAfterBehavior("Food", 2),
 )
 
 EPIC_PLAYLIST = CardDefinition(
@@ -679,21 +707,21 @@ EPIC_PLAYLIST = CardDefinition(
     title="Epic Playlist",
     tags=frozenset({"Item"}),
     cost=1,
-    behavior=FunForTagAfterBehavior("Social", 2),
+    behavior=FunForTagAfterBehavior("Social", 1),
 )
 
 BUG_SPRAY = CardDefinition(
     slug="bug-spray",
     title="Bug Spray",
-    tags=frozenset({"Item"}),
-    cost=2,
+    tags=frozenset({"Item", "Outdoors"}),
+    cost=1,
     behavior=FunForTagAfterBehavior("Outdoors", 1),
 )
 
 PRIME_PICNIC_TABLE = CardDefinition(
     slug="prime-picnic-table",
     title="Prime Picnic Table",
-    tags=frozenset({"Item"}),
+    tags=frozenset({"Item", "Outdoors"}),
     cost=3,
     behavior=FunAndEnergyForTagAfterBehavior("Outdoors", -1, 1),
 )
@@ -757,9 +785,9 @@ NOS_BOOK = CardDefinition(
 SWEET_LAWN_CHAIR = CardDefinition(
     slug="sweet-lawn-chair",
     title="Sweet Lawn Chair",
-    tags=frozenset({"Item"}),
-    cost=3,
-    behavior=FunForTagAfterBehavior("Relax", 1),
+    tags=frozenset({"Relax", "Item"}),
+    cost=2,
+    behavior=FunForTagAfterBehavior("Relax", 2),
 )
 
 BRACELET_MAKING = CardDefinition(
@@ -810,8 +838,8 @@ DOXOLOGY = CardDefinition(
     slug="doxology",
     title="Doxology",
     tags=frozenset({"Social"}),
-    cost=1,
-    behavior=FunForTagAfterBehavior("Social", 1),
+    cost=2,
+    behavior=FunForTagAfterBehavior("Social", 2),
 )
 
 LONG_DISTANCE_VISITORS = CardDefinition(
@@ -826,7 +854,7 @@ HOLD_THE_BABY = CardDefinition(
     slug="hold-the-baby",
     title="Hold the Baby",
     tags=frozenset({"Social"}),
-    cost=2,
+    cost=1,
     behavior=FunAndEnergyForAllCardsAfterBehavior(1, 2),
 )
 
@@ -835,8 +863,8 @@ OUTDOOR_MOVIE = CardDefinition(
     title="Outdoor Movie",
     tags=frozenset({"Relax", "Outdoors"}),
     cost=2,
-    base_fun=2,
-    behavior=FunForTagBeforeBehavior("Relax", 1),
+    base_fun=1,
+    behavior=FunForTagBeforeBehavior("Relax", 2),
 )
 
 CLIFF_CLIMBING = CardDefinition(
@@ -845,14 +873,14 @@ CLIFF_CLIMBING = CardDefinition(
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=4,
     base_fun=2,
-    behavior=FunForTagBeforeBehavior("Outdoors", 2),
+    behavior=FunForTagBeforeBehavior("Outdoors", 3),
 )
 
 ICE_WINE = CardDefinition(
     slug="ice-wine",
     title="Ice Wine",
     tags=frozenset({"Food"}),
-    cost=5,
+    cost=3,
     behavior=FunForTagBeforeBehavior("Food", 3),
 )
 

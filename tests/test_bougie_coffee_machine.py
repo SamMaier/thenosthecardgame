@@ -11,7 +11,10 @@ class BougieCoffeeMachineTests(unittest.TestCase):
         self.assertEqual(card.title, "Bougie Coffee Machine")
         self.assertEqual(card.definition.cost, 4)
         self.assertEqual(card.definition.base_fun, 0)
-        self.assertEqual(card.definition.tags, frozenset({"Item"}))
+        self.assertEqual(
+            card.definition.tags,
+            frozenset({"Food", "Item", "Indoors"}),
+        )
 
     def test_plays_drawn_food_cards_for_zero_energy_and_keeps_other_cards(self) -> None:
         game = empty_game()

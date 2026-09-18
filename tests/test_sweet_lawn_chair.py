@@ -14,10 +14,10 @@ class SweetLawnChairTests(unittest.TestCase):
         card = game.play_card(0, 0)
         relax = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 3)
-        self.assertEqual(card.definition.tags, frozenset({"Item"}))
+        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.tags, frozenset({"Relax", "Item"}))
         self.assertEqual(game.card_fun(0, card), 0)
-        self.assertEqual(game.card_fun(0, relax), 3)
+        self.assertEqual(game.card_fun(0, relax), 4)
 
 
 if __name__ == "__main__":

@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.cards.energy_effects import TomorrowEnergyForTagBehavior
-from thenos.cards.pure_energy import GainOneEnergyBehavior
 
 if TYPE_CHECKING:
     from thenos.game import Game
@@ -84,8 +83,8 @@ class WeirdChipFlavorBehavior(CardBehavior):
 
 
 WEIRD_CHIP_FLAVOR = CardDefinition(
-    slug="weird-chip-flavor",
-    title="Weird Chip Flavor",
+    slug="weird-chip-flavour",
+    title="Weird Chip Flavour",
     tags=frozenset({"Food"}),
     cost=0,
     base_fun=-2,
@@ -562,7 +561,7 @@ class AddressTheFoodBehavior(CardBehavior):
 ADDRESS_THE_FOOD = CardDefinition(
     slug="address-the-food",
     title="Address the Food",
-    tags=frozenset({"Social"}),
+    tags=frozenset({"Food", "Social"}),
     cost=2,
     behavior=AddressTheFoodBehavior(),
 )
@@ -604,13 +603,29 @@ GROCERY_STORE_RUN = CardDefinition(
 )
 
 
+class KeeperBehavior(CardBehavior):
+    """Gain one Energy for each earlier Outdoors card played today."""
+
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        previous_cards = game.cards_played_before(player, card)
+        outdoors_count = sum(
+            "Outdoors" in candidate.tags for candidate in previous_cards
+        )
+        game.gain_energy(player, outdoors_count, card)
+
+
 KEEPER = CardDefinition(
     slug="keeper",
     title="Keeper",
     tags=frozenset({"Food"}),
     cost=2,
-    base_fun=2,
-    behavior=GainOneEnergyBehavior(),
+    base_fun=1,
+    behavior=KeeperBehavior(),
 )
 
 

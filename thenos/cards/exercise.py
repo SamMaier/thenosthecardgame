@@ -200,9 +200,9 @@ class ChuckAFrisbeeBehavior(CardBehavior):
 
 
 class PaddleboatBehavior(CardBehavior):
-    """Gain two Fun for each card picked or drawn after this card today."""
+    """Gain two Fun for each card acquired after this card today."""
 
-    def on_card_pick_or_draw(
+    def on_card_acquire(
         self,
         game: Game,
         player: PlayerState,
@@ -323,7 +323,7 @@ WAKESURF = CardDefinition(
     title="Wakesurf",
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=3,
-    base_fun=1,
+    base_fun=2,
     behavior=WakesurfBehavior(),
 )
 
@@ -337,8 +337,8 @@ SLALOM_START = CardDefinition(
 )
 
 SKI_ON_COUSINS_SHOULDERS = CardDefinition(
-    slug="ski-on-cousins-shoulders",
-    title="Ski on Cousin's Shoulders",
+    slug="ski-on-shoulders",
+    title="Ski on Shoulders",
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=5,
     base_fun=3,

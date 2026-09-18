@@ -156,7 +156,7 @@ ASSORTED_CUTLERY = CardDefinition(
 BOUGIE_COFFEE_MACHINE = CardDefinition(
     slug="bougie-coffee-machine",
     title="Bougie Coffee Machine",
-    tags=frozenset({"Item"}),
+    tags=frozenset({"Food", "Item", "Indoors"}),
     cost=4,
     behavior=BougieCoffeeMachineBehavior(),
 )
@@ -165,7 +165,7 @@ BOUGIE_COFFEE_MACHINE = CardDefinition(
 FISHING_BOAT = CardDefinition(
     slug="fishing-boat",
     title="Fishing Boat",
-    tags=frozenset({"Item"}),
+    tags=frozenset({"Relax", "Item", "Outdoors"}),
     cost=2,
     behavior=FishingBoatBehavior(),
 )
@@ -174,7 +174,7 @@ FISHING_BOAT = CardDefinition(
 SKI_BOAT = CardDefinition(
     slug="ski-boat",
     title="Ski Boat",
-    tags=frozenset({"Item"}),
+    tags=frozenset({"Exercise", "Item", "Outdoors"}),
     cost=2,
     behavior=SkiBoatBehavior(),
 )
@@ -183,7 +183,7 @@ SKI_BOAT = CardDefinition(
 FANCY_FLOATIE = CardDefinition(
     slug="fancy-floatie",
     title="Fancy Floatie",
-    tags=frozenset({"Item"}),
+    tags=frozenset({"Relax", "Item", "Outdoors"}),
     cost=2,
     behavior=FancyFloatieBehavior(),
 )

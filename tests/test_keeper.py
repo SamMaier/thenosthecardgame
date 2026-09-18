@@ -10,7 +10,7 @@ class KeeperTests(unittest.TestCase):
 
         self.assertEqual(card.title, "Keeper")
         self.assertEqual(card.definition.cost, 2)
-        self.assertEqual(card.definition.base_fun, 2)
+        self.assertEqual(card.definition.base_fun, 1)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
 
     def test_pays_two_energy_gains_one_and_scores_two_fun(self) -> None:
@@ -21,9 +21,9 @@ class KeeperTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 6)
-        self.assertEqual(game.card_fun(0, card), 2)
-        self.assertTrue(card.markers["_gave_energy"])
+        self.assertEqual(player.energy, 5)
+        self.assertEqual(game.card_fun(0, card), 1)
+        self.assertNotIn("_gave_energy", card.markers)
 
 
 if __name__ == "__main__":

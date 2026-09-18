@@ -18,7 +18,7 @@ class ShadySpotTests(unittest.TestCase):
         later_outdoors = game.play_card(0, 0)
 
         self.assertEqual(card.definition.cost, 2)
-        self.assertEqual(card.definition.tags, frozenset({"Relax"}))
+        self.assertEqual(card.definition.tags, frozenset({"Relax", "Outdoors"}))
         self.assertEqual(game.energy_cost(0, later_outdoors), 1)
         self.assertEqual(player.energy, 2)
         self.assertEqual(outdoors.definition.cost, 5)

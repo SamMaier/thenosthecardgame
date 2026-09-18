@@ -29,7 +29,7 @@ class CliffClimbingTests(unittest.TestCase):
             card.definition.tags,
             frozenset({"Exercise", "Outdoors"}),
         )
-        self.assertEqual(game.card_fun(0, outdoors_before), 8)
+        self.assertEqual(game.card_fun(0, outdoors_before), 9)
         self.assertEqual(game.card_fun(0, other_before), 2)
         self.assertEqual(game.card_fun(0, card), 2)
         self.assertEqual(game.card_fun(0, outdoors_after), 6)

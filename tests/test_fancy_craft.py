@@ -32,7 +32,7 @@ class FancyCraftTests(unittest.TestCase):
         self.assertEqual(player.energy, 2)
         self.assertEqual(game.card_fun(0, fancy_craft), 0)
         self.assertEqual(game.card_fun(0, non_item), 2)
-        self.assertEqual(game.card_fun(0, item), 4)
+        self.assertEqual(game.card_fun(0, item), 5)
 
 
 if __name__ == "__main__":
