@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Relax card glyph</title>
+  <use href="card.svg" width="120" height="120"/>
+  <use href="relax.svg" x="30" y="30" width="60" height="60"/>
+</svg>

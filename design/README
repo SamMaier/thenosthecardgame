@@ -1,0 +1,56 @@
+# nanDECK design notes
+
+## Adding a glyph
+
+The card template embeds glyphs inside `HTMLTEXT` fields. Adding a glyph requires all of the following:
+
+1. Create the source vector at `design/glyphs/<name>.svg`.
+   - Use lowercase `snake_case` for `<name>`.
+   - Keep the artwork simple, monochrome black/grey, and on a transparent background.
+   - Use a `viewBox="0 0 120 120"` so glyphs have consistent proportions.
+
+2. Run the rasterizer from the repository root. It requires Node.js and the `sharp` package; check that the package is available first:
+
+   ```powershell
+   node -e "require('sharp'); console.log('sharp available')"
+   node design/rasterize_glyphs.js
+   ```
+
+   The script scans every SVG in `design/glyphs`, recreates every corresponding transparent 240×240 PNG in `design/glyphs/png`, and intentionally does extra work for unchanged glyphs. `HTMLIMAGE` should point to the PNG; SVG files are kept as the editable source but are not the reliable inline-image format for this template.
+
+   If the check reports that `sharp` cannot be found, do not claim that PNG regeneration succeeded and do not proceed as though the PNGs were updated. In a Codex workspace, call `load_workspace_dependencies` to obtain the configured Node.js executable and Node.js packages directory, then run the script with that runtime and set `NODE_PATH` to its `node_modules` directory:
+
+   ```powershell
+   $env:NODE_PATH = "<configured Node.js packages>"
+   & "<configured Node.js executable>" design/rasterize_glyphs.js
+   Remove-Item Env:NODE_PATH
+   ```
+
+   The run is successful only when the script prints `Rasterized N glyphs into ...`. The script loads `sharp` before writing any files, so a missing dependency leaves the existing PNGs untouched.
+
+3. Register the glyph in `design/the_nos_card_template.nde`, before the `LINK` directive:
+
+   ```nde
+   HTMLIMAGE = , "(<name>)", "glyphs/png/<name>.png", 0.11, 0.11, PB
+   ```
+
+   The parenthesized key is the exact marker that goes into card data. Keep the `PB` flags. Do not add `H`: in the Explorer HTML renderer, `H` suppresses spacing and can make adjacent glyphs overlap.
+
+4. Put the marker into a CSV text field, normally `Effect` or `Flavor`:
+
+   ```csv
+   "Move (arrow_left) two spaces, then (arrow_right) one space."
+   ```
+
+   The template uses `HTMLTEXT` for those fields, with `HTMLFONT` definitions and the `ET` renderer flags. Do not change them to `TEXT`, or glyph markers will print as ordinary text. Do not switch to the `K` renderer unless Chrome rendering has been configured and tested.
+
+5. Add the new marker to the Campfire showcase row in `design/the_nos_card_template_data.csv` so every glyph can be reviewed together. Preserve the existing showcase markers; append the new one rather than replacing them.
+
+6. Validate the change:
+   - Confirm both the SVG and PNG exist.
+   - Confirm the `HTMLIMAGE` key, PNG path, and CSV marker use the same `<name>`.
+   - Confirm the CSV still loads with `Import-Csv`.
+   - Run `git diff --check` for the changed design files.
+   - Rebuild/refresh the `.nde` file in nanDECK and check the showcase card. The workspace may not have nanDECK installed, so textual validation alone is not a rendering check.
+
+The current inline keys are `(arrow_left)`, `(arrow_right)`, `(boardgame)`, `(card)`, `(energy)`, `(exercise)`, `(food)`, `(fun)`, `(indoors)`, `(item)`, `(relax)`, `(social)`, `(suitcase)`, `(tree)`, and `(trunk)`.
