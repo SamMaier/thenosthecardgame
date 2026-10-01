@@ -64,11 +64,11 @@ You may discard one card for +(fun)(fun)(fun).
 (cubes)","Don't trade with him, he's winning!"
 CIVILIZATION THE BOARD GAME,"BOARD GAME, INDOORS",10,(fun)(fun)(fun)(fun).,It's no Campaign for North Africa
 CLASSIC BOOK,RELAX,2,"(fun)(fun).
-Costs (energy) less per (before)(RELAX_card).",
+Costs -(energy) per (before)(RELAX_card).",
 CLIFF CLIMBING,"EXERCISE, OUTDOORS",4,"(fun)(fun).
 (before)(OUTDOORS_card) score +(fun)(fun)(fun).","If you're going to fall, PUSH OFF"
 COLOURING,RELAX,4,TOMORROW: The cards you play count as having all tags.,
-COUCH TUBE,"EXERCISE, OUTDOORS",4,Score +(fun) for the total written (energy) cost on other (before)(card).,<<NOZ BOOK QUOTE JACKIE I THINK?
+COUCH TUBE,"EXERCISE, OUTDOORS",4,Score +(fun) for the total written (energy) cost on all (before)(card).,<<NOZ BOOK QUOTE JACKIE I THINK?
 DATE'S FIRST NOS,SOCIAL,7,TOMORROW: Each card you play scores +(fun)(fun).,Keep em away from the uncles
 DECAF,FOOD,0,"At END OF DAY, each leftover (energy) is worth +(fun).","Well, if it's decaf..."
 DISHWASHING,FOOD,1,TOMORROW: (FOOD_card) cost -(energy).,"Turns out, dishwashing soap is different from dishwashing detergent"
@@ -87,7 +87,7 @@ Optionally discard an (ITEM_card) for +(fun)(fun)(fun)(fun)(fun).
 (cubes)",Sponsored by SC Johnson
 EUCHRE,"BOARD GAME, INDOORS",2,"(fun)(fun).
 (SOCIAL_card)(after) score +(fun).","""Lose the lead as fast as you can"" - Gord "
-EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",3,"Each card you play after this, pick (suitcase).","""The Mount Everest of competition"" - Scott"
+EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",3,"When playing each (card_after), pick (suitcase).","""The Mount Everest of competition"" - Scott"
 EUCHRE TOURNAMENT,"BOARD GAME, INDOORS",7,"(fun)(fun)(fun)(fun)(fun).
 Draw 4 (trunk). Then, discard 4 cards from your hand.",The pinnacle of card playing
 EVENING CHAT,"SOCIAL, INDOORS",3,"(fun)(fun)(fun)(fun)(fun).
@@ -96,7 +96,7 @@ TOMORROW: -(energy).",
 EVENING ON THE DOCK,"RELAX, SOCIAL, OUTDOORS",4,(before)(card) score +(fun).,Hope the bugs aren't too bad
 FAJITAS,FOOD,3,(energy)(energy)(energy)(energy).,"""Fajitas are my favorite Italian dish"" - Vern"
 FAMILY BASEBALL GAME,"EXERCISE, SOCIAL, OUTDOORS",3,"(fun)(fun)(fun)(fun)(fun).
-You score -(fun) for all (before)(RELAX_card) and (before)(BOARDGAME_card).",Not quite the Blue Jays
+(before)(RELAX_card)(BOARDGAME_card)(after) score -1 FUN.",Not quite the Blue Jays
 FANCY CRAFT,RELAX,2,Your next (ITEM_card) scores +(fun) double its written (energy) cost.,Takes more prep than rouladen
 FANCY FLOATIE,"RELAX, ITEM, OUTDOORS",2,"Pick (RELAX_card) from the (suitcase) until none remain.
 TOMORROW: (RELAX_card) score +(fun).",It has a back massager
@@ -116,7 +116,7 @@ You may not play this card if any players have gone to BED.",An ancient Nos trad
 HIGH-END RED,FOOD,3,(FOOD_card)(after) score +(fun)(fun)(fun).,"Diesel with notes of dirt, in a good way"
 HIGH-END WHITE,FOOD,3,"(fun)(fun).
 (FOOD_card)(after) score +(fun)(fun).","Boasts delicate notes of white peach, wet river stone, and the subtle sting of a backhanded compliment"
-HOLD THE BABY,SOCIAL,1,Cards you play after this cost +(energy) and score +(fun)(fun).,Do you smell something?
+HOLD THE BABY,SOCIAL,1,(card)(after) cost +(energy) and score +(fun)(fun).,Do you smell something?
 ICE CREAM SANDWICH,FOOD,2,"(fun).
 If you have played a (before)(FOOD_card), (energy)(energy)(energy).",How did we go through a 20 pack by the second day?
 ICE WINE,FOOD,3,(before)(FOOD_card) score +(fun)(fun)(fun).,Basically expensive juice
@@ -139,7 +139,7 @@ M&MS,FOOD,0,(energy).,Take the bowl away from me
 MAKE PLANS,SOCIAL,2,Pick 2 (suitcase).,My cottage or yours?
 MEDICAL ADVICE,SOCIAL,1,"Pick 3 (suitcase).
 (before)(card) score -(fun).
-Cards you play after this cost +(energy).","So much medical education, so little help"
+(card)(after) cost +(energy).","So much medical education, so little help"
 MORNING BIKE,"EXERCISE, OUTDOORS",3,"TOMORROW: (energy)(energy)(energy)(energy)(energy).
 Must be your 1st card today.",Let's see if we can sneak up Sir Sam's
 MORNING COFFEE,FOOD,1,"(energy)(energy)(energy).
@@ -172,7 +172,7 @@ Your next turn is skipped.",How long does this take to dry?
 PAINT ROCKS,RELAX,2,"(fun)(fun).
 +(fun)(fun) if you have played at least 2 (before)(OUTDOORS_card).",
 PHOTO SHOOT,"SOCIAL, OUTDOORS",3,"-(fun).
-TOMORROW: Whenever you play a card, pick (suitcase).",The closest thing to being taken hostage most men will experience
+TOMORROW: When playing each (card), pick (suitcase).",The closest thing to being taken hostage most men will experience
 PLAY WITH THE KIDS,EXERCISE,4,"(fun)(fun)(fun).
 +(fun)(fun)(fun) if you have more cards in your hand at END OF DAY than all opponents.",
 POKER,BOARD GAME,2,"(fun).
@@ -245,7 +245,7 @@ THROW A BASEBALL,"EXERCISE, OUTDOORS",2,"(fun).
 Pick (suitcase).",Get it before it gets into the water!
 TREAT CEREAL,FOOD,2,Your next (EXERCISE_card) costs -(energy)(energy)(energy)(energy).,No way am I eating Raisin Bran at the Nos
 TREAT STORE RUN,FOOD,1,Pick (FOOD_card) from the (suitcase) until none remain.,Because we're notoriously short on junk FOOD
-TREKKING THROUGH HISTORY,BOARD GAME,2,(before)(BOARDGAME_card) and (BOARDGAME_card)(after) score +(fun)(fun).,I'm not even going to look - all the good cards are going to be gone before I can go again
+TREKKING THROUGH HISTORY,BOARD GAME,2,(before)(BOARDGAME_card)(after) score +(fun)(fun).,I'm not even going to look - all the good cards are going to be gone before I can go again
 TRÈS FUTÉ,BOARD GAME,0,(fun).,You left us all junk!
 WAKEBOARD,"EXERCISE, OUTDOORS",8,"(fun)(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)(fun)(fun)",Do a backflip!
