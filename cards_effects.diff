@@ -1,0 +1,440 @@
+5 10 15
+- (fun)(fun)\nPick a SUITCASE card.
++ (fun)(fun)\nPick (suitcase).
+
+ADDRESS THE FOOD
+- Pick a (FOODcard) in the SUITCASE, then immediately play it for free.
++ Pick a (FOOD_card) in the (suitcase), then immediately play it for free.
+
+AFTER DINNER ENTERTAINMENT
+- The next (SOCIALcard) you play today costs -2 ENERGY and scores +(fun)(fun).
++ Your next (SOCIAL_card) costs -(energy)(energy) and scores +(fun)(fun).
+
+AFTERNOON COFFEE
+- Gain 3 ENERGY.\nMust be your 3rd or later card today.
++ (energy)(energy)(energy).\nMust be your 3rd or later card today.
+
+AUNTERVIEW
+- (fun).\nTOMORROW: All (SOCIALcards) +(fun)(fun).
++ (fun).\nTOMORROW: All (SOCIAL_card) +(fun)(fun).
+
+BEACH CONVERSATION
+- (fun)(fun).\nIf your previous (card) is (OUTDOORScard), gain 2 ENERGY.
++ (fun)(fun).\nIf (before)(card) is (OUTDOORS_card), (energy)(energy).
+
+BEACH VOLLEYBALL
+- (fun)(fun)(fun)(fun).\nIf your next (card) is (INDOORScard), gain 2 ENERGY.
++ (fun)(fun)(fun)(fun).\nIf your next (card) is (INDOORS_card), (energy)(energy).
+
+BEAVER BURGERS
+- (fun)(fun)(fun)(fun)(fun).\n(card)(after) cost +1 ENERGY.
++ (fun)(fun)(fun)(fun)(fun).\n(card)(after) cost +(energy).
+
+BEND THE RULES
+- (BOARDGAMEcar)(after) cost -2 ENERGY.
++ (BOARDGAMEcard)(after) cost -(energy)(energy).
+
+BOAT RIDE
+- (fun).\nThe next ITEM card you play today is free.
++ (fun).\nYour next (ITEM_card) is free.
+
+BOHNANZA
+- (fun).\nYou may trash cards played previously today for +(fun)(fun). These cards no longer have effects or score (fun).\n(cubes)
++ (fun).\nYou may trash (before)(card) for +(fun)(fun). These cards no longer have effects or score (fun).\n(cubes)
+
+BOUGIE COFFEE MACHINE
+- Draw 3 (trunk), playing any drawn FOOD cards for free, ignoring any restrictions.
++ Draw 3 (trunk), playing any drawn (FOOD_card) for free, ignoring any restrictions.
+
+BRACELET MAKING
+- (fun).\nThe next SOCIAL card you play today scores +(fun)(fun)(fun)(fun).
++ (fun).\nYour next (SOCIAL_card) scores +(fun)(fun)(fun)(fun).
+
+BRING A FRIEND
+- For cards you play after this today, ENERGY costs are doubled, and (fun) scored on those cards is doubled.
++ For cards you play after this, (energy) costs are doubled, and (fun) scored on those cards is doubled.
+
+BUBLY
+- +(fun)(fun) if any card you played previously today has given you ENERGY.
++ +(fun)(fun) if any (before)(card) has given you (energy).
+
+BUG SPRAY
+- OUTDOORS cards you play after this today score +(fun).
++ (OUTDOORS_card)(after) score +(fun).
+
+BUTTER TARTS
+- Double your current ENERGY.
++ Double your current (energy).
+
+CALZONES
+- (fun)(fun).\nGain 3 ENERGY.\nTOMORROW: EXERCISE cards cost +1 ENERGY.
++ (fun)(fun).\n(energy)(energy)(energy).\nTOMORROW: (EXERCISE_card) cost +(energy).
+
+CAMP CROSSROADS DESSERT
+- Gain 1 ENERGY for each EXERCISE card you played previously today.
++ (energy) for each (before)(EXERCISE_card).
+
+CANOE
+- (fun)(fun).\nThe next ITEM card you play today scores +(fun) equal to its written ENERGY cost.
++ (fun)(fun).\nYour next (ITEM_card) scores +(fun) equal to its written (energy) cost.
+
+CARCASSONNE
+- (fun).\n+(fun)(fun)(fun)(fun) if the card before and after are both BOARD GAME cards.
++ (fun).\n+(fun)(fun)(fun)(fun) if the card before and after are both (BOARDGAME_card).
+
+CHARCUTERIE
+- (fun)(fun).\nGain 1 ENERGY.
++ (fun)(fun).\n(energy).
+
+CHEAP RED
+- (fun)(fun).\nThe next FOOD card you play today scores +(fun)(fun).
++ (fun)(fun).\nYour next (FOOD_card) scores +(fun)(fun).
+
+CHEESY PHONE GAME
+- (fun).\n+(fun)(fun)(fun) if at least half of your opponents have played a RELAX card by END OF DAY.
++ (fun).\n+(fun)(fun)(fun) if at least half of your opponents have played a (RELAX_card) by END OF DAY.
+
+CHRISTMAS NAME DRAW
+- Choose an opponent's card.\n+(fun) for each card you played today that shares at least 1 tag with the marked card.\n(cubes)
++ Choose an opponent's card.\n+(fun) for each (before)(card) that shares at least 1 tag with the marked card.\n(cubes)
+
+CIVILIZATION THE BOARD GAME
+- 1(fun)(fun)(fun)(fun).
++ (fun)(fun)(fun)(fun).
+
+CLASSIC BOOK
+- (fun)(fun).\nCosts 1 ENERGY less per RELAX card you played previously today.
++ (fun)(fun).\nCosts (energy) less per (before)(RELAX_card).
+
+CLIFF CLIMBING
+- (fun)(fun).\nOUTDOORS cards you played previously today score +(fun)(fun)(fun).
++ (fun)(fun).\n(before)(OUTDOORS_card) score +(fun)(fun)(fun).
+
+COUCH TUBE
+- Score +(fun) for the total written ENERGY cost on other cards you played today.
++ Score +(fun) for the total written (energy) cost on other (before)(card).
+
+DECAF
+- At END OF DAY, each leftover ENERGY is worth +(fun).
++ At END OF DAY, each leftover (energy) is worth +(fun).
+
+DISHWASHING
+- TOMORROW: FOOD cards cost -1 ENERGY.
++ TOMORROW: (FOOD_card) cost -(energy).
+
+DORITOS
+- If you have played a FOOD card previously today, gain 2 ENERGY.
++ If you have played a (before)(FOOD_card), (energy)(energy).
+
+DOXOLOGY
+- SOCIAL cards you play after this today score +(fun)(fun).
++ (SOCIAL_card)(after) score +(fun)(fun).
+
+EARLY BEDTIME
+- Go to BED.\nMust be your 3rd or earlier card today.\nTOMORROW: Start the day with +3 ENERGY.
++ Go to BED.\nMust be your 3rd or earlier card today.\nTOMORROW: (energy)(energy)(energy).
+
+EPIC PLAYLIST
+- SOCIAL cards you play after this today score +(fun).
++ (SOCIAL_card)(after) score +(fun).
+
+EPIC PRANK
+- (fun)(fun).\nOptionally discard an ITEM card for +(fun)(fun)(fun)(fun)(fun).\n(cubes)
++ (fun)(fun).\nOptionally discard an (ITEM_card) for +(fun)(fun)(fun)(fun)(fun).\n(cubes)
+
+EUCHRE
+- (fun)(fun).\nSOCIAL cards you play after this today score +(fun).
++ (fun)(fun).\n(SOCIAL_card)(after) score +(fun).
+
+EUCHRE AWARDS CEREMONY
+- Each card you play after this today, pick a SUITCASE card.
++ Each card you play after this, pick (suitcase).
+
+EVENING CHAT
+- (fun)(fun)(fun)(fun)(fun).\nGo to BED.\nTOMORROW: Start the day with -1 ENERGY.
++ (fun)(fun)(fun)(fun)(fun).\nGo to BED.\nTOMORROW: -(energy).
+
+EVENING ON THE DOCK
+- Cards you played previously today score +(fun).
++ (before)(card) score +(fun).
+
+FAJITAS
+- Gain 4 ENERGY.
++ (energy)(energy)(energy)(energy).
+
+FAMILY BASEBALL GAME
+- (fun)(fun)(fun)(fun)(fun).\nYou score -(fun) for all RELAX and BOARD GAME cards played today.
++ (fun)(fun)(fun)(fun)(fun).\nYou score -(fun) for all (before)(RELAX_card) and (before)(BOARDGAME_card).
+
+FANCY CRAFT
+- The next ITEM card you play today scores +(fun) double its written ENERGY cost.
++ Your next (ITEM_card) scores +(fun) double its written (energy) cost.
+
+FANCY FLOATIE
+- Pick RELAX cards from the SUITCASE until none remain.\nTOMORROW: RELAX cards score +(fun).
++ Pick (RELAX_card) from the (suitcase) until none remain.\nTOMORROW: (RELAX_card) score +(fun).
+
+FISHING BOAT
+- Reveal (trunk) until an OUTDOORS card is shown. Add it to your hand and place the rest on (trunk) in any order.
++ Reveal (trunk) until an (OUTDOORS_card) is shown. Add it to your hand and place the rest on (trunk) in any order.
+
+FLOATING
+- Gain 3 ENERGY.\nTOMORROW: Start the day with -1 ENERGY.
++ (energy)(energy)(energy).\nTOMORROW: -(energy).
+
+FORCED FAMILY FUN
+- The next BOARD GAME card you play today costs half ENERGY (rounded down).
++ Your next (BOARDGAME_card) costs half (energy) (rounded down).
+
+GROCERY STORE RUN
+- Reveal 5 (trunk). Add all FOOD cards to your hand. Re-place the rest on the TRUNK in any order.
++ Reveal 5 (trunk). Add all (FOOD_card) to your hand. Re-place the rest on the (trunk) in any order.
+
+GROUP DINNER
+- (fun)(fun)(fun)(fun).\nAll players gain 1 ENERGY.\nYou may not play this card if any players have gone to BED.
++ (fun)(fun)(fun)(fun).\nAll players (energy).\nYou may not play this card if any players have gone to BED.
+
+HIGH-END RED
+- FOOD cards you play after this today score +(fun)(fun)(fun).
++ (FOOD_card)(after) score +(fun)(fun)(fun).
+
+HIGH-END WHITE
+- (fun)(fun).\nFOOD cards you play after this today score +(fun)(fun).
++ (fun)(fun).\n(FOOD_card)(after) score +(fun)(fun).
+
+HOLD THE BABY
+- Cards you play after this today cost +1 ENERGY and score +(fun)(fun).
++ Cards you play after this cost +(energy) and score +(fun)(fun).
+
+ICE CREAM SANDWICH
+- (fun).\nIf you have played a FOOD card previously today, gain 3 ENERGY.
++ (fun).\nIf you have played a (before)(FOOD_card), (energy)(energy)(energy).
+
+ICE WINE
+- FOOD cards you played previously today score +(fun)(fun)(fun).
++ (before)(FOOD_card) score +(fun)(fun)(fun).
+
+ISTANBUL
+- (fun).\nDiscard any number of cards. Gain 2 ENERGY for each card discarded.
++ (fun).\nDiscard any number of cards. (energy)(energy) for each card discarded.
+
+JOHNNY APPLESEED
+- (fun).\nThe next FOOD card you play today scores +(fun)(fun).
++ (fun).\nYour next (FOOD_card) scores +(fun)(fun).
+
+KAYAK
+- (fun)(fun).\nYou may choose to spend any number of additional ENERGY, score that much +(fun).\n(cubes)
++ (fun)(fun).\nYou may choose to spend any number of additional (energy), score that much +(fun).\n(cubes)
+
+KEEPER
+- (fun).\nGain 1 ENERGY for each OUTDOORS card played previously today.
++ (fun).\n(energy) for each (before)(OUTDOORS_card).
+
+LEFTOVERS
+- Copy the effects (but not tags or cost) of a FOOD card you played previously today.\n(cubes)
++ Copy the effects (but not tags or cost) of a (before)(FOOD_card).\n(cubes)
+
+LONG DISTANCE VISITORS
+- Pick 3 SUITCASE cards.\nSOCIAL cards you play after this today score +(fun).
++ Pick 3 (suitcase).\n(SOCIAL_card)(after) score +(fun).
+
+M&MS
+- Gain 1 ENERGY.
++ (energy).
+
+MAKE PLANS
+- Pick 2 SUITCASE cards.
++ Pick 2 (suitcase).
+
+MEDICAL ADVICE
+- Pick 3 SUITCASE cards.\nCards played previously today score -(fun).\nCards you play after this today cost +1 ENERGY.
++ Pick 3 (suitcase).\n(before)(card) score -(fun).\nCards you play after this cost +(energy).
+
+MORNING BIKE
+- TOMORROW: Start the day with +5 ENERGY.\nMust be your 1st card today.
++ TOMORROW: (energy)(energy)(energy)(energy)(energy).\nMust be your 1st card today.
+
+MORNING COFFEE
+- Gain 3 ENERGY.\nMust be your 1st card today.
++ (energy)(energy)(energy).\nMust be your 1st card today.
+
+MORNING RUN
+- TOMORROW: Start the day with +7 ENERGY.\nMust be your 1st card today.
++ TOMORROW: (energy)(energy)(energy)(energy)(energy)(energy)(energy).\nMust be your 1st card today.
+
+MORNING WALK
+- TOMORROW: Start the day with +2 ENERGY.\nMust be your 1st card today.
++ TOMORROW: (energy)(energy).\nMust be your 1st card today.
+
+MOVIE
+- (fun).\nINDOORS cards you play after this today score +(fun)(fun).
++ (fun).\n(INDOORS_card)(after) score +(fun)(fun).
+
+NAP
+- Gain 1 ENERGY.
++ (energy).
+
+NEW NOS BOOK ENTRY
+- (fun).\nIf you have played 4 or more cards previously today, +(fun)(fun)(fun)(fun).
++ (fun).\nIf you have played 4 or more (before)(card), +(fun)(fun)(fun)(fun).
+
+NOS SHIRT
+- Copy the effects (but not tags or cost) of any player's ITEM card.\n(cubes)
++ Copy the effects (but not tags or cost) of any player's (ITEM_card).\n(cubes)
+
+OUTDOOR MOVIE
+- (fun).\nRELAX cards you played previously today score +(fun)(fun).
++ (fun).\n(before)(RELAX_card) score +(fun)(fun).
+
+PADDLEBOARD
+- (fun)(fun).\nDiscard your hand, then pick that many SUITCASE cards.
++ (fun)(fun).\nDiscard your hand, then pick that many (suitcase).
+
+PADDLEBOAT
+- +(fun)(fun) for each card aquired (from (trunk), SUITCASE, or discard pile) after this today.\n(cubes)
++ +(fun)(fun) for each card aquired (from (trunk), (suitcase), or discard pile) after this.\n(cubes)
+
+PAINT ROCKS
+- (fun)(fun).\n+(fun)(fun) if you have played at least 2 (before)(OUTDOORScard).
++ (fun)(fun).\n+(fun)(fun) if you have played at least 2 (before)(OUTDOORS_card).
+
+PHOTO SHOOT
+- -(fun).\nTOMORROW: Whenever you play a card, pick a SUITCASE card.
++ -(fun).\nTOMORROW: Whenever you play a card, pick (suitcase).
+
+PONYBACK
+- (fun).\nTOMORROW: OUTDOORS cards cost -1 ENERGY.
++ (fun).\nTOMORROW: (OUTDOORS_card) cost -(energy).
+
+POTATO PANCAKES
+- Gain 2 ENERGY for each RELAX card you played previously today.
++ (energy)(energy) for each (before)(RELAX_card).
+
+PRIME PICNIC TABLE
+- OUTDOORS cards you play after this today cost -1 ENERGY and score +(fun).
++ (OUTDOORS_card)(after) cost -(energy) and score +(fun).
+
+PUDDING CHÔMEUR
+- Gain 3 ENERGY.\nDiscard a card from your hand.
++ (energy)(energy)(energy).\nDiscard a card from your hand.
+
+PUERTO RICO
+- (fun)(fun)(fun).\nPlace 1 (cubes) on a SUITCASE card. If the marked card remains by END OF DAY, +(fun)(fun)(fun).\nMust be your 1st card today.
++ (fun)(fun)(fun).\nPlace 1 (cubes) on (suitcase). If the marked card remains by END OF DAY, +(fun)(fun)(fun).\nMust be your 1st card today.
+
+QUACKS
+- Reveal and discard (trunk), stopping any time. +(fun) for each card. If an OUTDOORS card is revealed, this card scores 0 (fun).\n(cubes)
++ Reveal and discard (trunk), stopping any time. +(fun) for each card. If an (OUTDOORS_card) is revealed, this card scores 0.\n(cubes)
+
+ROULADEN
+- Cards you play after this today cost -2 ENERGY.
++ Cards you play after this cost -(energy)(energy).
+
+SCHWANK
+- The 2nd EXERCISE card you play after this today scores double (fun).
++ The 2nd (EXERCISE_card) you play after this scores double (fun).
+
+SCOUT OTHER COTTAGES
+- Place (cubes) on all SUITCASE cards. After END OF DAY, add remaining marked cards to your hand.\nCards played previously today score -(fun).
++ Place (cubes) on all (suitcase). After END OF DAY, add remaining marked cards to your hand.\n(before)(card) score -(fun).
+
+SCRABBLE
+- (fun)(fun).\nDiscard as many cards as you wish, then pick that many SUITCASE cards.
++ (fun)(fun).\nDiscard as many cards as you wish, then pick that many (suitcase).
+
+SHADY SPOT
+- The next OUTDOORS card you play today costs half ENERGY (rounded down).
++ Your next (OUTDOORS_card) costs half (energy) (rounded down).
+
+SING SONG
+- (fun)(fun)(fun)(fun).\nThis card costs -1 ENERGY for each opponent who has played a SOCIAL card today.
++ (fun)(fun)(fun)(fun).\nThis card costs -(energy) for each opponent who has played a (SOCIAL_card) today.
+
+SKI BOAT
+- Reveal (trunk) until an EXERCISE card is shown. Add it to your hand and place the rest on (trunk) in any order.
++ Reveal (trunk) until an (EXERCISE_card) is shown. Add it to your hand and place the rest on (trunk) in any order.
+
+SLEEP IN
+- Gain 2 ENERGY.\nYou do not gain additional ENERGY from any other source today.\nMust be your 1st card today.
++ (energy)(energy).\nYou do not gain additional (energy) from any other source today.\nMust be your 1st card today.
+
+STAY UP LATE
+- Gain 2 ENERGY.\nTOMORROW: Start the day with -2 ENERGY.
++ (energy)(energy).\nTOMORROW: -(energy)(energy).
+
+STEAK
+- (fun).\nIf you have played a card with a written cost of 5 or more previously today, gain 3 ENERGY.
++ (fun).\nIf you have played a (before)(card) with a written cost of 5 or more, (energy)(energy)(energy).
+
+STRETCH
+- EXERCISE cards you play after this today score +(fun)(fun).
++ (EXERCISE_card)(after) score +(fun)(fun).
+
+SUNSCREEN
+- OUTDOORS cards you play after this today cost -1 ENERGY.
++ (OUTDOORS_card)(after) cost -(energy).
+
+SWEET LAWN CHAIR
+- RELAX cards you play after this today score +(fun)(fun).
++ (RELAX_card)(after) score +(fun)(fun).
+
+TANNING
+- (fun)(fun)(fun)(fun)(fun).\nOUTDOORS cards you play after this today score -(fun).\nTOMORROW: OUTDOORS cards you play score -(fun).
++ (fun)(fun)(fun)(fun)(fun).\n(OUTDOORS_card)(after) score -(fun).\nTOMORROW: (OUTDOORS_card) you play score -(fun).
+
+TEACH KID TO SKI
+- TOMORROW: EXERCISE cards score +(fun)(fun).
++ TOMORROW: (EXERCISE_card) score +(fun)(fun).
+
+THROW A BASEBALL
+- (fun).\nPick a SUITCASE card.
++ (fun).\nPick (suitcase).
+
+TREAT CEREAL
+- The next EXERCISE card you play today costs -4 ENERGY.
++ Your next (EXERCISE_card) costs -(energy)(energy)(energy)(energy).
+
+TREAT STORE RUN
+- Pick FOOD cards from the SUITCASE until none remain.
++ Pick (FOOD_card) from the (suitcase) until none remain.
+
+TREKKING THROUGH HISTORY
+- BOARD GAME cards you played previously and after this today score +(fun)(fun).
++ (before)(BOARDGAME_card) and (BOARDGAME_card)(after) score +(fun)(fun).
+
+WATER TRAMPOLINE
+- (fun).\nYour next RELAX card scores double (fun).
++ (fun).\nYour next (RELAX_card) scores double (fun).
+
+WATER VOLLEYBALL
+- (fun)(fun).\nThe next EXERCISE card you play today scores +(fun)(fun)(fun)(fun).
++ (fun)(fun).\nYour next (EXERCISE_card) scores +(fun)(fun)(fun)(fun).
+
+WEDDING ANNIVERSARY
+- Copy the effect (but not tags) of an opponent's card. Pay that card's written ENERGY cost.\n(cubes)
++ Copy the effect (but not tags) of an opponent's card. Pay that card's written (energy) cost.\n(cubes)
+
+WEIRD CHIP FLAVOUR
+- -(fun)(fun).\nGain 2 ENERGY.
++ -(fun)(fun).\n(energy)(energy).
+
+WILDLIFE SPOTTING
+- (fun).\nTOMORROW: If your 1st card played is an OUTDOORS card, it scores +(fun)(fun).
++ (fun).\nTOMORROW: If your 1st card played is an (OUTDOORS_card), it scores +(fun)(fun).
+
+WORK CALL
+- -(fun)(fun)(fun)(fun).\nThe next card you play today scores double (fun).
++ -(fun)(fun)(fun)(fun).\nYour next card scores double (fun).
+
+WÜRSTCHEN
+- Gain 1 ENERGY for each card in your hand.
++ (energy) for each card in your hand.
+
+ZERO GRAVITY CHAIR
+- RELAX cards you play after this today cost -1 ENERGY.
++ (RELAX_card)(after) cost -(energy).
+
+ZUMBA
+- (fun).\nTOMORROW: Start the day with +4 ENERGY.
++ (fun).\nTOMORROW: (energy)(energy)(energy)(energy).
+

@@ -1,6 +1,7 @@
 """Add the expected photo path for each card to design/real_card_data.csv."""
 
 import csv
+import unicodedata
 from pathlib import Path
 
 
@@ -19,8 +20,11 @@ def main() -> None:
         rows = list(reader)
 
     for row in rows:
-        image_name = row["Title"].replace(" ", "_")
+        image_name = unicodedata.normalize("NFKD", row["Title"])
+        image_name = image_name.encode("ascii", "ignore").decode("ascii").lower()
+        image_name = image_name.replace(" ", "_")
         row["Image"] = f"photos/{image_name}.jpg"
+        row["Tags"] = "~".join(tag.strip() for tag in row["Tags"].split(","))
 
     with DESTINATION.open("w", encoding="utf-8", newline="") as destination_file:
         writer = csv.DictWriter(destination_file, fieldnames=fieldnames)

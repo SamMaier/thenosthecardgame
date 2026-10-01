@@ -29,8 +29,8 @@ LINKUNI = ON
 ; Inline glyphs for HTMLTEXT.  Put the parenthesized key in a CSV text field,
 ; for example: "Take a walk (tree)".  The PNG companions are in glyphs/png.
 HTMLIMAGE = , "(boardgame)", "glyphs/png/boardgame.png", 0.11, 0.11, PB
-HTMLIMAGE = , "(arrow_left)", "glyphs/png/arrow_left.png", 0.11, 0.11, PB
-HTMLIMAGE = , "(arrow_right)", "glyphs/png/arrow_right.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(before)", "glyphs/png/arrow_left.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(after)", "glyphs/png/arrow_right.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(card)", "glyphs/png/card.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(energy)", "glyphs/png/energy.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(exercise)", "glyphs/png/exercise.png", 0.11, 0.11, PB
