@@ -45,7 +45,7 @@ HTMLIMAGE = , "(tree)", "glyphs/png/tree.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(trunk)", "glyphs/png/trunk.png", 0.11, 0.11, PB
 
 LINKCSV = UTF8
-LINK = "the_nos_card_template_data.csv"
+LINK = "test.csv"
 
 ; Split the per-card Tags list into the three visible chip slots.
 [tag1] = TOKENIZESEQ([Tags], 1, ~)
