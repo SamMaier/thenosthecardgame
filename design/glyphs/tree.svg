@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
-  <title id="title">Minimal green tree glyph</title>
-  <g stroke="#35652A" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-    <path d="M52 66h16v38H52Z" fill="#55893A"/>
-    <path d="M60 14c-12 0-20 8-20 19 0 2 0 4 1 6-10 1-17 8-17 18 0 11 8 19 19 19h34c11 0 19-8 19-19 0-10-7-17-17-18 1-2 1-4 1-6 0-11-8-19-20-19Z" fill="#76B852"/>
-  </g>
-</svg>

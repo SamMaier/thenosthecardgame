@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Boardgame card glyph</title>
+  <use href="card.svg" width="120" height="120"/>
+  <use href="boardgame.svg" x="18" y="18" width="84" height="84"/>
+</svg>

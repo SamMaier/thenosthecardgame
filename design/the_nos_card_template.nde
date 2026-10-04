@@ -18,9 +18,9 @@ DPI = 600
 [rule] = #D9D0C3
 
 ; The linked CSV must have these columns:
-; Title, Tags, Cost, Effect, Flavor, Image
+; Title, Tags, Cost, Effect, Flavor text, Image
 ; Tags is a quoted ~-delimited list, for example:
-; "Board Game~Social~Outdoors" or "Item". Up to three tags are shown.
+; "Board Game~Social~Outdoors" or "Item". Up to three tag icons are shown.
 ; The main text fields use HTMLTEXT so future image keys can be embedded in them.
 HTMLFONT = effect_text, Montserrat, 5.5, , [ink]
 HTMLFONT = flavor_text, Montserrat, 5, I, [ink]
@@ -41,27 +41,34 @@ HTMLIMAGE = , "(relax)", "glyphs/png/relax.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(social)", "glyphs/png/social.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(suitcase)", "glyphs/png/suitcase.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(fun)", "glyphs/png/fun.png", 0.11, 0.11, PB
-HTMLIMAGE = , "(tree)", "glyphs/png/tree.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(outdoors)", "glyphs/png/outdoors.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(trunk)", "glyphs/png/trunk.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(EXERCISE_card)", "glyphs/png/exercise_card.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(FOOD_card)", "glyphs/png/food_card.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(INDOORS_card)", "glyphs/png/indoors_card.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(ITEM_card)", "glyphs/png/item_card.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(RELAX_card)", "glyphs/png/relax_card.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(SOCIAL_card)", "glyphs/png/social_card.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(OUTDOORS_card)", "glyphs/png/outdoors_card.png", 0.11, 0.11, PB
+
+; Double-size copies of the tag glyphs for the tag row.
+HTMLIMAGE = , "(tag_outdoors)", "glyphs/png/outdoors.png", 0.22, 0.22, PB
+HTMLIMAGE = , "(tag_indoors)", "glyphs/png/indoors.png", 0.22, 0.22, PB
+HTMLIMAGE = , "(tag_relax)", "glyphs/png/relax.png", 0.22, 0.22, PB
+HTMLIMAGE = , "(tag_boardgame)", "glyphs/png/boardgame.png", 0.22, 0.22, PB
+HTMLIMAGE = , "(tag_item)", "glyphs/png/item.png", 0.22, 0.22, PB
+HTMLIMAGE = , "(tag_social)", "glyphs/png/social.png", 0.22, 0.22, PB
+HTMLIMAGE = , "(tag_food)", "glyphs/png/food.png", 0.22, 0.22, PB
+HTMLIMAGE = , "(tag_exercise)", "glyphs/png/exercise.png", 0.22, 0.22, PB
 
 LINKCSV = UTF8
-LINK = "test.csv"
+;LINK = "test.csv"
+LINK = "real_card_data.csv"
 
-; Split the per-card Tags list into the three visible chip slots.
+; Split the per-card Tags list into the three visible tag-icon slots.
 [tag1] = TOKENIZESEQ([Tags], 1, ~)
 [tag2] = TOKENIZESEQ([Tags], 2, ~)
 [tag3] = TOKENIZESEQ([Tags], 3, ~)
-
-; Chip palette. Tags not listed here use the neutral default chip.
-[chip_default] = #E9E6E0
-[chip_outdoors] = #DCEFD2
-[chip_indoors] = #E4E6E8
-[chip_relax] = #F7DCE5
-[chip_board_game] = #E7DDF7
-[chip_item] = #D7EAF8
-[chip_social] = #FFF0BF
-[chip_food] = #FBE1C8
-[chip_exercise] = #F7D2D2
 
 ; Base card.
 RECTANGLE = , 0, 0, 2.74, 3.74, [paper]
@@ -90,50 +97,41 @@ TEXT = , [Cost], 0.30, 0.30, 0.32, 0.32, center, center, 0, 100, , , , 100, 110
 FONT = Montserrat, 13, BT, [ink]
 TEXT = , [Title], 0.32, 2.04, 2.18, 0.20, left, center, 0, 100, , , , 100, 100
 
-RECTANGLE = , 0.32, 2.4, 0.26, 0.015, [accent]
+; Each tag is a 0.22-inch HTMLIMAGE glyph, twice the inline-text size.
+; Empty slots and unknown tags simply draw nothing.
+HTMLTEXT = LABELRANGE([tag1], Outdoors), "(tag_outdoors)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Indoors), "(tag_indoors)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Relax), "(tag_relax)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Board Game), "(tag_boardgame)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Item), "(tag_item)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Social), "(tag_social)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Food), "(tag_food)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Exercise), "(tag_exercise)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Outdoors), "(tag_outdoors)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Indoors), "(tag_indoors)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Relax), "(tag_relax)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Board Game), "(tag_boardgame)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Item), "(tag_item)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Social), "(tag_social)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Food), "(tag_food)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Exercise), "(tag_exercise)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Outdoors), "(tag_outdoors)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Indoors), "(tag_indoors)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Relax), "(tag_relax)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Board Game), "(tag_boardgame)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Item), "(tag_item)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Social), "(tag_social)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Food), "(tag_food)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Exercise), "(tag_exercise)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
 
-; Tags render as compact chips above the divider.  The neutral chip is drawn
-; first, then a direct category match overwrites it with the requested color.
-ROUNDRECT = LABELRANGE([tag1], <>), 0.32, 2.28, 0.52, 0.08, [chip_default], [chip_default], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag2], <>), 0.92, 2.28, 0.52, 0.08, [chip_default], [chip_default], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag3], <>), 1.52, 2.28, 0.52, 0.08, [chip_default], [chip_default], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag1], Outdoors), 0.32, 2.28, 0.52, 0.08, [chip_outdoors], [chip_outdoors], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag1], Indoors), 0.32, 2.28, 0.52, 0.08, [chip_indoors], [chip_indoors], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag1], Relax), 0.32, 2.28, 0.52, 0.08, [chip_relax], [chip_relax], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag1], Board Game), 0.32, 2.28, 0.52, 0.08, [chip_board_game], [chip_board_game], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag1], Item), 0.32, 2.28, 0.52, 0.08, [chip_item], [chip_item], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag1], Social), 0.32, 2.28, 0.52, 0.08, [chip_social], [chip_social], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag1], Food), 0.32, 2.28, 0.52, 0.08, [chip_food], [chip_food], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag1], Exercise), 0.32, 2.28, 0.52, 0.08, [chip_exercise], [chip_exercise], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag2], Outdoors), 0.92, 2.28, 0.52, 0.08, [chip_outdoors], [chip_outdoors], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag2], Indoors), 0.92, 2.28, 0.52, 0.08, [chip_indoors], [chip_indoors], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag2], Relax), 0.92, 2.28, 0.52, 0.08, [chip_relax], [chip_relax], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag2], Board Game), 0.92, 2.28, 0.52, 0.08, [chip_board_game], [chip_board_game], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag2], Item), 0.92, 2.28, 0.52, 0.08, [chip_item], [chip_item], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag2], Social), 0.92, 2.28, 0.52, 0.08, [chip_social], [chip_social], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag2], Food), 0.92, 2.28, 0.52, 0.08, [chip_food], [chip_food], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag2], Exercise), 0.92, 2.28, 0.52, 0.08, [chip_exercise], [chip_exercise], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag3], Outdoors), 1.52, 2.28, 0.52, 0.08, [chip_outdoors], [chip_outdoors], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag3], Indoors), 1.52, 2.28, 0.52, 0.08, [chip_indoors], [chip_indoors], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag3], Relax), 1.52, 2.28, 0.52, 0.08, [chip_relax], [chip_relax], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag3], Board Game), 1.52, 2.28, 0.52, 0.08, [chip_board_game], [chip_board_game], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag3], Item), 1.52, 2.28, 0.52, 0.08, [chip_item], [chip_item], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag3], Social), 1.52, 2.28, 0.52, 0.08, [chip_social], [chip_social], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag3], Food), 1.52, 2.28, 0.52, 0.08, [chip_food], [chip_food], 0.001, 0.02, 0.02, R
-ROUNDRECT = LABELRANGE([tag3], Exercise), 1.52, 2.28, 0.52, 0.08, [chip_exercise], [chip_exercise], 0.001, 0.02, 0.02, R
-FONT = Montserrat, 4, BT, [ink]
-TEXT = LABELRANGE([tag1], <>), [tag1], 0.32, 2.28, 0.52, 0.08, center, center, 0, 100, , , , 100, 100
-TEXT = LABELRANGE([tag2], <>), [tag2], 0.92, 2.28, 0.52, 0.08, center, center, 0, 100, , , , 100, 100
-TEXT = LABELRANGE([tag3], <>), [tag3], 1.52, 2.28, 0.52, 0.08, center, center, 0, 100, , , , 100, 100
-TEXT = LABELRANGE([tag2], <>), ".", 0.86, 2.28, 0.04, 0.08, center, center, 0, 100, , , , 100, 100
-TEXT = LABELRANGE([tag3], <>), ".", 1.46, 2.28, 0.04, 0.08, center, center, 0, 100, , , , 100, 100
+RECTANGLE = , 0.32, 2.52, 0.26, 0.015, [accent]
 
 ; HTMLTEXT wraps long rules automatically and leaves room for future
 ; HTMLIMAGE/HTMLKEY replacements embedded in the Effect field.
-HTMLTEXT = , [Effect], 0.32, 2.60, 2.18, 0.60, [paper], 0, ET, 100, effect_text
+HTMLTEXT = , [Effect], 0.32, 2.62, 2.18, 0.56, [paper], 0, ET, 100, effect_text
 
 ; Optional flavor text below the effect, set in italics.
-HTMLTEXT = , [Flavor], 0.32, 3.14, 2.18, 0.36, [paper], 0, ET, 100, flavor_text
+HTMLTEXT = , [Flavor text], 0.32, 3.18, 2.18, 0.32, [paper], 0, ET, 100, flavor_text
 
 ; Draw a quiet border on the safe-area boundary, last.
 ; It is decorative only; all critical content is inside it.
