@@ -14,7 +14,9 @@ These constraints apply to the nanDECK card template and future card layouts.
 
 ## Bleed and safety rules
 
-- The photo must extend to the full bleed canvas at the top and both side edges.
+- The photo extends to the top edge and spans exactly the cut-line width
+  (2.5 in), aligned from x=0.12 to x=2.62. It does not extend into the side
+  bleed.
 - Any content that may be trimmed must remain visually acceptable if a small amount of bleed shows.
 - The bottom information panel may extend into the bleed, but bleed exposure there should remain plain background/paper color.
 - Critical information must stay inside the safe area:
@@ -28,7 +30,10 @@ These constraints apply to the nanDECK card template and future card layouts.
 ## Card layout
 
 - Use one real-life photo per card.
-- The photo uses proportional scaling with cropping to fill its frame; source photos do not need to match the frame ratio exactly.
+- The photo uses proportional cover scaling with centered cropping to fill its
+  frame, after applying EXIF orientation; source photos do not need to match
+  the frame ratio exactly. Portrait photos fill the card width and crop at the
+  top and bottom.
 - Place the Energy-cost badge at the top-left over the image.
 - Keep the information panel visually quiet and minimalist.
 - Place italicized flavor text below the card effect.

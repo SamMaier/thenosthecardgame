@@ -1,5 +1,14 @@
 # nanDECK design notes
 
+## Card photo framing
+
+Card photos use proportional cover scaling to fill the photo frame. The frame
+matches the 2.5-inch cut-line width, from x=0.12 to x=2.62, and extends to the
+top edge. Portrait photos fill the printed card width and are cropped at the
+top and bottom. The template reads EXIF orientation before cropping. Keep
+important subjects near the center because cover scaling crops excess image
+area.
+
 ## Adding a glyph
 
 The card template embeds glyphs inside `HTMLTEXT` fields. Adding a glyph requires all of the following:

@@ -73,10 +73,12 @@ LINK = "real_card_data.csv"
 ; Base card.
 RECTANGLE = , 0, 0, 2.74, 3.74, [paper]
 
-; Full-bleed photo: it reaches the top and both side borders.
-; PC keeps the aspect ratio and crops the excess to fill the frame.
+; Photo spans exactly the cut-line width (x=0.12..2.62) and extends to the top.
+; C preserves the aspect ratio and fills the frame, cropping the excess.
+; I applies EXIF rotation first, so portrait photos fill the width and crop
+; at the top and bottom even when orientation is stored in the photo metadata.
 ; The badge is intentionally drawn later, so it sits over the photo.
-IMAGE = , [Image], 0, 0, 2.74, 2.00, 0, PC
+IMAGE = , [Image], 0.12, 0, 2.50, 2.00, 0, CI
 
 ; Information panel.
 ; It is allowed to extend into the bleed because it is plain paper.
