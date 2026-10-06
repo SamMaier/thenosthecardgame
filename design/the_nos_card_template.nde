@@ -29,8 +29,8 @@ LINKUNI = ON
 ; Inline glyphs for HTMLTEXT.  Put the parenthesized key in a CSV text field,
 ; for example: "Take a walk (tree)".  The PNG companions are in glyphs/png.
 HTMLIMAGE = , "(boardgame)", "glyphs/png/boardgame.png", 0.11, 0.11, PB
-HTMLIMAGE = , "(before)", "glyphs/png/arrow_left.png", 0.11, 0.11, PB
-HTMLIMAGE = , "(after)", "glyphs/png/arrow_right.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(before)", "glyphs/png/arrow_left.png", 0.07, 0.07, PB, 0, 0, 0, 0, 0.02
+HTMLIMAGE = , "(after)", "glyphs/png/arrow_right.png", 0.07, 0.07, PB, 0, 0, 0, 0, 0.02
 HTMLIMAGE = , "(card)", "glyphs/png/card.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(energy)", "glyphs/png/energy.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(exercise)", "glyphs/png/exercise.png", 0.11, 0.11, PB
@@ -50,25 +50,36 @@ HTMLIMAGE = , "(ITEM_card)", "glyphs/png/item_card.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(RELAX_card)", "glyphs/png/relax_card.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(SOCIAL_card)", "glyphs/png/social_card.png", 0.11, 0.11, PB
 HTMLIMAGE = , "(OUTDOORS_card)", "glyphs/png/outdoors_card.png", 0.11, 0.11, PB
+HTMLIMAGE = , "(BOARDGAME_card)", "glyphs/png/boardgame_card.png", 0.11, 0.11, PB
 
 ; Double-size copies of the tag glyphs for the tag row.
-HTMLIMAGE = , "(tag_outdoors)", "glyphs/png/outdoors.png", 0.22, 0.22, PB
-HTMLIMAGE = , "(tag_indoors)", "glyphs/png/indoors.png", 0.22, 0.22, PB
-HTMLIMAGE = , "(tag_relax)", "glyphs/png/relax.png", 0.22, 0.22, PB
-HTMLIMAGE = , "(tag_boardgame)", "glyphs/png/boardgame.png", 0.22, 0.22, PB
-HTMLIMAGE = , "(tag_item)", "glyphs/png/item.png", 0.22, 0.22, PB
-HTMLIMAGE = , "(tag_social)", "glyphs/png/social.png", 0.22, 0.22, PB
-HTMLIMAGE = , "(tag_food)", "glyphs/png/food.png", 0.22, 0.22, PB
-HTMLIMAGE = , "(tag_exercise)", "glyphs/png/exercise.png", 0.22, 0.22, PB
+HTMLIMAGE = , "(tag_outdoors)", "glyphs/png/outdoors.png", 0.187, 0.187, PB
+HTMLIMAGE = , "(tag_indoors)", "glyphs/png/indoors.png", 0.187, 0.187, PB
+HTMLIMAGE = , "(tag_relax)", "glyphs/png/relax.png", 0.187, 0.187, PB
+HTMLIMAGE = , "(tag_boardgame)", "glyphs/png/boardgame.png", 0.187, 0.187, PB
+HTMLIMAGE = , "(tag_item)", "glyphs/png/item.png", 0.187, 0.187, PB
+HTMLIMAGE = , "(tag_social)", "glyphs/png/social.png", 0.187, 0.187, PB
+HTMLIMAGE = , "(tag_food)", "glyphs/png/food.png", 0.187, 0.187, PB
+HTMLIMAGE = , "(tag_exercise)", "glyphs/png/exercise.png", 0.187, 0.187, PB
 
 LINKCSV = UTF8
-;LINK = "test.csv"
-LINK = "real_card_data.csv"
+LINK = "test.csv"
+;LINK = "real_card_data.csv"
 
 ; Split the per-card Tags list into the three visible tag-icon slots.
 [tag1] = TOKENIZESEQ([Tags], 1, ~)
 [tag2] = TOKENIZESEQ([Tags], 2, ~)
 [tag3] = TOKENIZESEQ([Tags], 3, ~)
+
+; Pale fills for each tag's icon circle.
+[tag_outdoors_bg] = #DCEFD2
+[tag_indoors_bg] = #E4E6E8
+[tag_relax_bg] = #F7DCE5
+[tag_board_game_bg] = #E7DDF7
+[tag_item_bg] = #D7EAF8
+[tag_social_bg] = #FFF0BF
+[tag_food_bg] = #FBE1C8
+[tag_exercise_bg] = #F7D2D2
 
 ; Base card.
 RECTANGLE = , 0, 0, 2.74, 3.74, [paper]
@@ -99,32 +110,56 @@ TEXT = , [Cost], 0.30, 0.30, 0.32, 0.32, center, center, 0, 100, , , , 100, 110
 FONT = Montserrat, 13, BT, [ink]
 TEXT = , [Title], 0.32, 2.04, 2.18, 0.20, left, center, 0, 100, , , , 100, 100
 
-; Each tag is a 0.22-inch HTMLIMAGE glyph, twice the inline-text size.
+; Each 0.22-inch circle uses a faint tag color; its icon is 0.187 inch (1.7x inline size).
 ; Empty slots and unknown tags simply draw nothing.
-HTMLTEXT = LABELRANGE([tag1], Outdoors), "(tag_outdoors)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag1], Indoors), "(tag_indoors)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag1], Relax), "(tag_relax)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag1], Board Game), "(tag_boardgame)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag1], Item), "(tag_item)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag1], Social), "(tag_social)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag1], Food), "(tag_food)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag1], Exercise), "(tag_exercise)", 0.32, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag2], Outdoors), "(tag_outdoors)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag2], Indoors), "(tag_indoors)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag2], Relax), "(tag_relax)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag2], Board Game), "(tag_boardgame)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag2], Item), "(tag_item)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag2], Social), "(tag_social)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag2], Food), "(tag_food)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag2], Exercise), "(tag_exercise)", 0.92, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag3], Outdoors), "(tag_outdoors)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag3], Indoors), "(tag_indoors)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag3], Relax), "(tag_relax)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag3], Board Game), "(tag_boardgame)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag3], Item), "(tag_item)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag3], Social), "(tag_social)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag3], Food), "(tag_food)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
-HTMLTEXT = LABELRANGE([tag3], Exercise), "(tag_exercise)", 1.52, 2.24, 0.22, 0.22, [paper], 0, ET, 100, effect_text
+ELLIPSE = LABELRANGE([tag1], Outdoors), 0.32, 2.24, 0.22, 0.22, [tag_outdoors_bg], [tag_outdoors_bg], 0.001
+ELLIPSE = LABELRANGE([tag1], Indoors), 0.32, 2.24, 0.22, 0.22, [tag_indoors_bg], [tag_indoors_bg], 0.001
+ELLIPSE = LABELRANGE([tag1], Relax), 0.32, 2.24, 0.22, 0.22, [tag_relax_bg], [tag_relax_bg], 0.001
+ELLIPSE = LABELRANGE([tag1], Board Game), 0.32, 2.24, 0.22, 0.22, [tag_board_game_bg], [tag_board_game_bg], 0.001
+ELLIPSE = LABELRANGE([tag1], Item), 0.32, 2.24, 0.22, 0.22, [tag_item_bg], [tag_item_bg], 0.001
+ELLIPSE = LABELRANGE([tag1], Social), 0.32, 2.24, 0.22, 0.22, [tag_social_bg], [tag_social_bg], 0.001
+ELLIPSE = LABELRANGE([tag1], Food), 0.32, 2.24, 0.22, 0.22, [tag_food_bg], [tag_food_bg], 0.001
+ELLIPSE = LABELRANGE([tag1], Exercise), 0.32, 2.24, 0.22, 0.22, [tag_exercise_bg], [tag_exercise_bg], 0.001
+ELLIPSE = LABELRANGE([tag2], Outdoors), 0.92, 2.24, 0.22, 0.22, [tag_outdoors_bg], [tag_outdoors_bg], 0.001
+ELLIPSE = LABELRANGE([tag2], Indoors), 0.92, 2.24, 0.22, 0.22, [tag_indoors_bg], [tag_indoors_bg], 0.001
+ELLIPSE = LABELRANGE([tag2], Relax), 0.92, 2.24, 0.22, 0.22, [tag_relax_bg], [tag_relax_bg], 0.001
+ELLIPSE = LABELRANGE([tag2], Board Game), 0.92, 2.24, 0.22, 0.22, [tag_board_game_bg], [tag_board_game_bg], 0.001
+ELLIPSE = LABELRANGE([tag2], Item), 0.92, 2.24, 0.22, 0.22, [tag_item_bg], [tag_item_bg], 0.001
+ELLIPSE = LABELRANGE([tag2], Social), 0.92, 2.24, 0.22, 0.22, [tag_social_bg], [tag_social_bg], 0.001
+ELLIPSE = LABELRANGE([tag2], Food), 0.92, 2.24, 0.22, 0.22, [tag_food_bg], [tag_food_bg], 0.001
+ELLIPSE = LABELRANGE([tag2], Exercise), 0.92, 2.24, 0.22, 0.22, [tag_exercise_bg], [tag_exercise_bg], 0.001
+ELLIPSE = LABELRANGE([tag3], Outdoors), 1.52, 2.24, 0.22, 0.22, [tag_outdoors_bg], [tag_outdoors_bg], 0.001
+ELLIPSE = LABELRANGE([tag3], Indoors), 1.52, 2.24, 0.22, 0.22, [tag_indoors_bg], [tag_indoors_bg], 0.001
+ELLIPSE = LABELRANGE([tag3], Relax), 1.52, 2.24, 0.22, 0.22, [tag_relax_bg], [tag_relax_bg], 0.001
+ELLIPSE = LABELRANGE([tag3], Board Game), 1.52, 2.24, 0.22, 0.22, [tag_board_game_bg], [tag_board_game_bg], 0.001
+ELLIPSE = LABELRANGE([tag3], Item), 1.52, 2.24, 0.22, 0.22, [tag_item_bg], [tag_item_bg], 0.001
+ELLIPSE = LABELRANGE([tag3], Social), 1.52, 2.24, 0.22, 0.22, [tag_social_bg], [tag_social_bg], 0.001
+ELLIPSE = LABELRANGE([tag3], Food), 1.52, 2.24, 0.22, 0.22, [tag_food_bg], [tag_food_bg], 0.001
+ELLIPSE = LABELRANGE([tag3], Exercise), 1.52, 2.24, 0.22, 0.22, [tag_exercise_bg], [tag_exercise_bg], 0.001
+HTMLTEXT = LABELRANGE([tag1], Outdoors), "(tag_outdoors)", 0.3365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Indoors), "(tag_indoors)", 0.3365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Relax), "(tag_relax)", 0.3365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Board Game), "(tag_boardgame)", 0.3365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Item), "(tag_item)", 0.3365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Social), "(tag_social)", 0.3365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Food), "(tag_food)", 0.3365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag1], Exercise), "(tag_exercise)", 0.3365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Outdoors), "(tag_outdoors)", 0.9365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Indoors), "(tag_indoors)", 0.9365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Relax), "(tag_relax)", 0.9365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Board Game), "(tag_boardgame)", 0.9365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Item), "(tag_item)", 0.9365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Social), "(tag_social)", 0.9365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Food), "(tag_food)", 0.9365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag2], Exercise), "(tag_exercise)", 0.9365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Outdoors), "(tag_outdoors)", 1.5365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Indoors), "(tag_indoors)", 1.5365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Relax), "(tag_relax)", 1.5365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Board Game), "(tag_boardgame)", 1.5365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Item), "(tag_item)", 1.5365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Social), "(tag_social)", 1.5365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Food), "(tag_food)", 1.5365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
+HTMLTEXT = LABELRANGE([tag3], Exercise), "(tag_exercise)", 1.5365, 2.2565, 0.187, 0.187, [paper], 0, ET, 100, effect_text
 
 RECTANGLE = , 0.32, 2.52, 0.26, 0.015, [accent]
 

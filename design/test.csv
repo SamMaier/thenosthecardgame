@@ -1,8 +1,12 @@
 Title,Tags,Cost,Effect,Flavor,Image
-test1,"Social~Event~Outdoors",2,"Glyph showcase: (arrow_left) (arrow_right) (boardgame) (card) (energy) (exercise) (food) (fun) (indoors) (item) (relax) (social) (suitcase) (tree) (trunk)","When the lake goes quiet, the stories get louder.",photos/campfire.jpg
-WEDDING ANNIVERSARY,SOCIAL,0,"Copy the effect (but not tags) of an opponent's card. Pay that card's written (energy) cost.
-(cubes)",But not the wooden legged man,photos/wedding_anniversary.jpg
-SUNSCREEN,ITEM~OUTDOORS,1,(OUTDOORS_card)(after) cost -(energy).,Anyone have 100spf? OR <<NOZ BOOK ENTRY ABOUT SUNSCREEN APPLICATION,photos/sunscreen.jpg
-COUCH TUBE,EXERCISE~OUTDOORS,4,Score +(fun) for the total written (energy) cost on all (before)(card).,<<NOZ BOOK QUOTE JACKIE I THINK?,photos/couch_tube.jpg
-KNEEBOARD,EXERCISE~OUTDOORS,4,(fun)(fun)(fun)(fun)(fun).,Try not to traumatize the children by putting them in too tight,photos/kneeboard.jpg
-DORITOS,FOOD,0,"If you have played a (before)(FOOD_card), (energy)(energy).",Sweet Chili Heat? Cool Ranch? Zesty?,photos/doritos.jpg
+SKI BOAT,EXERCISE~ITEM~OUTDOORS,2,"Reveal (trunk) until an (EXERCISE_card) is shown.
+Add it to your hand and place the rest on (trunk) in any order.",Bust Out Another Thousand,photos/ski_boat.jpg
+SAN JUAN,BOARD GAME,3,"(fun)(fun)
+Choose a player who has 2 or fewer cards played. If they do not play a BOARD GAME today, +(fun)(fun)(fun)
+(cubes)",Hope I can snag a Guild Hall,photos/san_juan.jpg
+NEWFANGLED TRÈS FUTÉ,BOARD GAME,3,"(fun)
++(fun) for each unique tag you played by END OF DAY","So, your teal dice can convert to foxes, or you can reroll them for a yellow-white combo",photos/newfangled_tres_fute.jpg
+WÜRSTCHEN,FOOD,4,(energy) for each card in your hand,Tastes a lot better than it looks,photos/wurstchen.jpg
+BEAVER BURGERS,FOOD,3,"(fun)(fun)(fun)(fun)(fun)
+(card)(after) cost +(energy)",Friendship is: calling your buddy when taking your pregnant wife to the hospital to let claim your roadkill,photos/beaver_burgers.jpg
+TREKKING THROUGH HISTORY,BOARD GAME,2,(before)(BOARDGAME_card)(after) score +(fun)(fun),I'm not even going to look - all the good cards are going to be gone before I can go again,photos/trekking_through_history.jpg
