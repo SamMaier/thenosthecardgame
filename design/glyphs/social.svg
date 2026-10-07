@@ -1,18 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
-  <title id="title">Minimal glyph of two people with necks and arms</title>
-  <g stroke="#B18A00" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Arms sit behind the bodies so their outlines stay clear. -->
+  <title id="title">Social gathering glyph</title>
+  <g fill="#DA9B38" stroke="#DA9B38" stroke-linecap="round" stroke-linejoin="round">
     <g fill="none" stroke-width="12">
       <path d="M27 50 17 78M41 50l10 28M75 50 65 78M89 50l10 28"/>
     </g>
-    <g fill="none" stroke="#F3D34A" stroke-width="4">
-      <path d="M27 50 17 78M41 50l10 28M75 50 65 78M89 50l10 28"/>
-    </g>
-    <g fill="#F3D34A" stroke-width="4">
-      <path d="M22 103V56c0-6 4-10 8-11V35h8v10c4 1 8 5 8 11v47Z"/>
-      <path d="M70 103V56c0-6 4-10 8-11V35h8v10c4 1 8 5 8 11v47Z"/>
-      <circle cx="34" cy="25" r="11"/>
-      <circle cx="82" cy="25" r="11"/>
-    </g>
+    <path d="M22 103V56c0-6 4-10 8-11V35h8v10c4 1 8 5 8 11v47Z"/>
+    <path d="M70 103V56c0-6 4-10 8-11V35h8v10c4 1 8 5 8 11v47Z"/>
+    <circle cx="34" cy="25" r="11"/>
+    <circle cx="82" cy="25" r="11"/>
   </g>
 </svg>

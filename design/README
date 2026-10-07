@@ -1,5 +1,24 @@
 # nanDECK design notes
 
+## Card palette
+
+Tag-circle colors are each category's main color mixed 50% with white,
+rounded to the nearest channel value. Glyph details use the listed text/accent
+color.
+
+| Card type | Main color | Text/accent color | Tag circle |
+| --- | --- | --- | --- |
+| Card Backing (Light) | `#ECE3CE` | `#2B221B` | — |
+| OUTDOORS | `#4A6B43` | `#FFFFFF` | `#A5B5A1` |
+| FOOD | `#C85A32` | `#FFFFFF` | `#E4AD99` |
+| RELAX | `#7A82A6` | `#FFFFFF` | `#BDC1D3` |
+| SOCIAL | `#DA9B38` | `#1A1A1A` | `#EDCD9C` |
+| EXERCISE | `#B24A60` | `#FFFFFF` | `#D9A5B0` |
+| BOARD GAME | `#2C3E55` | `#FFFFFF` | `#969FAA` |
+| ITEM | `#6E777D` | `#FFFFFF` | `#B7BBBE` |
+| INDOORS | `#8C5338` | `#FFFFFF` | `#C6A99C` |
+| Card Backing (Dark) | `#3B312B` | `#F5EFE6` | — |
+
 ## Card photo framing
 
 Card photos use proportional cover scaling to fill the photo frame. The frame
@@ -15,7 +34,8 @@ The card template embeds glyphs inside `HTMLTEXT` fields. Adding a glyph require
 
 1. Create the source vector at `design/glyphs/<name>.svg`.
    - Use lowercase `snake_case` for `<name>`.
-   - Keep the artwork simple, monochrome black/grey, and on a transparent background.
+   - Keep the artwork simple and on a transparent background. Category glyphs
+     should use the card palette above; utility glyphs may use neutral colors.
    - Use a `viewBox="0 0 120 120"` so glyphs have consistent proportions.
 
 2. Run the rasterizer from the repository root. It requires Node.js and the `sharp` package; check that the package is available first:

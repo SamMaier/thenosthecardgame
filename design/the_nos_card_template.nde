@@ -10,12 +10,13 @@ UNIT = INCH
 CARDSIZE = 2.74, 3.74
 DPI = 600
 
-; Palette: warm paper, charcoal ink, restrained cedar accent.
-[paper] = #F5F0E8
-[ink] = #1F2528
-[shade] = #1F2528
-[accent] = #C65532
-[rule] = #D9D0C3
+; Palette: light card backing, dark card backing, and card-type glyph colors.
+[paper] = #ECE3CE
+[ink] = #2B221B
+[shade] = #3B312B
+[dark_accent] = #F5EFE6
+[accent] = #2B221B
+[rule] = #2B221B
 
 ; The linked CSV must have these columns:
 ; Title, Tags, Cost, Effect, Flavor text, Image
@@ -71,15 +72,15 @@ LINK = "test.csv"
 [tag2] = TOKENIZESEQ([Tags], 2, ~)
 [tag3] = TOKENIZESEQ([Tags], 3, ~)
 
-; Pale fills for each tag's icon circle.
-[tag_outdoors_bg] = #DCEFD2
-[tag_indoors_bg] = #E4E6E8
-[tag_relax_bg] = #F7DCE5
-[tag_board_game_bg] = #E7DDF7
-[tag_item_bg] = #D7EAF8
-[tag_social_bg] = #FFF0BF
-[tag_food_bg] = #FBE1C8
-[tag_exercise_bg] = #F7D2D2
+; Tag circles use their category color blended 50% toward white.
+[tag_outdoors_bg] = #A5B5A1
+[tag_indoors_bg] = #C6A99C
+[tag_relax_bg] = #BDC1D3
+[tag_board_game_bg] = #969FAA
+[tag_item_bg] = #B7BBBE
+[tag_social_bg] = #EDCD9C
+[tag_food_bg] = #E4AD99
+[tag_exercise_bg] = #D9A5B0
 
 ; Base card.
 RECTANGLE = , 0, 0, 2.74, 3.74, [paper]
@@ -97,12 +98,12 @@ RECTANGLE = , 0, 2.00, 2.74, 1.74, [paper]
 
 ; Energy cost badge - top-left, over the image.
 ; Its entire bounding box is inside the safe area.
-; Draw the dark-grey fill at 20% opacity, then the paper-colored outline.
+; Dark card-back fill with the light dark-backing accent for its outline and text.
 LAYER = 20
 ROUNDRECT = , 0.30, 0.30, 0.32, 0.32, [shade], [shade], 0.001, 0.06, 0.06, R
 ENDLAYER
-ROUNDRECT = , 0.30, 0.30, 0.32, 0.32, [paper], EMPTY, 0.012, 0.06, 0.06, R
-FONT = Montserrat, 11, BT, [paper]
+ROUNDRECT = , 0.30, 0.30, 0.32, 0.32, [dark_accent], EMPTY, 0.012, 0.06, 0.06, R
+FONT = Montserrat, 11, BT, [dark_accent]
 TEXT = , [Cost], 0.30, 0.30, 0.32, 0.32, center, center, 0, 100, , , , 100, 110
 
 ; Title, tags, effect, and flavor text.
@@ -110,7 +111,8 @@ TEXT = , [Cost], 0.30, 0.30, 0.32, 0.32, center, center, 0, 100, , , , 100, 110
 FONT = Montserrat, 13, BT, [ink]
 TEXT = , [Title], 0.32, 2.04, 2.18, 0.20, left, center, 0, 100, , , , 100, 100
 
-; Each 0.22-inch circle uses a faint tag color; its icon is 0.187 inch (1.7x inline size).
+; Each 0.22-inch tag circle uses a 50%-to-white category tint; its icon is
+; 0.187 inch (1.7x inline size).
 ; Empty slots and unknown tags simply draw nothing.
 ELLIPSE = LABELRANGE([tag1], Outdoors), 0.32, 2.24, 0.22, 0.22, [tag_outdoors_bg], [tag_outdoors_bg], 0.001
 ELLIPSE = LABELRANGE([tag1], Indoors), 0.32, 2.24, 0.22, 0.22, [tag_indoors_bg], [tag_indoors_bg], 0.001

@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
-  <title id="title">Minimal red running shoe glyph</title>
-  <g stroke="#9B2335" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-    <path d="M15 84c0-6 5-10 12-11l24-5c8-2 14-7 18-14l10-18c2-4 7-5 10-1l11 16 4 5 12 8c5 3 8 7 8 12 0 7-6 12-15 12H26c-7 0-11-1-11-4Z" fill="#E84B5F"/>
-    <path d="M15 84c13 4 31 5 53 5h41c9 0 14-2 16-7 2 8-4 14-14 14H26c-7 0-11-3-11-8Z" fill="#B72F43" stroke="none"/>
+  <title id="title">Exercise running shoe glyph</title>
+  <g stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+    <path d="M15 84c0-6 5-10 12-11l24-5c8-2 14-7 18-14l10-18c2-4 7-5 10-1l11 16 4 5 12 8c5 3 8 7 8 12 0 7-6 12-15 12H26c-7 0-11-1-11-4Z" fill="#B24A60" stroke="none"/>
+    <path d="M15 84c13 4 31 5 53 5h41c9 0 14-2 16-7 2 8-4 14-14 14H26c-7 0-11-3-11-8Z" fill="#B24A60" stroke="none"/>
     <path d="M61 56 78 67M55 64l17 10M49 71l15 10" fill="none"/>
   </g>
 </svg>

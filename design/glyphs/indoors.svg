@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
-  <title id="title">Minimal grey house glyph</title>
-  <g stroke="#59616D" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-    <path d="M17 52 60 19l43 33v51H17Z" fill="#BCC3CB"/>
+  <title id="title">Indoors house glyph</title>
+  <g stroke="#2B221B" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
+    <path d="M17 52 60 19l43 33v51H17Z" fill="#8C5338" stroke="none"/>
     <path d="m17 52 43-33 43 33" fill="none"/>
-    <path d="M48 103V72h24v31Z" fill="#69727D"/>
-    <path d="M28 63h15M77 63h15" fill="none" stroke="#87909B"/>
+    <path d="M48 103V72h24v31Z" fill="#2B221B" stroke="none"/>
+    <path d="M28 63h15M77 63h15" fill="none"/>
   </g>
 </svg>
