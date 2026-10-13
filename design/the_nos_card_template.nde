@@ -85,12 +85,12 @@ LINK = "test.csv"
 ; Base card.
 RECTANGLE = , 0, 0, 2.74, 3.74, [paper]
 
-; Photo spans exactly the cut-line width (x=0.12..2.62) and extends to the top.
+; Photo stays inside the cut line: x=0.12..2.62, y=0.12..2.00.
 ; C preserves the aspect ratio and fills the frame, cropping the excess.
-; I applies EXIF rotation first, so portrait photos fill the width and crop
-; at the top and bottom even when orientation is stored in the photo metadata.
+; I applies EXIF rotation before scaling, including when orientation is stored
+; in the photo metadata.
 ; The badge is intentionally drawn later, so it sits over the photo.
-IMAGE = , [Image], 0.12, 0, 2.50, 2.00, 0, CI
+IMAGE = , [Image], 0.12, 0.12, 2.50, 1.88, 0, CI
 
 ; Information panel.
 ; It is allowed to extend into the bleed because it is plain paper.
@@ -175,3 +175,5 @@ HTMLTEXT = , [Flavor text], 0.32, 3.18, 2.18, 0.32, [paper], 0, ET, 100, flavor_
 ; Draw a quiet border on the safe-area boundary, last.
 ; It is decorative only; all critical content is inside it.
 ROUNDRECT = , 0.22, 0.22, 2.30, 3.30, [ink], EMPTY, 0.015, 0.08, 0.08, R
+; Cutline
+ROUNDRECT = , 0.12, 0.12, 2.50, 3.50, [ink], EMPTY, 0.015, 0.08, 0.08, R
