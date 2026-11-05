@@ -29,7 +29,7 @@ class TellAStoryTests(unittest.TestCase):
 
     def test_moves_a_chosen_discard_to_the_top_of_the_trunk(self) -> None:
         game = empty_game()
-        game.ais[0] = TargetDiscardAI("Biography", random.Random(0))
+        game.ais[0] = TargetDiscardAI("Non-Fiction Book", random.Random(0))
         player = game.players[0]
         player.energy = 7
         fajitas = make_card("fajitas")

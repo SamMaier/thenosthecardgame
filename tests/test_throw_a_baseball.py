@@ -41,9 +41,9 @@ class ThrowABaseballTests(unittest.TestCase):
         self.assertIn(picked, player.hand)
         self.assertIs(game.suitcase[0], refill)
         self.assertEqual(len(game.suitcase), 4)
-        self.assertEqual(player.picked_cards["Biography"], 1)
-        self.assertEqual(player.acquired_cards["Biography"], 1)
-        self.assertEqual(game.stats.suitcase_picks["Biography"], 1)
+        self.assertEqual(player.picked_cards["Non-Fiction Book"], 1)
+        self.assertEqual(player.acquired_cards["Non-Fiction Book"], 1)
+        self.assertEqual(game.stats.suitcase_picks["Non-Fiction Book"], 1)
 
 
 if __name__ == "__main__":

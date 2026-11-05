@@ -25,8 +25,8 @@ class CardRunnerTests(unittest.TestCase):
         cls.rows = read_card_rows(REPO)
         cls.jobs = build_jobs(cls.rows)
 
-    def test_builds_five_groups_then_ninety_seven_single_card_jobs(self) -> None:
-        self.assertEqual(len(self.jobs), 102)
+    def test_builds_five_groups_then_ninety_eight_single_card_jobs(self) -> None:
+        self.assertEqual(len(self.jobs), 103)
         self.assertEqual(
             [len(job.cards) for job in self.jobs[:5]],
             [len(spec[2]) for spec in GROUP_SPECS],
@@ -43,10 +43,10 @@ class CardRunnerTests(unittest.TestCase):
 
     def test_existing_cards_are_removed_from_pending_group(self) -> None:
         pending = pending_cards(
-            self.jobs[0], {"Biography": "biography", "Waterski": "waterski"}
+            self.jobs[0], {"Non-Fiction Book": "non-fiction-book", "Waterski": "waterski"}
         )
-        self.assertEqual(len(pending), 17)
-        self.assertNotIn("Biography", {card.title for card in pending})
+        self.assertEqual(len(pending), 18)
+        self.assertNotIn("NON-FICTION BOOK", {card.title for card in pending})
 
     def test_implemented_card_is_skipped_despite_title_formatting(self) -> None:
         unique_card = next(

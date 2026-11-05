@@ -504,7 +504,7 @@ GROUP_DINNER = CardDefinition(
 
 
 class TreatStoreRunBehavior(CardBehavior):
-    """Pick all Food cards visible in the Suitcase when played."""
+    """Pick Food cards from the Suitcase until none remain."""
 
     def on_play(
         self,
@@ -512,13 +512,16 @@ class TreatStoreRunBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        targets = tuple(
-            suitcase_card
-            for suitcase_card in game.suitcase
-            if "Food" in suitcase_card.tags
-        )
-        if targets:
-            game.pick_suitcase_cards(game.players.index(player), targets)
+        player_index = game.players.index(player)
+        while True:
+            targets = tuple(
+                suitcase_card
+                for suitcase_card in game.suitcase
+                if "Food" in suitcase_card.tags
+            )
+            if not targets:
+                break
+            game.pick_suitcase_cards(player_index, targets)
 
 
 TREAT_STORE_RUN = CardDefinition(
@@ -598,7 +601,7 @@ GROCERY_STORE_RUN = CardDefinition(
     slug="grocery-store-run",
     title="Grocery Store Run",
     tags=frozenset({"Food"}),
-    cost=3,
+    cost=2,
     behavior=GroceryStoreRunBehavior(),
 )
 

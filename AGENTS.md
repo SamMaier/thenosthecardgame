@@ -2,7 +2,7 @@
 
 This repository is a headless Python simulator for four AI players. The rules
 engine and card catalog primarily support reproducible card-strength studies.
-Current work should prioritize trustworthy card metrics, long four-Galaxybrain
+Current work should prioritize trustworthy card metrics, long four-Argonbrain
 batches, reproducible seeds, and clear reporting over adding more policies.
 
 `cards.csv` is the source of truth for card wording, `characters.tsv` is the
@@ -15,10 +15,10 @@ for general rules.
   rotation, card statistics, and `SimulationReport.rows()`.
 - `thenos/game.py` and `thenos/models.py`: rules and the low-level statistics
   hooks for free choices, acquisitions, plays, scores, and wins.
-- `thenos/ais/galaxybrain.py`: the preferred policy for meaningful card-data
+- `thenos/ais/argonbrain.py`: the preferred policy for meaningful card-data
   runs.
-- `thenos/ais/megamind.py` and `thenos/ais/genius.py`: deprecated policies
-  retained only as explicit competitor options for comparative simulations.
+- `thenos/ais/galaxybrain.py`, `thenos/ais/megamind.py`, and
+  `thenos/ais/genius.py`: older policies retained for comparative simulations.
 - `thenos/ais/random_ai.py`: a plumbing baseline, not a card-ranking policy.
 - `thenos/ais/interface.py`: the stable `PlayerAI` decision protocol.
 - `thenos/cards/`: stateless card behaviors; per-copy state belongs in
@@ -81,9 +81,9 @@ select cards that fit already-good hands, cards can be acquired together, and
 rare-card estimates can be noisy. Preserve both with-card and without-card
 sample counts and do not rank cards from tiny denominators.
 
-## Standard four-Galaxybrain card-data run
+## Standard four-Argonbrain card-data run
 
-Use four copies of `GalaxybrainAI` for card-strength data. The default
+Use four copies of `ArgonbrainAI` for card-strength data. The default
 `python -m thenos` command uses four Random AIs; it is useful for fast plumbing
 checks, but its free pick rates should converge toward 25% and are not strategic
 rankings.
@@ -91,12 +91,12 @@ rankings.
 For an actual card-data run, use the module CLI below. Do not create an
 ad-hoc runner or inline `Game.run()` loop: custom formatters are easy to get
 wrong and can lose a long run's results after simulation completes. The
-`--output` option is required for four-Galaxybrain runs and atomically writes
+`--output` option is required for four-Argonbrain runs and atomically writes
 the complete CSV before the human-readable table is printed.
 
 ```powershell
 wsl.exe python3 -m thenos 10000 --seed 20260901 --workers 16 \
-  --four-galaxybrain --output galaxybrain_10000_seed_20260901.csv
+  --four-argonbrain --output argonbrain_10000_seed_20260901.csv
 ```
 
 The CSV includes run metadata, every registered card, all three primary
@@ -109,7 +109,7 @@ keys returned by `SimulationReport.rows()` (not invented aliases such as
 The equivalent competition-runner API is:
 
 ```python
-from thenos.ais import GalaxybrainAI
+from thenos.ais import ArgonbrainAI
 from thenos.simulation import (
     Competitor,
     simulate_games,
@@ -120,13 +120,13 @@ report = simulate_games(
     32,
     seed=20260816,
     competitors=tuple(
-        Competitor("Galaxybrain", GalaxybrainAI) for _ in range(4)
+        Competitor("Argonbrain", ArgonbrainAI) for _ in range(4)
     ),
     rotate_seats=True,
     workers=16,
 )
 
-write_report_csv(report, "galaxybrain_report.csv")
+write_report_csv(report, "argonbrain_report.csv")
 print("Card | Free pick rate | Win rate | Fun added")
 for row in report.rows():
     print(
@@ -135,16 +135,16 @@ for row in report.rows():
     )
 ```
 
-`python -m thenos --four-galaxybrain` delegates to
-`simulate_four_galaxybrain`, which supplies the four named Galaxybrain
+`python -m thenos --four-argonbrain` delegates to
+`simulate_four_argonbrain`, which supplies the four named Argonbrain
 competitors and seat rotation. `workers` uses independent processes through
-`ProcessPoolExecutor`, not threads. Galaxybrain is substantially faster than the deprecated Megamind and
-Genius policies, but a many-hundred-game run can still take significant time,
-so leave an ample command timeout.
+`ProcessPoolExecutor`, not threads. Argonbrain is faster and stronger than
+Galaxybrain, Megamind, and Genius, but a many-hundred-game run can still take
+significant time, so leave an ample command timeout.
 
 ### Batch sizes and seeds
 
-- Use 8 games for a quick four-Galaxybrain wiring smoke test.
+- Use 8 games for a quick four-Argonbrain wiring smoke test.
 - Use 32 games only as a preliminary metric check; do not call it stable.
 - Use many hundreds of games for a serious card ranking.
 - Keep game counts divisible by four and enable seat rotation.
@@ -163,8 +163,8 @@ primary metrics. For analysis, also retain these denominators and diagnostics:
 - total acquisitions and plays;
 - average final score and fractional win rate for each named policy.
 
-Repeated competitor names are aggregated. With four Galaxybrain entries, the
-`Galaxybrain` result contains four player appearances per game and should have
+Repeated competitor names are aggregated. With four Argonbrain entries, the
+`Argonbrain` result contains four player appearances per game and should have
 about a 25% per-appearance win rate. Tied winners must split one win rather
 than each receiving a full win.
 
@@ -207,12 +207,12 @@ persistent WSL Python so results are reproducible across Codex chats:
 ```powershell
 wsl.exe python3 -m unittest discover -v
 wsl.exe python3 -m thenos 32 --seed 20260815 --workers 16
-wsl.exe python3 -c "from thenos.ais import GalaxybrainAI; from thenos.simulation import Competitor, simulate_games; r=simulate_games(8, seed=20260816, competitors=tuple(Competitor('Galaxybrain', GalaxybrainAI) for _ in range(4)), rotate_seats=True, workers=16); print(len(r.cards), r.ais['Galaxybrain'])"
+wsl.exe python3 -c "from thenos.ais import ArgonbrainAI; from thenos.simulation import Competitor, simulate_games; r=simulate_games(8, seed=20260816, competitors=tuple(Competitor('Argonbrain', ArgonbrainAI) for _ in range(4)), rotate_seats=True, workers=16); print(len(r.cards), r.ais['Argonbrain'])"
 ```
 
 Do not use Python 3.8; the engine relies on Python 3.11 features such as slotted
 dataclasses. For statistics changes, complete the full tests, a seeded Random
-plumbing batch, and a seeded four-Galaxybrain smoke batch before considering the
+plumbing batch, and a seeded four-Argonbrain smoke batch before considering the
 work finished.
 
 ## Policy and engine constraints

@@ -174,27 +174,6 @@ class WeddingAnniversaryTests(unittest.TestCase):
         self.assertEqual(player.energy, 12)
         self.assertTrue(food.markers["energy_cube"])
 
-    def test_copying_nos_shirt_can_copy_a_different_item(self) -> None:
-        game = empty_game()
-        game.ais[0] = TargetCopyAI("Nos Shirt", game.rng)
-        player = game.players[0]
-        player.energy = 10
-        item = make_card("booby-prize")
-        player.played_today.append(item)
-        player.hand.append(make_card("wedding-anniversary"))
-        source = make_card("nos-shirt")
-        game.players[1].played_today.append(source)
-        drawn = make_card("biography")
-        game.trunk.append(drawn)
-
-        wedding = game.play_card(0, 0)
-
-        self.assertIs(wedding.effective_behavior, item.effective_behavior)
-        self.assertEqual(wedding.effective_cost, 1)
-        self.assertIn(drawn, player.hand)
-        self.assertTrue(item.markers["energy_cube"])
-        self.assertTrue(source.markers["energy_cube"])
-
 
 if __name__ == "__main__":
     unittest.main()

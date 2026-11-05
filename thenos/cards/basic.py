@@ -361,17 +361,23 @@ class EuchreTournamentBehavior(CardBehavior):
 
 
 class EuchreTournamentAwardsCeremonyBehavior(CardBehavior):
-    """Pick three cards from the Suitcase, with each slot refilled immediately."""
+    """Pick a card from the Suitcase whenever a later card is played today."""
 
-    def on_play(
+    def on_card_play(
         self,
         game: Game,
         player: PlayerState,
-        card: CardInstance,
+        source: CardInstance,
+        played_card: CardInstance,
     ) -> None:
-        player_index = game.players.index(player)
-        for _ in range(3):
-            game.pick_from_suitcase(player_index)
+        if (
+            played_card is not source
+            and source in player.played_today
+            and played_card in player.played_today
+            and player.played_today.index(played_card)
+            > player.played_today.index(source)
+        ):
+            game.pick_from_suitcase(game.players.index(player))
 
 
 class MakePlansBehavior(CardBehavior):
@@ -405,14 +411,6 @@ class ScrabbleBehavior(CardBehavior):
         for _ in choices:
             game.pick_from_suitcase(player_index)
 
-
-BIOGRAPHY = CardDefinition(
-    slug="biography",
-    title="Biography",
-    tags=frozenset({"Relax"}),
-    cost=1,
-    base_fun=2,
-)
 
 FAJITAS = CardDefinition(
     slug="fajitas",
@@ -525,7 +523,7 @@ EUCHRE_TOURNAMENT = CardDefinition(
     slug="euchre-tournament",
     title="Euchre Tournament",
     tags=frozenset({"Board Game", "Indoors"}),
-    cost=7,
+    cost=6,
     base_fun=5,
     behavior=EuchreTournamentBehavior(),
 )

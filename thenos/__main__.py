@@ -10,6 +10,8 @@ from pathlib import Path
 from thenos.simulation import (
     character_report_path,
     condition_report_path,
+    simulate_argonbrain_vs_planner,
+    simulate_four_argonbrain,
     simulate_four_galaxybrain,
     simulate_galaxybrain_vs_planner,
     simulate_games,
@@ -64,6 +66,16 @@ def main() -> None:
         help="seat-balance one Planner AI against three Greedy AIs",
     )
     parser.add_argument(
+        "--argonbrain-vs-planner",
+        action="store_true",
+        help="seat-balance one Argonbrain AI against three Planner AIs",
+    )
+    parser.add_argument(
+        "--four-argonbrain",
+        action="store_true",
+        help="run the standard seat-rotated four-Argonbrain card-data batch",
+    )
+    parser.add_argument(
         "--galaxybrain-vs-planner",
         action="store_true",
         help="seat-balance one Galaxybrain AI against three Planner AIs",
@@ -71,7 +83,7 @@ def main() -> None:
     parser.add_argument(
         "--four-galaxybrain",
         action="store_true",
-        help="run the standard seat-rotated four-Galaxybrain card-data batch",
+        help="run a seat-rotated four-Galaxybrain card-data batch",
     )
     parser.add_argument(
         "--output",
@@ -79,7 +91,7 @@ def main() -> None:
         default=None,
         help="atomically write the complete card report to this CSV file",
     )
-    parser.add_argument("--daily-conditions", action="store_true", help="enable the optional Daily Condition deck and Read the Radar")
+    parser.add_argument("--daily-conditions", action="store_true", help="enable the optional Daily Condition deck")
     parser.add_argument(
         "--characters",
         action="store_true",
@@ -91,12 +103,18 @@ def main() -> None:
         (
             args.greedy_vs_random,
             args.planner_vs_greedy,
+            args.argonbrain_vs_planner,
+            args.four_argonbrain,
             args.galaxybrain_vs_planner,
             args.four_galaxybrain,
         )
     )
     if matchup_modes > 1:
         parser.error("choose only one matchup mode")
+    if args.four_argonbrain and args.output is None:
+        parser.error(
+            "--four-argonbrain requires --output so card stats are preserved"
+        )
     if args.four_galaxybrain and args.output is None:
         parser.error(
             "--four-galaxybrain requires --output so card stats are preserved"
@@ -104,7 +122,29 @@ def main() -> None:
 
     revision = _code_revision()
     started = time.perf_counter()
-    if args.four_galaxybrain:
+    if args.four_argonbrain:
+        report = simulate_four_argonbrain(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
+        run_mode = "four-argonbrain"
+        competitors = "Argonbrain,Argonbrain,Argonbrain,Argonbrain"
+        rotate_seats = True
+    elif args.argonbrain_vs_planner:
+        report = simulate_argonbrain_vs_planner(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
+        run_mode = "argonbrain-vs-planner"
+        competitors = "Argonbrain,Planner,Planner,Planner"
+        rotate_seats = True
+    elif args.four_galaxybrain:
         report = simulate_four_galaxybrain(
             args.games,
             args.seed,

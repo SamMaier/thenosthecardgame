@@ -417,7 +417,21 @@ class PlannerAI(GreedyAI):
         player_index: int,
         hand: Sequence[CardInstance],
     ) -> Sequence[int]:
-        # Both current multi-discard effects reward cycling low-value cards.
+        player = game.players[player_index]
+        if hand and all(card in player.played_today for card in hand):
+            return tuple(
+                index
+                for index, card in enumerate(hand)
+                if game.card_fun(player_index, card) < 3
+                and not card.effective_behavior.has_tomorrow_action
+                and type(card.effective_behavior).modify_fun
+                is CardBehavior.modify_fun
+                and type(card.effective_behavior).modify_energy_cost
+                is CardBehavior.modify_energy_cost
+                and type(card.effective_behavior).on_card_play
+                is CardBehavior.on_card_play
+            )
+        # Multi-discard effects on hand cards reward cycling low-value cards.
         return tuple(
             index for index, card in enumerate(hand) if self._card_value(card) <= 1.0
         )

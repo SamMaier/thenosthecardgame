@@ -36,7 +36,7 @@ class BougieCoffeeMachineTests(unittest.TestCase):
         self.assertEqual(player.hand, [other_card])
         self.assertEqual(game.stats.card_plays["Fajitas"], 1)
         self.assertEqual(game.stats.card_plays["Cheap White"], 1)
-        self.assertEqual(game.stats.card_acquisitions["Biography"], 1)
+        self.assertEqual(game.stats.card_acquisitions["Non-Fiction Book"], 1)
         self.assertEqual(game.stats.card_acquisitions["Fajitas"], 0)
         self.assertEqual(game.trunk, [])
 

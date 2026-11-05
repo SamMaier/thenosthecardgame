@@ -3,6 +3,8 @@
 from thenos.game import Game, GameResult
 from thenos.simulation import (
     SimulationReport,
+    simulate_argonbrain_vs_planner,
+    simulate_four_argonbrain,
     simulate_four_galaxybrain,
     simulate_galaxybrain_vs_planner,
     simulate_games,
@@ -14,6 +16,8 @@ __all__ = [
     "Game",
     "GameResult",
     "SimulationReport",
+    "simulate_argonbrain_vs_planner",
+    "simulate_four_argonbrain",
     "simulate_four_galaxybrain",
     "simulate_galaxybrain_vs_planner",
     "simulate_games",

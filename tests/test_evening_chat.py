@@ -56,7 +56,7 @@ class EveningChatTests(unittest.TestCase):
             [card.title for card in player.played_today],
             ["Evening Chat"],
         )
-        self.assertEqual([card.title for card in player.hand], ["Biography"])
+        self.assertEqual([card.title for card in player.hand], ["Non-Fiction Book"])
         self.assertEqual(game.starting_player, 0)
 
     def test_tomorrow_reduces_next_day_starting_energy(self) -> None:

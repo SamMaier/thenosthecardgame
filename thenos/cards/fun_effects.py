@@ -35,6 +35,20 @@ def _is_after(
     )
 
 
+def _is_before(
+    player: PlayerState,
+    source: CardInstance,
+    target: CardInstance,
+) -> bool:
+    source_position = _today_position(player, source)
+    target_position = _today_position(player, target)
+    return (
+        source_position is not None
+        and target_position is not None
+        and target_position < source_position
+    )
+
+
 def _is_after_for_cost(
     player: PlayerState,
     source: CardInstance,
@@ -294,7 +308,7 @@ class FunForTagsBeforeAndAfterBehavior(CardBehavior):
 
 
 class FunFromOtherCardsWrittenCostBehavior(CardBehavior):
-    """Adjust this card's Fun by the written costs of other cards today."""
+    """Adjust this card's Fun by the written costs of cards played before it today."""
 
     def __init__(self, multiplier: int = 1) -> None:
         self.multiplier = multiplier
@@ -306,9 +320,8 @@ class FunFromOtherCardsWrittenCostBehavior(CardBehavior):
         card: CardInstance,
     ) -> int:
         written_cost_total = sum(
-            other_card.definition.cost
-            for other_card in player.played_today
-            if other_card is not card
+            before_card.definition.cost
+            for before_card in game.cards_played_before(player, card)
         )
         return card.effective_base_fun + self.multiplier * written_cost_total
 
@@ -594,7 +607,7 @@ FAMILY_BASEBALL_GAME = CardDefinition(
     tags=frozenset({"Exercise", "Social", "Outdoors"}),
     cost=3,
     base_fun=5,
-    behavior=ZeroFunForTagsTodayBehavior(frozenset({"Relax", "Board Game"})),
+    behavior=FunForTagsBeforeAndAfterBehavior(frozenset({"Relax", "Board Game"}), -1),
 )
 
 EUCHRE = CardDefinition(
@@ -727,52 +740,34 @@ PRIME_PICNIC_TABLE = CardDefinition(
 )
 
 class NosBookBehavior(CardBehavior):
-    """Collect end-of-day discards, keep one, and optionally stack the rest."""
+    """Choose a previously played card today to score +3 Fun."""
 
-    def on_after_end_day(
+    def on_play(
         self,
         game: Game,
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        if card not in player.played_today:
+        previous_cards = tuple(game.cards_played_before(player, card))
+        if not previous_cards:
             return
-
-        candidates = [
-            candidate
-            for candidate_player in game.players
-            for candidate in (
-                *candidate_player.tomorrow_cards,
-                *candidate_player.played_today,
-            )
-            if candidate.is_tomorrow
-            or not candidate.effective_behavior.has_tomorrow_action
-        ]
-        if not candidates:
-            return
-
-        for candidate_player in game.players:
-            candidate_player.tomorrow_cards[:] = [
-                candidate for candidate in candidate_player.tomorrow_cards
-                if candidate not in candidates
-            ]
-            candidate_player.played_today[:] = [
-                candidate for candidate in candidate_player.played_today
-                if candidate not in candidates
-            ]
-
         player_index = game.players.index(player)
-        for candidate in candidates:
-            candidate.is_tomorrow = False
-            candidate.markers.clear()
-        kept = game.choose_card_target(player_index, tuple(candidates))
-        candidates.remove(kept)
-        game.give_card(player_index, kept)
+        target = game.choose_card_target(player_index, previous_cards)
+        target.markers["energy_cube"] = True
+        card.markers["target_card"] = target
 
-        returned = game.choose_cards_for_trunk(player_index, candidates)
-        for remaining in candidates:
-            if remaining not in returned:
-                game.discard_card(remaining)
+    def modify_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if _is_before(player, source, target) and source.markers.get("target_card") is target:
+            return current_fun + 3
+        return current_fun
+
 
 NOS_BOOK = CardDefinition(
     slug="nos-book",
@@ -790,10 +785,19 @@ SWEET_LAWN_CHAIR = CardDefinition(
     behavior=FunForTagAfterBehavior("Relax", 2),
 )
 
+SPA_DAY = CardDefinition(
+    slug="spa-day",
+    title="Spa Day",
+    tags=frozenset({"Relax", "Social"}),
+    cost=2,
+    base_fun=2,
+    behavior=FunForTagAfterBehavior("Relax", 1),
+)
+
 BRACELET_MAKING = CardDefinition(
     slug="bracelet-making",
     title="Bracelet Making",
-    tags=frozenset({"Relax"}),
+    tags=frozenset({"Relax", "Social"}),
     cost=3,
     base_fun=1,
     behavior=FunForNextTagBehavior("Social", 4),
@@ -935,6 +939,7 @@ FUN_EFFECT_CARDS = (
     PRIME_PICNIC_TABLE,
     NOS_BOOK,
     SWEET_LAWN_CHAIR,
+    SPA_DAY,
     BRACELET_MAKING,
     MOVIE,
     JOHNNY_APPLESEED,

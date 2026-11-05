@@ -102,12 +102,13 @@ RISK = CardDefinition(
 )
 
 CIVILIZATION_THE_BOARD_GAME = CardDefinition(
-    slug="civilization-the-board-game",
-    title="Civilization the Board Game",
+    slug="civilization-the-boardgame",
+    title="Civilization the Boardgame",
     tags=frozenset({"Board Game", "Indoors"}),
     cost=10,
-    base_fun=14,
+    base_fun=4,
 )
+CIVILIZATION_THE_BOARDGAME = CIVILIZATION_THE_BOARD_GAME
 
 KNEEBOARD = CardDefinition(
     slug="kneeboard",
@@ -165,6 +166,14 @@ THRILLER_BOOK = CardDefinition(
     base_fun=3,
 )
 
+NON_FICTION_BOOK = CardDefinition(
+    slug="non-fiction-book",
+    title="Non-Fiction Book",
+    tags=frozenset({"Relax"}),
+    cost=1,
+    base_fun=2,
+)
+
 DOCK_FISHING = CardDefinition(
     slug="dock-fishing",
     title="Dock Fishing",
@@ -192,5 +201,6 @@ PURE_FUN_CARDS = (
     CHEAP_WHITE,
     CHALK_ART,
     THRILLER_BOOK,
+    NON_FICTION_BOOK,
     DOCK_FISHING,
 )

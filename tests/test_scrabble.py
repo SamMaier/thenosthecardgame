@@ -74,7 +74,7 @@ class ScrabbleTests(unittest.TestCase):
         self.assertIn(second_pick, player.hand)
         self.assertEqual(len(game.suitcase), 4)
         self.assertEqual(player.picked_cards["Fajitas"], 1)
-        self.assertEqual(player.picked_cards["Biography"], 1)
+        self.assertEqual(player.picked_cards["Non-Fiction Book"], 1)
         self.assertEqual(sum(game.stats.suitcase_picks.values()), 2)
         self.assertEqual(game.card_fun(0, card), 2)
 

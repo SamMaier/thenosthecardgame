@@ -16,7 +16,7 @@ class FancyFloatieTests(unittest.TestCase):
             frozenset({"Relax", "Item", "Outdoors"}),
         )
 
-    def test_picks_all_currently_visible_relax_cards_not_their_replacements(self) -> None:
+    def test_picks_all_relax_cards_including_replacements_until_none_remain(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
@@ -28,24 +28,26 @@ class FancyFloatieTests(unittest.TestCase):
         other_non_relax = make_card("waterski")
         replacement_relax = make_card("thriller-book")
         replacement_non_relax = make_card("cheap-white")
+        final_non_relax = make_card("solo")
         game.suitcase = [first_relax, non_relax, second_relax, other_non_relax]
-        game.trunk = [replacement_relax, replacement_non_relax]
+        game.trunk = [final_non_relax, replacement_relax, replacement_non_relax]
 
         game.play_card(0, 0)
 
         self.assertIn(first_relax, player.hand)
         self.assertIn(second_relax, player.hand)
-        self.assertNotIn(replacement_relax, player.hand)
+        self.assertIn(replacement_relax, player.hand)
         self.assertNotIn(replacement_non_relax, player.hand)
+        self.assertNotIn(final_non_relax, player.hand)
         self.assertNotIn(non_relax, player.hand)
         self.assertNotIn(other_non_relax, player.hand)
         self.assertEqual(
             game.suitcase,
-            [replacement_non_relax, non_relax, replacement_relax, other_non_relax],
+            [replacement_non_relax, non_relax, final_non_relax, other_non_relax],
         )
-        self.assertEqual(sum(player.picked_cards.values()), 2)
-        self.assertEqual(sum(player.acquired_cards.values()), 2)
-        self.assertEqual(sum(game.stats.suitcase_offers.values()), 4)
+        self.assertEqual(sum(player.picked_cards.values()), 3)
+        self.assertEqual(sum(player.acquired_cards.values()), 3)
+        self.assertEqual(sum(game.stats.suitcase_offers.values()), 8)
 
     def test_does_nothing_when_no_relax_card_is_visible(self) -> None:
         game = empty_game()

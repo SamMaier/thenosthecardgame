@@ -13,9 +13,8 @@ from thenos.cards.new_cards import (
     QUACKS,
     READ_THE_RADAR,
 )
-from thenos.cards.copy_effects import LAST_YEARS_SHORTS, NOS_SHIRT, WEDDING_ANNIVERSARY
+from thenos.cards.copy_effects import LAST_YEARS_SHIRT, NOS_SHIRT, WEDDING_ANNIVERSARY
 from thenos.cards.basic import (
-    BIOGRAPHY,
     CARCASSONNE,
     EPIC_DUELS,
     EPIC_PRANK,
@@ -61,6 +60,7 @@ from thenos.cards.exercise import (
     PLAY_WITH_THE_KIDS,
     SKI_ON_COUSINS_SHOULDERS,
     SLALOM_START,
+    SWIMMING,
     THROW_A_BASEBALL,
     WAKESURF,
     WRESTLE_THE_KIDS,
@@ -100,7 +100,6 @@ from thenos.cards.social import (
 CARD_REGISTRY: dict[str, CardDefinition] = {
     card.slug: card
     for card in (
-        BIOGRAPHY,
         CARCASSONNE,
         EPIC_DUELS,
         EPIC_PRANK,
@@ -122,7 +121,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         KAYAK,
         WEDDING_ANNIVERSARY,
         EVENING_CHAT,
-        LAST_YEARS_SHORTS,
+        LAST_YEARS_SHIRT,
         NOS_SHIRT,
         BEACH_CONVERSATION,
         SING_SONG,
@@ -152,6 +151,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         FLOATING,
         ZUMBA,
         PLAY_WITH_THE_KIDS,
+        SWIMMING,
         THROW_A_BASEBALL,
         WAKESURF,
         SLALOM_START,
@@ -185,6 +185,8 @@ _instance_ids = count()
 
 _SLUG_ALIASES = {
     "beaver-burger": "beaver-burgers",
+    "biography": "non-fiction-book",
+    "civilization-the-board-game": "civilization-the-boardgame",
     "euchre-tournament-awards-ceremony": "euchre-awards-ceremony",
     "settlers-cities-and-knights": "cities-and-knights",
     "scout-the-other-cottages": "scout-other-cottages",
@@ -204,5 +206,4 @@ def make_card(slug: str) -> CardInstance:
 
 
 def create_default_deck(*, daily_conditions: bool = False) -> list[CardInstance]:
-    return [make_card(slug) for slug in CARD_REGISTRY
-            if daily_conditions or slug != "read-the-radar"]
+    return [make_card(slug) for slug in CARD_REGISTRY]

@@ -226,6 +226,8 @@ class CharacterTests(unittest.TestCase):
 
         modes = {
             "": "simulate_games",
+            "--four-argonbrain": "simulate_four_argonbrain",
+            "--argonbrain-vs-planner": "simulate_argonbrain_vs_planner",
             "--four-galaxybrain": "simulate_four_galaxybrain",
             "--greedy-vs-random": "simulate_greedy_vs_random",
             "--planner-vs-greedy": "simulate_planner_vs_greedy",

@@ -5,6 +5,8 @@ remain available only from their individual modules.
 """
 
 from thenos.ais import (
+    ArgonBrain,
+    ArgonbrainAI,
     GalaxybrainAI,
     GreedyAI,
     PlannerAI,
@@ -13,6 +15,8 @@ from thenos.ais import (
 )
 
 __all__ = [
+    "ArgonBrain",
+    "ArgonbrainAI",
     "GalaxybrainAI",
     "GreedyAI",
     "PlannerAI",

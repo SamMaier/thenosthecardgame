@@ -23,7 +23,7 @@ from typing import Sequence
 
 MODEL = "gpt-5.6-luna"
 REASONING_EFFORT = "high"
-EXPECTED_CARD_COUNT = 159
+EXPECTED_CARD_COUNT = 161
 
 # These cards share implementation patterns and can be handled in batches.
 # Titles are explicit so reordering cards.csv cannot change batch membership.
@@ -40,15 +40,16 @@ GROUP_SPECS = (
             "Agricola",
             "Terra Mystica",
             "Risk",
-            "Civilization the Board Game",
+            "Civilization the Boardgame",
             "Kneeboard",
             "Waterski",
             "Spikeball",
             "Screamer Battle",
             "Adventure Race",
             "Cheap White",
+            "Nos Shirt",
             "Chalk Art",
-            "Biography",
+            "Non-Fiction Book",
             "Thriller Book",
             "Dock Fishing",
         ),
@@ -69,12 +70,10 @@ GROUP_SPECS = (
             "Schwank",
             "High-End Red",
             "High-End White",
-            "Nos Shirt",
             "Epic Playlist",
             "Ponyback",
             "Bug Spray",
             "Prime Picnic Table",
-            "Nos Book",
             "Sweet Lawn Chair",
             "Bracelet Making",
             "Movie",
@@ -82,13 +81,14 @@ GROUP_SPECS = (
             "Bring a Friend",
             "Doxology",
             "Long Distance Visitors",
+            "Spa Day",
             "Hold the Baby",
         ),
     ),
     (
         "previous-fun",
         "cards adding Fun to cards played before",
-        ("Outdoor Movie", "Cliff Climbing", "Ice Wine", "Evening on the Dock"),
+        ("Outdoor Movie", "Cliff Climbing", "Ice Wine", "Nos Book", "Evening on the Dock"),
     ),
     (
         "future-energy",

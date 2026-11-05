@@ -395,8 +395,8 @@ COLOURING = CardDefinition(
     slug="colouring",
     title="Colouring",
     tags=frozenset({"Relax"}),
-    cost=3,
-    base_fun=1,
+    cost=4,
+    base_fun=0,
     behavior=ColouringBehavior(),
 )
 

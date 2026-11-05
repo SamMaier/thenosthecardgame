@@ -232,8 +232,31 @@ class MegamindAI(PlannerAI):
         """Cycle weak reserves aggressively for any multi-discard effect."""
         from thenos.game import DAYS_PER_GAME
 
+        player = game.players[player_index]
+        if hand and all(card in player.played_today for card in hand):
+            return tuple(
+                index
+                for index, card in enumerate(hand)
+                if game.card_fun(player_index, card) < 3
+                and (
+                    game.day >= DAYS_PER_GAME
+                    or not card.effective_behavior.has_tomorrow_action
+                )
+                and type(card.effective_behavior).modify_fun
+                is CardBehavior.modify_fun
+                and type(card.effective_behavior).modify_energy_cost
+                is CardBehavior.modify_energy_cost
+                and type(card.effective_behavior).on_card_play
+                is CardBehavior.on_card_play
+            )
         if game.day >= DAYS_PER_GAME:
-            return tuple(range(len(hand)))
+            return tuple(
+                index
+                for index, card in enumerate(hand)
+                if not card.effective_behavior.can_play(game, player, card)
+                or game.energy_cost(player_index, card) > player.energy
+                or self._card_value(card) < 4.5
+            )
         return tuple(
             index
             for index, card in enumerate(hand)

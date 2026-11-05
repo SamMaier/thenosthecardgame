@@ -30,7 +30,7 @@ class SingSongBehavior(CardBehavior):
 
 
 class ChristmasNameDrawBehavior(CardBehavior):
-    """Match this player's visible cards to a selected opponent card's tags."""
+    """Reward cards played after this that share a tag with a marked opponent card."""
 
     def on_play(
         self,
@@ -52,20 +52,33 @@ class ChristmasNameDrawBehavior(CardBehavior):
         target.markers["energy_cube"] = True
         card.markers["target_card"] = target
 
-    def fun_value(
+    def modify_fun(
         self,
         game: Game,
         player: PlayerState,
-        card: CardInstance,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
     ) -> int:
-        target = card.markers.get("target_card")
-        if not isinstance(target, CardInstance):
-            return card.effective_base_fun
-
-        return card.effective_base_fun + sum(
-            bool(target.tags.intersection(played_card.tags))
-            for played_card in player.played_today
-        )
+        if (
+            target is not source
+            and source in player.played_today
+            and target in player.played_today
+            and player.played_today.index(target) > player.played_today.index(source)
+        ):
+            marked = source.markers.get("target_card")
+            if (
+                isinstance(marked, CardInstance)
+                and marked.markers.get("energy_cube")
+                and any(
+                    marked in opponent.played_today
+                    for opponent in game.players
+                    if opponent is not player
+                )
+                and bool(marked.tags.intersection(target.tags))
+            ):
+                return current_fun + 2
+        return current_fun
 
 
 class StayUpLateBehavior(CardBehavior):
@@ -118,7 +131,7 @@ CHRISTMAS_NAME_DRAW = CardDefinition(
     slug="christmas-name-draw",
     title="Christmas Name Draw",
     tags=frozenset({"Social"}),
-    cost=2,
+    cost=3,
     behavior=ChristmasNameDrawBehavior(),
 )
 

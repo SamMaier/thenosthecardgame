@@ -15,12 +15,12 @@ Run a reproducible batch simulation:
 python -m thenos 1000 --seed 1 --output results/random-1000-seed-1.csv
 ```
 
-Run the standard four-Galaxybrain card-data simulation. Four-Galaxybrain mode
+Run the standard four-Argonbrain card-data simulation. Four-Argonbrain mode
 requires an output path so a long run cannot finish without persisting its
 report:
 
 ```console
-python -m thenos 4096 --seed 20260817 --four-galaxybrain --workers 16 --output results/four-galaxybrain-4096-seed-20260817.csv
+python -m thenos 4096 --seed 20260817 --four-argonbrain --workers 16 --output results/four-argonbrain-4096-seed-20260817.csv
 ```
 
 Run the standard seat-balanced AI benchmark:
@@ -29,9 +29,9 @@ Run the standard seat-balanced AI benchmark:
 python -m thenos 1000 --seed 1 --greedy-vs-random --workers 16
 ```
 
-`GalaxybrainAI` is the preferred competitive built-in policy and is available
-from `thenos.ais`. To compare it explicitly with deprecated Megamind, run the
-fixed speed and two-versus-two acceptance benchmark with:
+`ArgonbrainAI` (`ArgonBrain`) is the preferred competitive built-in policy and
+is available from `thenos.ais`. To compare `GalaxybrainAI` with deprecated
+Megamind, run the fixed speed and two-versus-two acceptance benchmark with:
 
 ```console
 python -m scripts.benchmark_galaxybrain --workers 16
@@ -59,7 +59,7 @@ Daily Conditions are disabled by default. Add `--daily-conditions` to any
 simulation mode to enable them, for example:
 
 ```powershell
-wsl.exe python3 -m thenos 8 --seed 20260904 --workers 16 --four-galaxybrain --daily-conditions --output results/daily-conditions-smoke.csv
+wsl.exe python3 -m thenos 8 --seed 20260904 --workers 16 --four-argonbrain --daily-conditions --output results/daily-conditions-smoke.csv
 ```
 
 The separate eight-card deck is shuffled once per game. One condition is revealed
@@ -101,7 +101,7 @@ Characters are disabled by default. Add `--characters` to any simulation mode
 to assign four distinct characters at random before each game, for example:
 
 ```powershell
-wsl.exe python3 -m thenos 8 --seed 20260908 --workers 16 --four-galaxybrain --characters --output results/characters-smoke.csv
+wsl.exe python3 -m thenos 8 --seed 20260908 --workers 16 --four-argonbrain --characters --output results/characters-smoke.csv
 ```
 
 Each character is public and remains with its player for all six days. Foodie,

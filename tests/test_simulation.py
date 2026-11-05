@@ -12,6 +12,7 @@ from thenos.simulation import (
     _GameOutcome,
     _PlayerOutcome,
     _merge_outcome,
+    simulate_argonbrain_vs_planner,
     simulate_galaxybrain_vs_planner,
     simulate_games,
     simulate_greedy_vs_random,
@@ -95,9 +96,9 @@ class SimulationTests(unittest.TestCase):
         )
 
     def test_batch_collects_pick_play_and_win_statistics(self) -> None:
-        report = simulate_games(10, seed=2026)
+        report = simulate_games(16, seed=2026)
 
-        self.assertEqual(report.games, 10)
+        self.assertEqual(report.games, 16)
         self.assertEqual(set(report.cards), {card.title for card in CARD_REGISTRY.values()})
         self.assertGreaterEqual(sum(card.picks for card in report.cards.values()), 750)
         self.assertEqual(
@@ -105,11 +106,6 @@ class SimulationTests(unittest.TestCase):
             4 * sum(card.free_picks for card in report.cards.values()),
         )
         for title, card in report.cards.items():
-            if title == "Read the Radar":
-                self.assertEqual(card.acquisitions, 0)
-                self.assertEqual(card.free_pick_offers, 0)
-                self.assertEqual(card.player_games_without_card, 40)
-                continue
             self.assertGreater(card.offers, 0)
             self.assertGreater(card.picks, 0)
             self.assertGreaterEqual(card.offers, card.picks)
@@ -194,6 +190,12 @@ class SimulationTests(unittest.TestCase):
         report = simulate_galaxybrain_vs_planner(1, seed=102)
 
         self.assertEqual(report.ais["Galaxybrain"].games, 1)
+        self.assertEqual(report.ais["Planner"].games, 3)
+
+    def test_argonbrain_matchup_aggregates_three_planner_opponents(self) -> None:
+        report = simulate_argonbrain_vs_planner(1, seed=102)
+
+        self.assertEqual(report.ais["Argonbrain"].games, 1)
         self.assertEqual(report.ais["Planner"].games, 3)
 
     def test_worker_count_must_be_positive(self) -> None:

@@ -43,7 +43,12 @@ class DailyConditionTests(unittest.TestCase):
         }
         expected = {
             normalized_title(r["Title"]): (
-                frozenset(t.strip().title() for t in r["Tags"].split(",")),
+                frozenset(
+                    "Board Game"
+                    if t.strip().upper() == "BOARDGAME"
+                    else t.strip().title()
+                    for t in r["Tags"].split(",")
+                ),
                 int(r["Cost"]),
             )
             for r in rows
@@ -56,7 +61,7 @@ class DailyConditionTests(unittest.TestCase):
         self.assertEqual(implicit.rng.getstate(), explicit.rng.getstate())
         self.assertEqual(implicit.revealed_conditions, [])
         self.assertIsNone(implicit.daily_condition)
-        self.assertNotIn("Read the Radar", [c.title for c in create_default_deck()])
+        self.assertIn("Read the Radar", [c.title for c in create_default_deck()])
 
     def test_six_unique_reproducible_reveals_before_draw_phase(self):
         games = [Game.default(902, daily_conditions=True) for _ in range(2)]
@@ -162,7 +167,9 @@ class DailyConditionTests(unittest.TestCase):
     def test_cli_flag_reaches_every_mode_and_defaults_off(self):
         from thenos.__main__ import main
         import sys
-        modes = {"": "simulate_games", "--four-galaxybrain": "simulate_four_galaxybrain",
+        modes = {"": "simulate_games", "--four-argonbrain": "simulate_four_argonbrain",
+                 "--argonbrain-vs-planner": "simulate_argonbrain_vs_planner",
+                 "--four-galaxybrain": "simulate_four_galaxybrain",
                  "--greedy-vs-random": "simulate_greedy_vs_random",
                  "--planner-vs-greedy": "simulate_planner_vs_greedy",
                  "--galaxybrain-vs-planner": "simulate_galaxybrain_vs_planner"}

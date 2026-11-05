@@ -51,7 +51,7 @@ class PaintTests(unittest.TestCase):
         self.assertEqual(play_log[:8], [0, 1, 2, 3, 1, 2, 3, 0])
         self.assertEqual(
             [card.title for card in game.players[0].played_today],
-            ["Paint", "Biography"],
+            ["Paint", "Non-Fiction Book"],
         )
         self.assertEqual(game.players[0].skipped_turns, 0)
 

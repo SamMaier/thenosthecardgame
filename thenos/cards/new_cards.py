@@ -21,8 +21,12 @@ class PotatoPancakesBehavior(CardBehavior):
 
 
 class ReadTheRadarBehavior(CardBehavior):
+    """Privately view the top 5 Trunk cards and return them in any order."""
+
     def on_play(self, game: Game, player: PlayerState, card: CardInstance) -> None:
-        game.arrange_daily_conditions(game.players.index(player))
+        player_index = game.players.index(player)
+        revealed = game.reveal_from_trunk(5)
+        game.return_cards_to_trunk_top(player_index, revealed)
 
 
 class PokerBehavior(CardBehavior):
@@ -45,7 +49,7 @@ class PokerBehavior(CardBehavior):
 
 
 class BohnanzaBehavior(CardBehavior):
-    """Trash selected earlier plays and score one Fun per trashed card."""
+    """Trash selected earlier plays and score three Fun per trashed card."""
 
     def on_play(self, game: Game, player: PlayerState, card: CardInstance) -> None:
         player_index = game.players.index(player)
@@ -70,7 +74,7 @@ class BohnanzaBehavior(CardBehavior):
         card.markers["energy_cubes"] = len(choices)
 
     def fun_value(self, game: Game, player: PlayerState, card: CardInstance) -> int:
-        return card.effective_base_fun + int(card.markers.get("energy_cubes", 0))
+        return card.effective_base_fun + 3 * int(card.markers.get("energy_cubes", 0))
 
 
 class IstanbulBehavior(CardBehavior):
@@ -148,7 +152,7 @@ BOHNANZA = CardDefinition(
     title="Bohnanza",
     tags=frozenset({"Board Game"}),
     cost=2,
-    base_fun=1,
+    base_fun=0,
     behavior=BohnanzaBehavior(),
 )
 ISTANBUL = CardDefinition(
@@ -166,3 +170,4 @@ QUACKS = CardDefinition(
     cost=1,
     behavior=QuacksBehavior(),
 )
+

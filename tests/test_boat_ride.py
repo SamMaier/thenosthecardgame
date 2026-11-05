@@ -22,9 +22,9 @@ class BoatRideTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 1)
         self.assertEqual(card.definition.tags, frozenset({"Relax", "Outdoors"}))
         self.assertEqual(non_item.definition.tags, frozenset({"Relax"}))
-        self.assertEqual(first_item.definition.cost, 1)
-        self.assertEqual(later_item.definition.cost, 1)
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(first_item.definition.cost, 3)
+        self.assertEqual(later_item.definition.cost, 3)
+        self.assertEqual(player.energy, 1)
 
 
 if __name__ == "__main__":

@@ -291,6 +291,24 @@ class KayakBehavior(CardBehavior):
         return card.effective_base_fun + int(card.markers.get("energy_cubes", 0))
 
 
+class SwimmingBehavior(CardBehavior):
+    """Score +3 Fun if the immediately preceding card played today is Exercise."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        previous_cards = game.cards_played_before(player, card)
+        bonus = (
+            3
+            if previous_cards and "Exercise" in previous_cards[-1].tags
+            else 0
+        )
+        return card.effective_base_fun + bonus
+
+
 ZUMBA = CardDefinition(
     slug="zumba",
     title="Zumba",
@@ -421,3 +439,13 @@ KAYAK = CardDefinition(
     base_fun=2,
     behavior=KayakBehavior(),
 )
+
+SWIMMING = CardDefinition(
+    slug="swimming",
+    title="Swimming",
+    tags=frozenset({"Exercise", "Outdoors"}),
+    cost=3,
+    base_fun=3,
+    behavior=SwimmingBehavior(),
+)
+

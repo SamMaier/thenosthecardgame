@@ -104,8 +104,9 @@ class GreedyAI(RandomAI):
         for player in game.players:
             visible.extend(player.visible_cards)
         seen = {card.title for card in visible}
-        candidates = [card for card in CARD_REGISTRY.values() if card.title not in seen
-                      and (game.daily_conditions or card.slug != "read-the-radar")]
+        candidates = [
+            card for card in CARD_REGISTRY.values() if card.title not in seen
+        ]
         counts = [sum(tag in card.tags for card in candidates) for tag in tags]
         return tags[self._choose_best(counts)]
 

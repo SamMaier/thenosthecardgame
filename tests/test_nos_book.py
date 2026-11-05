@@ -7,21 +7,12 @@ from tests.helpers import empty_game
 
 
 class NosBookAI(RandomAI):
+    def __init__(self, target, rng):
+        super().__init__(rng)
+        self.target = target
+
     def choose_card_target(self, game, player_index, eligible_cards):
-        return next(
-            (
-                index for index, card in enumerate(eligible_cards)
-                if card.title == "Keeper"
-            ),
-            0,
-        )
-
-    def choose_cards_for_trunk(self, game, player_index, cards):
-        wanted = {"Biography", "Fajitas"}
-        return [index for index, card in enumerate(cards) if card.title in wanted]
-
-    def order_cards_for_trunk(self, game, player_index, cards):
-        return tuple(reversed(range(len(cards))))
+        return eligible_cards.index(self.target)
 
 
 class NosBookTests(unittest.TestCase):
@@ -33,40 +24,43 @@ class NosBookTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
 
-    def test_collects_cleanup_cards_keeps_one_and_stacks_a_chosen_subset(self) -> None:
+    def test_chooses_previous_card_today_and_adds_three_fun(self) -> None:
         game = empty_game()
-        game.ais[0] = NosBookAI(random.Random(0))
         player = game.players[0]
-        player.energy = 7
-
-        old_tomorrow = make_card("fajitas")
-        old_tomorrow.is_tomorrow = True
-        game.players[2].tomorrow_cards.append(old_tomorrow)
+        player.energy = 10
         biography = make_card("biography")
+        cheap_white = make_card("cheap-white")
         nos_book = make_card("nos-book")
-        keeper = make_card("keeper")
-        player.played_today.extend([biography, nos_book])
-        game.players[1].played_today.append(keeper)
+        after_card = make_card("splendor")
+        player.hand.extend([biography, cheap_white, nos_book, after_card])
+        game.ais[0] = NosBookAI(cheap_white, random.Random(0))
 
-        game.end_day()
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+        game.play_card(0, 0)
 
-        self.assertIn(keeper, player.hand)
-        self.assertEqual([card.title for card in game.trunk[-2:]], ["Biography", "Fajitas"])
-        self.assertEqual(game.discard, [nos_book])
-        self.assertFalse(old_tomorrow.is_tomorrow)
+        self.assertTrue(cheap_white.markers.get("energy_cube"))
+        self.assertIs(nos_book.markers.get("target_card"), cheap_white)
+        self.assertEqual(game.card_fun(0, biography), 2)
+        self.assertEqual(game.card_fun(0, cheap_white), 6)
+        self.assertEqual(game.card_fun(0, nos_book), 0)
+        self.assertEqual(game.card_fun(0, after_card), 2)
 
-    def test_does_not_collect_cards_that_move_to_tomorrow(self) -> None:
+    def test_playing_as_first_card_today_does_nothing(self) -> None:
         game = empty_game()
-        game.ais[0] = NosBookAI(random.Random(0))
         player = game.players[0]
+        player.energy = 10
         nos_book = make_card("nos-book")
-        stay_up_late = make_card("stay-up-late")
-        player.played_today.extend([nos_book, stay_up_late])
+        biography = make_card("biography")
+        player.hand.extend([nos_book, biography])
 
-        game.end_day()
+        game.play_card(0, 0)
+        game.play_card(0, 0)
 
-        self.assertEqual(player.tomorrow_cards, [stay_up_late])
-        self.assertTrue(stay_up_late.is_tomorrow)
+        self.assertNotIn("target_card", nos_book.markers)
+        self.assertEqual(game.card_fun(0, nos_book), 0)
+        self.assertEqual(game.card_fun(0, biography), 2)
 
 
 if __name__ == "__main__":

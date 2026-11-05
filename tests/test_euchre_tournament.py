@@ -15,7 +15,7 @@ class EuchreTournamentTests(unittest.TestCase):
         card = make_card("euchre-tournament")
 
         self.assertEqual(card.title, "Euchre Tournament")
-        self.assertEqual(card.definition.cost, 7)
+        self.assertEqual(card.definition.cost, 6)
         self.assertEqual(card.definition.base_fun, 5)
         self.assertEqual(card.definition.tags, frozenset({"Board Game", "Indoors"}))
 
@@ -38,7 +38,7 @@ class EuchreTournamentTests(unittest.TestCase):
         self.assertEqual(sum(player.acquired_cards.values()), 4)
         self.assertEqual(sum(game.stats.suitcase_picks.values()), 0)
         self.assertEqual(game.card_fun(0, card), 5)
-        self.assertEqual(player.energy, 0)
+        self.assertEqual(player.energy, 1)
 
 
 if __name__ == "__main__":

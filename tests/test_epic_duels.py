@@ -71,7 +71,7 @@ class EpicDuelsTests(unittest.TestCase):
 
         self.assertEqual(
             [card.title for card in player.played_today],
-            ["Epic Duels", "Biography", "Biography"],
+            ["Epic Duels", "Non-Fiction Book", "Non-Fiction Book"],
         )
         self.assertEqual(player.energy, 3)
         self.assertEqual(game.card_fun(0, player.played_today[0]), 2)
@@ -91,7 +91,7 @@ class EpicDuelsTests(unittest.TestCase):
         self.assertEqual(ai.events, ["normal", "declined-extra", "normal"])
         self.assertEqual(
             [card.title for card in player.played_today],
-            ["Epic Duels", "Biography"],
+            ["Epic Duels", "Non-Fiction Book"],
         )
 
     def test_allows_extra_play_when_played_by_assorted_cutlery(self) -> None:
@@ -110,7 +110,7 @@ class EpicDuelsTests(unittest.TestCase):
         self.assertEqual(ai.events, ["normal", "extra"])
         self.assertEqual(
             [card.title for card in player.played_today],
-            ["Assorted Cutlery", "Epic Duels", "Biography"],
+            ["Assorted Cutlery", "Epic Duels", "Non-Fiction Book"],
         )
 
 

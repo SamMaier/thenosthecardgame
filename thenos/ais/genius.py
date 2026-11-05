@@ -171,7 +171,6 @@ class GeniusAI(PlannerAI):
             definition
             for definition in CARD_REGISTRY.values()
             if known_titles[definition.title] == 0
-            and (simulation.daily_conditions or definition.slug != "read-the-radar")
         ]
         required = len(simulation.trunk) + sum(
             len(player.hand)

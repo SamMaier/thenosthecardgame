@@ -104,7 +104,7 @@ class SkiBoatBehavior(CardBehavior):
 
 
 class FancyFloatieBehavior(CardBehavior):
-    """Pick the Relax cards currently visible in the Suitcase."""
+    """Pick Relax cards from the Suitcase until none remain."""
 
     has_tomorrow_action = True
 
@@ -126,13 +126,16 @@ class FancyFloatieBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        targets = tuple(
-            suitcase_card
-            for suitcase_card in game.suitcase
-            if "Relax" in suitcase_card.tags
-        )
-        if targets:
-            game.pick_suitcase_cards(game.players.index(player), targets)
+        player_index = game.players.index(player)
+        while True:
+            targets = tuple(
+                suitcase_card
+                for suitcase_card in game.suitcase
+                if "Relax" in suitcase_card.tags
+            )
+            if not targets:
+                break
+            game.pick_suitcase_cards(player_index, targets)
 
 
 BOOBY_PRIZE = CardDefinition(
