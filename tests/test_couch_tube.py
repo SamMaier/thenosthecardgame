@@ -68,7 +68,7 @@ class CouchTubeTests(unittest.TestCase):
         self.assertEqual(copied_card.definition.cost, 0)
         self.assertEqual(copied_card.effective_cost, 12)
         self.assertEqual(game.card_fun(0, couch_tube), 0)
-        self.assertEqual(game.card_fun(0, copied_card), 20)
+        self.assertEqual(game.card_fun(0, copied_card), 18)
 
     def test_written_cost_ignores_an_earlier_energy_modifier(self) -> None:
         game = empty_game()

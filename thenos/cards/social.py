@@ -34,7 +34,7 @@ class DatesFirstNosBehavior(CardBehavior):
 
 
 class TellAStoryBehavior(CardBehavior):
-    """Move a chosen discard card to the top of the Trunk."""
+    """Move a chosen card from hand to the top of the Trunk."""
 
     def on_play(
         self,
@@ -42,11 +42,18 @@ class TellAStoryBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        if not game.discard:
+        if not player.hand:
             return
         player_index = game.players.index(player)
-        target = game.choose_card_target(player_index, tuple(game.discard))
-        game.discard.remove(target)
+        hand = tuple(player.hand)
+        choice = game.ais[player_index].choose_card_to_discard(
+            game, player_index, hand
+        )
+        if choice < 0 or choice >= len(hand):
+            raise ValueError(f"AI returned invalid hand index: {choice}")
+        target = player.hand.pop(choice)
+        target.is_tomorrow = False
+        target.markers.clear()
         game.return_cards_to_trunk_top(player_index, (target,))
 
 
@@ -155,7 +162,7 @@ TELL_A_STORY = CardDefinition(
     title="Tell a Story",
     tags=frozenset({"Social"}),
     cost=2,
-    base_fun=2,
+    base_fun=4,
     behavior=TellAStoryBehavior(),
 )
 

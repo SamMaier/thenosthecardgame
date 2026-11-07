@@ -19,7 +19,7 @@ class AdventureRaceTests(unittest.TestCase):
             frozenset({"Exercise", "Outdoors"}),
         )
         self.assertEqual(player.energy, 0)
-        self.assertEqual(game.card_fun(0, card), 20)
+        self.assertEqual(game.card_fun(0, card), 18)
 
 
 if __name__ == "__main__":

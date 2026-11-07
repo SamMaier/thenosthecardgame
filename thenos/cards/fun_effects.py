@@ -703,7 +703,8 @@ HIGH_END_RED = CardDefinition(
     title="High-End Red",
     tags=frozenset({"Food"}),
     cost=3,
-    behavior=FunForTagAfterBehavior("Food", 3),
+    base_fun=1,
+    behavior=FunForTagAfterBehavior("Food", 2),
 )
 
 HIGH_END_WHITE = CardDefinition(
@@ -712,7 +713,7 @@ HIGH_END_WHITE = CardDefinition(
     tags=frozenset({"Food"}),
     cost=3,
     base_fun=2,
-    behavior=FunForTagAfterBehavior("Food", 2),
+    behavior=FunForTagAfterBehavior("Food", 1),
 )
 
 EPIC_PLAYLIST = CardDefinition(
@@ -885,7 +886,8 @@ ICE_WINE = CardDefinition(
     title="Ice Wine",
     tags=frozenset({"Food"}),
     cost=3,
-    behavior=FunForTagBeforeBehavior("Food", 3),
+    base_fun=1,
+    behavior=FunForTagBeforeBehavior("Food", 2),
 )
 
 EVENING_ON_THE_DOCK = CardDefinition(

@@ -6,14 +6,14 @@ from thenos.cards import make_card
 from tests.helpers import empty_game
 
 
-class TargetDiscardAI(RandomAI):
+class TargetHandAI(RandomAI):
     def __init__(self, target_title, rng):
         super().__init__(rng)
         self.target_title = target_title
 
-    def choose_card_target(self, game, player_index, eligible_cards):
+    def choose_card_to_discard(self, game, player_index, hand):
         return next(
-            index for index, card in enumerate(eligible_cards)
+            index for index, card in enumerate(hand)
             if card.title == self.target_title
         )
 
@@ -24,34 +24,38 @@ class TellAStoryTests(unittest.TestCase):
 
         self.assertEqual(card.title, "Tell a Story")
         self.assertEqual(card.definition.cost, 2)
-        self.assertEqual(card.definition.base_fun, 2)
+        self.assertEqual(card.definition.base_fun, 4)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
 
-    def test_moves_a_chosen_discard_to_the_top_of_the_trunk(self) -> None:
+    def test_moves_a_chosen_hand_card_to_the_top_of_the_trunk(self) -> None:
         game = empty_game()
-        game.ais[0] = TargetDiscardAI("Non-Fiction Book", random.Random(0))
+        game.ais[0] = TargetHandAI("Non-Fiction Book", random.Random(0))
         player = game.players[0]
         player.energy = 7
         fajitas = make_card("fajitas")
         biography = make_card("biography")
-        game.discard.extend([fajitas, biography])
+        biography.markers["energy_cube"] = True
         game.trunk.append(make_card("azul"))
-        player.hand.append(make_card("tell-a-story"))
+        player.hand.extend([make_card("tell-a-story"), fajitas, biography])
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(game.card_fun(0, card), 2)
-        self.assertEqual(game.discard, [fajitas])
+        self.assertEqual(game.card_fun(0, card), 4)
+        self.assertEqual(player.hand, [fajitas])
+        self.assertEqual(game.discard, [])
         self.assertIs(game.trunk[-1], biography)
+        self.assertEqual(biography.markers, {})
 
-    def test_does_nothing_with_an_empty_discard_pile(self) -> None:
+    def test_does_nothing_with_an_empty_hand(self) -> None:
         game = empty_game()
         game.players[0].energy = 3
         game.players[0].hand.append(make_card("tell-a-story"))
 
-        game.play_card(0, 0)
+        card = game.play_card(0, 0)
 
-        self.assertEqual(game.discard, [])
+        self.assertEqual(game.card_fun(0, card), 4)
+        self.assertEqual(game.players[0].hand, [])
+        self.assertEqual(game.trunk, [])
 
 
 if __name__ == "__main__":

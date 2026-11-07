@@ -11,7 +11,9 @@ from thenos.simulation import (
     character_report_path,
     condition_report_path,
     simulate_argonbrain_vs_planner,
+    simulate_beryllium_vs_planner,
     simulate_four_argonbrain,
+    simulate_four_beryllium,
     simulate_four_galaxybrain,
     simulate_galaxybrain_vs_planner,
     simulate_games,
@@ -66,6 +68,20 @@ def main() -> None:
         help="seat-balance one Planner AI against three Greedy AIs",
     )
     parser.add_argument(
+        "--beryllium-vs-planner",
+        "--berylliumbrain-vs-planner",
+        dest="beryllium_vs_planner",
+        action="store_true",
+        help="seat-balance one Beryllium AI against three Planner AIs",
+    )
+    parser.add_argument(
+        "--four-beryllium",
+        "--four-berylliumbrain",
+        dest="four_beryllium",
+        action="store_true",
+        help="run the standard seat-rotated four-Beryllium card-data batch",
+    )
+    parser.add_argument(
         "--argonbrain-vs-planner",
         action="store_true",
         help="seat-balance one Argonbrain AI against three Planner AIs",
@@ -73,7 +89,7 @@ def main() -> None:
     parser.add_argument(
         "--four-argonbrain",
         action="store_true",
-        help="run the standard seat-rotated four-Argonbrain card-data batch",
+        help="run a seat-rotated four-Argonbrain card-data batch",
     )
     parser.add_argument(
         "--galaxybrain-vs-planner",
@@ -103,6 +119,8 @@ def main() -> None:
         (
             args.greedy_vs_random,
             args.planner_vs_greedy,
+            args.beryllium_vs_planner,
+            args.four_beryllium,
             args.argonbrain_vs_planner,
             args.four_argonbrain,
             args.galaxybrain_vs_planner,
@@ -111,6 +129,10 @@ def main() -> None:
     )
     if matchup_modes > 1:
         parser.error("choose only one matchup mode")
+    if args.four_beryllium and args.output is None:
+        parser.error(
+            "--four-beryllium requires --output so card stats are preserved"
+        )
     if args.four_argonbrain and args.output is None:
         parser.error(
             "--four-argonbrain requires --output so card stats are preserved"
@@ -122,7 +144,29 @@ def main() -> None:
 
     revision = _code_revision()
     started = time.perf_counter()
-    if args.four_argonbrain:
+    if args.four_beryllium:
+        report = simulate_four_beryllium(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
+        run_mode = "four-beryllium"
+        competitors = "Beryllium,Beryllium,Beryllium,Beryllium"
+        rotate_seats = True
+    elif args.beryllium_vs_planner:
+        report = simulate_beryllium_vs_planner(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
+        run_mode = "beryllium-vs-planner"
+        competitors = "Beryllium,Planner,Planner,Planner"
+        rotate_seats = True
+    elif args.four_argonbrain:
         report = simulate_four_argonbrain(
             args.games,
             args.seed,

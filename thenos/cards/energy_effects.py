@@ -305,7 +305,7 @@ ROULADEN = CardDefinition(
     slug="rouladen",
     title="Rouladen",
     tags=frozenset({"Food"}),
-    cost=4,
+    cost=5,
     behavior=EnergyForAllCardsAfterBehavior(-2),
 )
 

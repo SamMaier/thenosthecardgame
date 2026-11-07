@@ -7,6 +7,10 @@ remain available only from their individual modules.
 from thenos.ais import (
     ArgonBrain,
     ArgonbrainAI,
+    Beryllium,
+    BerylliumAI,
+    BerylliumBrain,
+    BerylliumbrainAI,
     GalaxybrainAI,
     GreedyAI,
     PlannerAI,
@@ -17,6 +21,10 @@ from thenos.ais import (
 __all__ = [
     "ArgonBrain",
     "ArgonbrainAI",
+    "Beryllium",
+    "BerylliumAI",
+    "BerylliumBrain",
+    "BerylliumbrainAI",
     "GalaxybrainAI",
     "GreedyAI",
     "PlannerAI",

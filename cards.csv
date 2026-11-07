@@ -3,10 +3,9 @@ Title,Tags,Cost,Effect,Flavor text
 Pick (suitcase)",zPlaying via E-Transfer has made this game a lot more cumbersome
 7 WONDERS,BOARDGAME,2,(fun)(fun)(fun),I hope nobody notices I'm the only one going for science...
 ADDRESS THE FOOD,"FOOD, SOCIAL",2,"Pick a (FOOD_card) in the (suitcase), then immediately play it for free","If you use the word ""gourmet"", it means it's better"
-ADVENTURE RACE,"EXERCISE, OUTDOORS",12,"(fun)(fun)(fun)(fun)(fun)
-(fun)(fun)(fun)(fun)(fun)
-(fun)(fun)(fun)(fun)(fun)
-(fun)(fun)(fun)(fun)(fun)",Should we sign up for the 24-hour one next year?
+ADVENTURE RACE,"EXERCISE, OUTDOORS",12,"(fun)(fun)(fun)(fun)(fun)(fun)
+(fun)(fun)(fun)(fun)(fun)(fun)
+(fun)(fun)(fun)(fun)(fun)(fun)",Should we sign up for the 24-hour one next year?
 AFTER DINNER ENTERTAINMENT,SOCIAL,2,Your next (SOCIAL_card) costs -(energy)(energy) and scores +(fun)(fun),"""But where, where do they make balloons?"" - Matt, Marc-Andre"
 AFTERNOON COFFEE,FOOD,1,"(energy)(energy)(energy)
 Must be your 3rd or later card today",Gotta make bringing that coffee machine worth it!
@@ -86,7 +85,7 @@ Optionally discard an (ITEM_card) for +(fun)(fun)(fun)(fun)(fun)
 (cubes)",Sponsored by SC Johnson
 EUCHRE,"BOARDGAME, INDOORS",2,"(fun)(fun)
 (SOCIAL_card)(after) score +(fun)","""Lose the lead as fast as you can"" - Gord "
-EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",3,"When playing each (card)(after), pick (suitcase)","""But I say it is the Mount Everest of competition"" - Scott"
+EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",4,"When playing each (card)(after), pick (suitcase)","""But I say it is the Mount Everest of competition"" - Scott"
 EUCHRE TOURNAMENT,"BOARDGAME, INDOORS",6,"(fun)(fun)(fun)(fun)(fun)
 Draw 4 (trunk)
 Then, discard 4 cards from your hand","""Some say it is the pinnacle of card playing"" - Scott"
@@ -115,13 +114,15 @@ Add all (FOOD_card) to your hand. Re-place the rest on the (trunk) in any order.
 GROUP DINNER,"FOOD, SOCIAL, OUTDOORS",3,"(fun)(fun)(fun)(fun)
 All players gain (energy)
 You may not play this card if any players have gone to BED",An ancient Nos tradition
-HIGH-END RED,FOOD,3,(FOOD_card)(after) score +(fun)(fun)(fun),"Diesel with notes of dirt, in a good way"
+HIGH-END RED,FOOD,3,"(fun)
+(FOOD_card)(after) score +(fun)(fun)","Diesel with notes of dirt, in a good way"
 HIGH-END WHITE,FOOD,3,"(fun)(fun)
-(FOOD_card)(after) score +(fun)(fun)","Boasts delicate notes of white peach, wet river stone, and the subtle sting of a backhanded compliment"
+(FOOD_card)(after) score +(fun)","Boasts delicate notes of white peach, wet river stone, and the subtle sting of a backhanded compliment"
 HOLD THE BABY,SOCIAL,1,(card)(after) cost +(energy) and score +(fun)(fun),Do you smell something?
 ICE CREAM SANDWICH,FOOD,2,"(fun)
 If you have played a (before)(FOOD_card), (energy)(energy)(energy)",How did we go through a 20 pack by the second day?
-ICE WINE,FOOD,3,(before)(FOOD_card) score +(fun)(fun)(fun),Basically expensive juice
+ICE WINE,FOOD,3,"(fun)
+(before)(FOOD_card) score +(fun)(fun)",Basically expensive juice
 ISTANBUL,BOARDGAME,3,"(fun)
 Discard any number of cards (energy)(energy) for each card discarded",Gotta dump this load at the Large Market
 JOHNNY APPLESEED,SOCIAL,1,"(fun)
@@ -174,7 +175,7 @@ PAINT,RELAX,3,"(fun)(fun)(fun)(fun)
 Your next turn is skipped",How long does this take to dry?
 PAINT ROCKS,RELAX,2,"(fun)(fun)
 If you have played at least 2 (before)(OUTDOORS_card), +(fun)(fun)",
-PHOTO SHOOT,"SOCIAL, OUTDOORS",3,"-(fun)
+PHOTO SHOOT,"SOCIAL, OUTDOORS",4,"-(fun)
 TOMORROW: When playing each (card), pick (suitcase)",The closest thing to being taken hostage most men will experience
 PLAY WITH THE KIDS,EXERCISE,4,"(fun)(fun)(fun)
 If you have more cards in your hand at END OF DAY than all opponents, +(fun)(fun)(fun)","""Are you the star player on the team?""
@@ -199,7 +200,7 @@ READ THE RADAR,RELAX,1,"Privately view the top 5 (trunk).
 Arrange them in any order and re-place them.","Accuweather says we're in trouble, but the weather network says we're good"
 RISK,BOARDGAME,7,"(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)(fun)",Don't let him get Australia!
-ROULADEN,FOOD,4,Cards you play after this cost -(energy)(energy),Pickles or no pickles?
+ROULADEN,FOOD,5,(card)(after) cost -(energy)(energy),Pickles or no pickles?
 SAN JUAN,BOARDGAME,3,"(fun)(fun)
 Choose a player who has 2 or fewer cards played. If they do not play a (BOARDGAME_card) today, +(fun)(fun)(fun)
 (cubes)",zHope I can snag a Guild Hall
@@ -247,8 +248,8 @@ TANNING,"RELAX, OUTDOORS",3,"(fun)(fun)(fun)(fun)(fun)
 (OUTDOORS_card)(after) score -(fun)
 TOMORROW: (OUTDOORS_card) you play score -(fun)","""If I make it to 80, I'll get a tramp stamp"" - Jorja"
 TEACH KID TO SKI,"EXERCISE, OUTDOORS",2,TOMORROW: (EXERCISE_card) score +(fun)(fun),How many Camp Iawah ski instructors does it take to make a 7 year old ski?
-TELL A STORY,SOCIAL,2,"(fun)(fun)
-Choose a card from the discard pile and put it on (trunk)","""Was 'the Ros' another one of Eric's girlfriends?"" - Sally"
+TELL A STORY,SOCIAL,2,"(fun)(fun)(fun)(fun)
+Put a card from your hand on (trunk)","""Was 'the Ros' another one of Eric's girlfriends?"" - Sally"
 TERRA MYSTICA,BOARDGAME,6,"(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)",Remember - this isn't Settlers - buildings are not worth points
 THE CREW,BOARDGAME,1,"(fun)

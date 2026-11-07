@@ -204,6 +204,123 @@ class ArgonBrainAITests(unittest.TestCase):
             (0, 1, 2),
         )
 
+    def test_tell_a_story_and_assorted_cutlery_combo_plays_expensive_card(self):
+        game = _argon_game()
+        game.day = 3
+        player = game.players[0]
+        player.energy = 5
+        player.hand = [
+            make_card("assorted-cutlery"),
+            make_card("tell-a-story"),
+            make_card("adventure-race"),
+            make_card("7-wonders"),
+        ]
+        game.suitcase = [
+            _dummy_card(10 + i, f"Suitcase {i}", 2, 2) for i in range(4)
+        ]
+        game.trunk = [
+            _dummy_card(100 + i, f"Trunk {i}", 2, 2) for i in range(16)
+        ]
+
+        # First play should be Tell a Story (index 1), placing Adventure Race on Trunk top
+        self.assertFalse(game.ais[0].choose_to_go_to_bed(game, 0, (0, 1, 3)))
+        first_choice = game.ais[0].choose_card_to_play(game, 0, (0, 1, 3))
+        self.assertEqual(first_choice, 1)
+        game.play_card(0, first_choice)
+        self.assertEqual(game.trunk[-1].title, "Adventure Race")
+
+        # Second play should be Assorted Cutlery (now index 0), playing Adventure Race for free
+        playable = game.playable_hand_indices(0)
+        self.assertFalse(game.ais[0].choose_to_go_to_bed(game, 0, playable))
+        second_choice = game.ais[0].choose_card_to_play(game, 0, playable)
+        self.assertEqual(player.hand[second_choice].title, "Assorted Cutlery")
+        game.play_card(0, second_choice)
+        self.assertEqual(
+            [c.title for c in player.played_today],
+            ["Tell a Story", "Assorted Cutlery", "Adventure Race"],
+        )
+
+    def test_read_the_radar_sets_up_quacks_and_poker_with_known_trunk_top(self):
+        game = _argon_game()
+        game.day = 2
+        player = game.players[0]
+        player.energy = 6
+        player.hand = [
+            make_card("read-the-radar"),
+            make_card("quacks"),
+            make_card("poker"),
+        ]
+        game.suitcase = [
+            _dummy_card(10 + i, f"Suitcase {i}", 2, 2) for i in range(4)
+        ]
+        outdoors_card = _dummy_card(
+            201, "Outdoors Trap", 2, 2, frozenset({"Outdoors"})
+        )
+        safe_one = _dummy_card(202, "Safe Social", 2, 2, frozenset({"Social"}))
+        safe_two = _dummy_card(203, "Safe Food", 1, 1, frozenset({"Food"}))
+        game.trunk = [
+            _dummy_card(100 + i, f"Trunk {i}", 2, 2) for i in range(10)
+        ] + [safe_one, outdoors_card, safe_two]
+
+        # Playing Read the Radar (index 0) puts all 4 non-Outdoors cards above Outdoors Trap
+        game.play_card(0, 0)
+        for offset in range(1, 5):
+            self.assertNotIn("Outdoors", game.trunk[-offset].tags)
+        self.assertIn("Outdoors", game.trunk[-5].tags)
+
+        # Playing Quacks (now index 0) reveals all 4 safe cards and stops before Outdoors Trap
+        game.play_card(0, 0)
+        quacks_card = player.played_today[-1]
+        self.assertEqual(quacks_card.title, "Quacks")
+        self.assertFalse(quacks_card.markers.get("_quacks_outdoors", False))
+        self.assertEqual(quacks_card.markers.get("energy_cubes"), 4)
+        self.assertEqual(game.trunk[-1].title, "Outdoors Trap")
+
+        # Playing Poker next names "Outdoors" (known top card's tag) and succeeds
+        poker_idx = next(
+            i for i, c in enumerate(player.hand) if c.title == "Poker"
+        )
+        game.play_card(0, poker_idx)
+        poker_card = player.played_today[-1]
+        self.assertTrue(poker_card.markers.get("poker_success"))
+
+    def test_nos_book_played_after_another_card_and_kept_by_bohnanza(self):
+        from thenos.ais.argonbrain import _build_profile
+
+        self.assertEqual(_build_profile(make_card("nos-book")).conditional_fun_bonus, 3)
+
+        game = _argon_game()
+        game.day = 2
+        player = game.players[0]
+        player.energy = 4
+        player.hand = [
+            make_card("nos-book"),
+            make_card("7-wonders"),
+        ]
+        game.suitcase = [
+            _dummy_card(10 + i, f"Suitcase {i}", 2, 2) for i in range(4)
+        ]
+        game.trunk = [
+            _dummy_card(100 + i, f"Trunk {i}", 2, 2) for i in range(16)
+        ]
+
+        # Plays 7 Wonders first (index 1), then Nos Book (index 0)
+        first = game.ais[0].choose_card_to_play(game, 0, (0, 1))
+        self.assertEqual(first, 1)
+        game.play_card(0, first)
+        second = game.ais[0].choose_card_to_play(game, 0, (0,))
+        self.assertEqual(second, 0)
+        game.play_card(0, second)
+        self.assertEqual(game.card_fun(0, player.played_today[0]), 6)
+
+        # Bohnanza should not discard Nos Book while its target is in played_today
+        bohnanza = make_card("bohnanza")
+        player.played_today.append(bohnanza)
+        discards = game.ais[0].choose_cards_to_discard(
+            game, 0, player.played_today[:-1]
+        )
+        self.assertNotIn(1, discards)
+
     def test_serial_and_parallel_simulation_parity(self):
         competitors = tuple(Competitor("ArgonBrain", ArgonBrain) for _ in range(4))
         serial = simulate_games(

@@ -14,6 +14,7 @@ from typing import Callable, Mapping, Sequence
 
 from thenos.ais import (
     ArgonbrainAI,
+    BerylliumbrainAI,
     GalaxybrainAI,
     GreedyAI,
     PlannerAI,
@@ -547,6 +548,32 @@ def simulate_greedy_vs_random(
     )
 
 
+def simulate_four_beryllium(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 16,
+    daily_conditions: bool = False,
+    characters: bool = False,
+) -> SimulationReport:
+    """Run the standard seat-rotated four-Beryllium card-data batch."""
+    return simulate_games(
+        games,
+        seed,
+        tuple(
+            Competitor("Beryllium", BerylliumbrainAI)
+            for _ in range(PLAYER_COUNT)
+        ),
+        rotate_seats=True,
+        workers=workers,
+        daily_conditions=daily_conditions,
+        characters=characters,
+    )
+
+
+simulate_four_berylliumbrain = simulate_four_beryllium
+
+
 def simulate_four_argonbrain(
     games: int,
     seed: int | None = None,
@@ -555,7 +582,7 @@ def simulate_four_argonbrain(
     daily_conditions: bool = False,
     characters: bool = False,
 ) -> SimulationReport:
-    """Run the standard seat-rotated four-Argonbrain card-data batch."""
+    """Run a seat-rotated four-Argonbrain batch."""
     return simulate_games(
         games,
         seed,
@@ -616,6 +643,34 @@ def simulate_planner_vs_greedy(
         daily_conditions=daily_conditions,
         characters=characters,
     )
+
+
+def simulate_beryllium_vs_planner(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 16,
+    daily_conditions: bool = False,
+    characters: bool = False,
+) -> SimulationReport:
+    """Run a seat-balanced match of one Beryllium against three Planners."""
+    return simulate_games(
+        games,
+        seed,
+        (
+            Competitor("Beryllium", BerylliumbrainAI),
+            Competitor("Planner", PlannerAI),
+            Competitor("Planner", PlannerAI),
+            Competitor("Planner", PlannerAI),
+        ),
+        rotate_seats=True,
+        workers=workers,
+        daily_conditions=daily_conditions,
+        characters=characters,
+    )
+
+
+simulate_berylliumbrain_vs_planner = simulate_beryllium_vs_planner
 
 
 def simulate_argonbrain_vs_planner(

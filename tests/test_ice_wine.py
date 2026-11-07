@@ -5,7 +5,7 @@ from tests.helpers import empty_game
 
 
 class IceWineTests(unittest.TestCase):
-    def test_food_cards_before_score_three_extra_fun_only(self) -> None:
+    def test_food_cards_before_score_two_extra_fun_only(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 14
@@ -24,11 +24,11 @@ class IceWineTests(unittest.TestCase):
         food_after = game.play_card(0, 0)
 
         self.assertEqual(card.definition.cost, 3)
-        self.assertEqual(card.definition.base_fun, 0)
+        self.assertEqual(card.definition.base_fun, 1)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
-        self.assertEqual(game.card_fun(0, food_before), 6)
+        self.assertEqual(game.card_fun(0, food_before), 5)
         self.assertEqual(game.card_fun(0, other_before), 6)
-        self.assertEqual(game.card_fun(0, card), 0)
+        self.assertEqual(game.card_fun(0, card), 1)
         self.assertEqual(game.card_fun(0, food_after), 3)
 
 

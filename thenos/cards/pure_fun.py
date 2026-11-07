@@ -139,7 +139,7 @@ ADVENTURE_RACE = CardDefinition(
     title="Adventure Race",
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=12,
-    base_fun=20,
+    base_fun=18,
 )
 
 CHEAP_WHITE = CardDefinition(

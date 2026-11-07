@@ -26,7 +26,7 @@ class CanoeTests(unittest.TestCase):
     def test_written_cost_ignores_a_later_energy_modifier(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 8
+        player.energy = 9
         player.hand.extend(
             [
                 make_card("rouladen"),

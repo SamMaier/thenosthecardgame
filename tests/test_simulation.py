@@ -13,6 +13,7 @@ from thenos.simulation import (
     _PlayerOutcome,
     _merge_outcome,
     simulate_argonbrain_vs_planner,
+    simulate_beryllium_vs_planner,
     simulate_galaxybrain_vs_planner,
     simulate_games,
     simulate_greedy_vs_random,
@@ -196,6 +197,12 @@ class SimulationTests(unittest.TestCase):
         report = simulate_argonbrain_vs_planner(1, seed=102)
 
         self.assertEqual(report.ais["Argonbrain"].games, 1)
+        self.assertEqual(report.ais["Planner"].games, 3)
+
+    def test_beryllium_matchup_aggregates_three_planner_opponents(self) -> None:
+        report = simulate_beryllium_vs_planner(1, seed=102)
+
+        self.assertEqual(report.ais["Beryllium"].games, 1)
         self.assertEqual(report.ais["Planner"].games, 3)
 
     def test_worker_count_must_be_positive(self) -> None:

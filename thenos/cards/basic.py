@@ -532,7 +532,7 @@ EUCHRE_TOURNAMENT_AWARDS_CEREMONY = CardDefinition(
     slug="euchre-awards-ceremony",
     title="Euchre Awards Ceremony",
     tags=frozenset({"Social", "Outdoors"}),
-    cost=3,
+    cost=4,
     behavior=EuchreTournamentAwardsCeremonyBehavior(),
 )
 
