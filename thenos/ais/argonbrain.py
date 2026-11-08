@@ -482,6 +482,7 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
     )
     has_tomorrow_action = bool(getattr(b, "has_tomorrow_action", False))
     tomorrow_all_tags = bool(getattr(b, "tomorrow_all_tags", False))
+    after_all_tags = bool(getattr(b, "after_all_tags", False))
     has_tomorrow_effect = (
         has_tomorrow_start
         or has_tomorrow_play
@@ -683,6 +684,10 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
             and "Next" not in cls_name
         )
     )
+    if "EuchreTournamentAwardsCeremony" in cls_name:
+        signed_match_benefit = 1.8
+    elif after_all_tags:
+        signed_match_benefit = 1.7
     is_global_after_scaler = bool(
         not target_tags
         and signed_match_benefit > 0.0
@@ -694,10 +699,9 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
                 and "Double" not in cls_name
             )
             or "EuchreTournamentAwardsCeremony" in cls_name
+            or after_all_tags
         )
     )
-    if "EuchreTournamentAwardsCeremony" in cls_name:
-        signed_match_benefit = 1.8
 
     penalizes_before = bool(
         ("Before" in cls_name and fun_bonus < 0)
@@ -1730,7 +1734,7 @@ def _extra_energy_support_for_card(
         ):
             support += h_prof.conditional_energy_gain - hc.effective_cost
         elif hc.title == "Würstchen":
-            support += max(1, len(player.hand) - 3)
+            support += max(0, len(player.hand) - 1 - hc.effective_cost)
         elif h_prof.tomorrow_start_energy > 0:
             support += max(0, h_prof.tomorrow_start_energy - 1)
         elif hc.title == "Butter Tarts":
@@ -2329,7 +2333,7 @@ class ArgonBrain(GreedyAI):
         ):
             bonus += 0.35 * min(prof.immediate_cards_gained, 3)
         if card.title == "Würstchen":
-            bonus += 0.85 + 0.40 * max(0, len(player.hand) - 2)
+            bonus += 0.35 + 0.40 * max(0, len(player.hand) - cost)
         elif (
             prof.immediate_energy_gain > cost
             and prof.tomorrow_start_energy >= 0

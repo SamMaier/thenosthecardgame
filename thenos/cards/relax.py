@@ -225,10 +225,9 @@ class FloatingBehavior(CardBehavior):
 
 
 class ColouringBehavior(CardBehavior):
-    """Make cards played tomorrow count as having all tags."""
+    """Make cards played after this card today count as having all tags."""
 
-    has_tomorrow_action = True
-    tomorrow_all_tags = True
+    after_all_tags = True
 
     def on_play(
         self,
@@ -236,7 +235,7 @@ class ColouringBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        pass
+        game._sync_played_today_tags(player)
 
 
 class PaintBehavior(CardBehavior):
@@ -395,7 +394,7 @@ COLOURING = CardDefinition(
     slug="colouring",
     title="Colouring",
     tags=frozenset({"Relax"}),
-    cost=4,
+    cost=2,
     base_fun=0,
     behavior=ColouringBehavior(),
 )

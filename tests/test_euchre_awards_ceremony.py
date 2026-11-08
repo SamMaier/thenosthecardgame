@@ -15,7 +15,7 @@ class EuchreAwardsCeremonyTests(unittest.TestCase):
         card = make_card("euchre-awards-ceremony")
 
         self.assertEqual(card.title, "Euchre Awards Ceremony")
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 5)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(
             card.definition.tags,
@@ -26,7 +26,7 @@ class EuchreAwardsCeremonyTests(unittest.TestCase):
         game = empty_game()
         game.ais[0] = FirstSuitcaseAI(game.rng)
         player = game.players[0]
-        player.energy = 7
+        player.energy = 8
         earlier = make_card("nap")
         ceremony = make_card("euchre-awards-ceremony")
         after_one = make_card("m-ms")

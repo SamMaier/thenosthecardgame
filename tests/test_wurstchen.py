@@ -9,7 +9,7 @@ class WurstchenTests(unittest.TestCase):
         card = make_card("wurstchen")
 
         self.assertEqual(card.title, "Würstchen")
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 5)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
 
@@ -23,14 +23,14 @@ class WurstchenTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 5)
+        self.assertEqual(player.energy, 4)
         self.assertEqual(len(player.hand), 2)
         self.assertTrue(card.markers["_gave_energy"])
 
     def test_gains_no_energy_with_an_empty_hand(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 4
+        player.energy = 5
         player.hand.append(make_card("wurstchen"))
 
         game.play_card(0, 0)

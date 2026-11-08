@@ -8,7 +8,7 @@ class CouchTubeTests(unittest.TestCase):
     def test_printed_values_and_cost_bonus_only_from_cards_before(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 10
+        player.energy = 11
         player.hand.extend(
             [
                 make_card("biography"),
@@ -22,7 +22,7 @@ class CouchTubeTests(unittest.TestCase):
         after = game.play_card(0, 0)
 
         self.assertEqual(couch_tube.title, "Couch Tube")
-        self.assertEqual(couch_tube.definition.cost, 4)
+        self.assertEqual(couch_tube.definition.cost, 5)
         self.assertEqual(couch_tube.definition.base_fun, 0)
         self.assertEqual(
             couch_tube.definition.tags,
@@ -35,7 +35,7 @@ class CouchTubeTests(unittest.TestCase):
     def test_cost_bonus_belongs_to_couch_tube_before_other_modifiers(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 12
+        player.energy = 14
         player.hand.extend(
             [
                 make_card("cheap-white"),

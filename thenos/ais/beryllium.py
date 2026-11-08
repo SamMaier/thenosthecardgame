@@ -863,8 +863,6 @@ def _contextual_copy_value(
         )
         if title == "Photo Shoot":
             tom_val += 5.2
-        elif title == "Colouring":
-            tom_val += 3.0
         elif prof.signed_match_benefit != 0.0:
             tom_val += prof.signed_match_benefit * 1.15
 
@@ -900,8 +898,6 @@ def _select_bohnanza_discards(
             t_val = prof.tomorrow_start_fun + prof.tomorrow_start_energy * 1.20
             if card.title == "Photo Shoot":
                 t_val += 5.5
-            elif card.title == "Colouring":
-                t_val += 3.5
             elif card.title == "Date's First Nos":
                 t_val += 6.0
             elif prof.signed_match_benefit != 0.0:
@@ -1382,13 +1378,7 @@ def _get_beryllium_sim_game_cls() -> type:
                     for c in player.hand
                 ]
             player.played_today.append(card)
-            if player.tomorrow_cards:
-                for source in player.tomorrow_cards:
-                    if getattr(
-                        source.effective_behavior, "tomorrow_all_tags", False
-                    ):
-                        card.markers["_all_tags"] = True
-                        break
+            self._sync_played_today_tags(player)
             if type(c_beh).on_play is not CardBehavior.on_play:
                 c_beh.on_play(self, player, card)
             if player.tomorrow_cards:
@@ -1502,15 +1492,12 @@ def _get_beryllium_sim_game_cls() -> type:
 
         def energy_cost(self, player_index: int, card: CardInstance) -> int:
             player = self.players[player_index]
-            temporary_all_tags = False
-            if player.tomorrow_cards and "_all_tags" not in card.markers:
-                for source in player.tomorrow_cards:
-                    if getattr(
-                        source.effective_behavior, "tomorrow_all_tags", False
-                    ):
-                        temporary_all_tags = True
-                        card.markers["_all_tags"] = True
-                        break
+            temporary_all_tags = (
+                "_all_tags" not in card.markers
+                and self._grants_all_tags(player, card)
+            )
+            if temporary_all_tags:
+                card.markers["_all_tags"] = True
             try:
                 c_defn = (
                     card.definition
@@ -1591,17 +1578,10 @@ def _get_beryllium_sim_game_cls() -> type:
             if target.is_tomorrow:
                 return 0
             player = self.players[player_index]
-            if player.tomorrow_cards and "_all_tags" not in target.markers:
-                for source in player.tomorrow_cards:
-                    if getattr(
-                        source.effective_behavior, "tomorrow_all_tags", False
-                    ):
-                        if any(
-                            played_card is target
-                            for played_card in player.played_today
-                        ):
-                            target.markers["_all_tags"] = True
-                        break
+            if any(
+                played_card is target for played_card in player.played_today
+            ):
+                self._sync_played_today_tags(player)
             t_defn = (
                 target.definition
                 if not target.markers
@@ -2152,7 +2132,7 @@ class BerylliumBrain(ArgonBrain):
             for c in (*player.hand, *player.played_today)
         ):
             bonus += 1.35
-        elif title == "Colouring" and days_left >= 1:
+        elif title == "Colouring":
             if (
                 player.character is not None
                 and player.character.zero_fun_tag is not None
@@ -3110,8 +3090,11 @@ class BerylliumBrain(ArgonBrain):
 
         active_after_tags: dict[str, float] = {}
         global_after_bonus = 0.0
+        has_after_all_tags = False
         for played in player.played_today:
             prof = _beryllium_build_profile(played)
+            if getattr(played.effective_behavior, "after_all_tags", False):
+                has_after_all_tags = True
             if (
                 prof.is_multi_scaler
                 and not prof.is_before_scaler
@@ -3180,11 +3163,16 @@ class BerylliumBrain(ArgonBrain):
                 )
                 if cost <= energy_budget:
                     matching_playable += global_after_bonus
-                    c_tags = (
-                        card.definition.tags if not card.markers else card.tags
-                    )
-                    for t in c_tags:
-                        matching_playable += active_after_tags.get(t, 0.0)
+                    if has_after_all_tags:
+                        matching_playable += sum(active_after_tags.values())
+                    else:
+                        c_tags = (
+                            card.definition.tags
+                            if not card.markers
+                            else card.tags
+                        )
+                        for t in c_tags:
+                            matching_playable += active_after_tags.get(t, 0.0)
         return (
             min(player.energy, 7) * 0.72
             + matching_playable * 0.95

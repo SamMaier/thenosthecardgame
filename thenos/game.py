@@ -688,8 +688,8 @@ class Game:
     def energy_cost(self, player_index: int, card: CardInstance) -> int:
         player = self.players[player_index]
         temporary_all_tags = (
-            self._tomorrow_grants_all_tags(player)
-            and "_all_tags" not in card.markers
+            "_all_tags" not in card.markers
+            and self._grants_all_tags(player, card)
         )
         if temporary_all_tags:
             card.markers["_all_tags"] = True
@@ -723,11 +723,34 @@ class Game:
         )
 
     @staticmethod
+    def _grants_all_tags(player: PlayerState, card: CardInstance) -> bool:
+        if Game._tomorrow_grants_all_tags(player):
+            return True
+        for source in player.played_today:
+            if source is card:
+                break
+            if getattr(source.effective_behavior, "after_all_tags", False):
+                return True
+        return False
+
+    @staticmethod
+    def _sync_played_today_tags(player: PlayerState) -> None:
+        tomorrow_all = Game._tomorrow_grants_all_tags(player)
+        seen_after_all = False
+        for played_card in player.played_today:
+            if tomorrow_all or seen_after_all:
+                played_card.markers["_all_tags"] = True
+            elif "_all_tags" in played_card.markers:
+                played_card.markers.pop("_all_tags", None)
+            if getattr(played_card.effective_behavior, "after_all_tags", False):
+                seen_after_all = True
+
+    @staticmethod
     def _apply_tomorrow_tag_effects(
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        if Game._tomorrow_grants_all_tags(player):
+        if Game._grants_all_tags(player, card):
             card.markers["_all_tags"] = True
 
     def playable_hand_indices(self, player_index: int) -> list[int]:
@@ -956,7 +979,7 @@ class Game:
             return 0
         player = self.players[player_index]
         if any(played_card is target for played_card in player.played_today):
-            self._apply_tomorrow_tag_effects(player, target)
+            self._sync_played_today_tags(player)
         value = target.effective_behavior.fun_value(self, player, target)
         if self.daily_condition:
             value = self.daily_condition.modify_fun(target.tags, value)

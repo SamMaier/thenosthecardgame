@@ -71,6 +71,7 @@ class BohnanzaBehavior(CardBehavior):
             target = previous_cards[index]
             player.played_today.remove(target)
             game.discard_card(target)
+        game._sync_played_today_tags(player)
         card.markers["energy_cubes"] = len(choices)
 
     def fun_value(self, game: Game, player: PlayerState, card: CardInstance) -> int:

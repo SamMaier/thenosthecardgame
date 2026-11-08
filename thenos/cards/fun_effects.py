@@ -902,7 +902,7 @@ COUCH_TUBE = CardDefinition(
     slug="couch-tube",
     title="Couch Tube",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=4,
+    cost=5,
     behavior=FunFromOtherCardsWrittenCostBehavior(),
 )
 

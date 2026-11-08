@@ -467,7 +467,7 @@ WURSTCHEN = CardDefinition(
     slug="wurstchen",
     title="Würstchen",
     tags=frozenset({"Food"}),
-    cost=4,
+    cost=5,
     behavior=WurstchenBehavior(),
 )
 

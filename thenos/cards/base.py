@@ -18,6 +18,7 @@ class CardBehavior:
 
     has_tomorrow_action = False
     tomorrow_all_tags = False
+    after_all_tags = False
 
     def can_play(
         self,

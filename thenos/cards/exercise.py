@@ -143,7 +143,7 @@ class SlalomStartBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        bonus = 5 if len(player.hand) == 1 else 0
+        bonus = 4 if len(player.hand) == 1 else 0
         return card.effective_base_fun + bonus
 
 
@@ -349,7 +349,7 @@ SLALOM_START = CardDefinition(
     slug="slalom-start",
     title="Slalom Start",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=4,
+    cost=3,
     base_fun=2,
     behavior=SlalomStartBehavior(),
 )
