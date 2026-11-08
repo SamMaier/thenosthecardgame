@@ -130,7 +130,7 @@ class QuacksBehavior(CardBehavior):
     def fun_value(self, game: Game, player: PlayerState, card: CardInstance) -> int:
         if card.markers.get("_quacks_outdoors"):
             return 0
-        return card.effective_base_fun + int(card.markers.get("energy_cubes", 0))
+        return card.effective_base_fun + 2 * int(card.markers.get("energy_cubes", 0))
 
 
 POTATO_PANCAKES = CardDefinition(

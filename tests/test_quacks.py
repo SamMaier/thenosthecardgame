@@ -23,7 +23,7 @@ class QuacksTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Board Game"}))
 
-    def test_reveals_trunk_cards_until_stopping_for_one_fun_each(self) -> None:
+    def test_reveals_trunk_cards_until_stopping_for_two_fun_each(self) -> None:
         game = empty_game()
         game.ais[0] = QuacksChoiceAI([True, True, False], game.rng)
         player = game.players[0]
@@ -37,7 +37,7 @@ class QuacksTests(unittest.TestCase):
         quacks = game.play_card(0, 0)
 
         self.assertEqual(player.energy, 6)
-        self.assertEqual(game.card_fun(0, quacks), 2)
+        self.assertEqual(game.card_fun(0, quacks), 4)
         self.assertEqual(game.discard, [first_reveal, second_reveal])
         self.assertEqual(game.trunk, [unrevealed])
 

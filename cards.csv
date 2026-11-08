@@ -193,7 +193,7 @@ PUERTO RICO,BOARDGAME,4,"(fun)(fun)(fun)
 Place 1 (cubes) on (suitcase)
 If the marked card remains by END OF DAY, +(fun)(fun)(fun)
 Must be your 1st card today","Oof, stuck with prospector"
-QUACKS,BOARDGAME,1,"Reveal and discard (trunk), stopping any time +(fun) for each card.
+QUACKS,BOARDGAME,1,"Reveal and discard (trunk), stopping any time +(fun)(fun) for each card.
 If an (OUTDOORS_card) is revealed, this card scores 0.
 (cubes)",Surely I won't pull another white one this time
 READ THE RADAR,RELAX,1,"Privately view the top 5 (trunk).
