@@ -15,14 +15,14 @@ class PhotoShootTests(unittest.TestCase):
         card = make_card("photo-shoot")
 
         self.assertEqual(card.title, "Photo Shoot")
-        self.assertEqual(card.definition.cost, 5)
-        self.assertEqual(card.definition.base_fun, -2)
+        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.base_fun, -1)
         self.assertEqual(
             card.definition.tags,
             frozenset({"Social", "Outdoors"}),
         )
 
-    def test_tomorrow_picks_after_each_play(self) -> None:
+    def test_tomorrow_picks_after_social_and_relax_plays(self) -> None:
         game = empty_game()
         game.ais[0] = FirstSuitcaseAI(game.rng)
         player = game.players[0]
@@ -32,15 +32,15 @@ class PhotoShootTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 2)
-        self.assertEqual(game.card_fun(0, photo_shoot), -2)
+        self.assertEqual(player.energy, 5)
+        self.assertEqual(game.card_fun(0, photo_shoot), -1)
         self.assertEqual(sum(player.picked_cards.values()), 0)
 
         game.end_day()
         self.assertEqual(player.tomorrow_cards, [photo_shoot])
         self.assertTrue(photo_shoot.is_tomorrow)
 
-        picked = make_card("biography")
+        picked = make_card("johnny-appleseed")
         replacement = make_card("waterski")
         second_replacement = make_card("fajitas")
         game.suitcase = [
@@ -51,25 +51,46 @@ class PhotoShootTests(unittest.TestCase):
         ]
         game.trunk = [second_replacement, replacement]
         game.start_day()
-        player.hand.append(make_card("biography"))
+        player.hand.extend([make_card("m-ms"), make_card("biography")])
+
+        non_matching = game.play_card(0, 0)
+        self.assertIs(non_matching, player.played_today[0])
+        self.assertEqual(sum(player.picked_cards.values()), 0)
+        self.assertEqual(player.energy, 8)
 
         played = game.play_card(0, 0)
 
-        self.assertIs(played, player.played_today[0])
+        self.assertIs(played, player.played_today[1])
         self.assertIn(picked, player.hand)
         self.assertEqual(sum(player.picked_cards.values()), 1)
-        self.assertEqual(player.energy, 6)
+        self.assertEqual(player.energy, 7)
         self.assertIs(game.suitcase[0], replacement)
 
         game.play_card(0, 0)
 
         self.assertEqual(sum(player.picked_cards.values()), 2)
-        self.assertEqual(player.energy, 5)
+        self.assertEqual(player.energy, 6)
         self.assertIs(game.suitcase[0], second_replacement)
 
         game.end_day()
         self.assertEqual(player.tomorrow_cards, [])
         self.assertFalse(photo_shoot.is_tomorrow)
+
+    def test_card_with_both_social_and_relax_tags_picks_only_once(self) -> None:
+        game = empty_game()
+        game.ais[0] = FirstSuitcaseAI(game.rng)
+        player = game.players[0]
+        photo_shoot = make_card("photo-shoot")
+        photo_shoot.is_tomorrow = True
+        player.tomorrow_cards.append(photo_shoot)
+        game.suitcase = [make_card("solo") for _ in range(4)]
+        game.trunk = [make_card("wingspan") for _ in range(4)]
+        game.start_day()
+        player.hand.append(make_card("spa-day"))
+
+        game.play_card(0, 0)
+
+        self.assertEqual(sum(player.picked_cards.values()), 1)
 
 
 if __name__ == "__main__":

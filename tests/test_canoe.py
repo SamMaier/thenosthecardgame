@@ -39,7 +39,7 @@ class CanoeTests(unittest.TestCase):
         canoe = game.play_card(0, 0)
         item = player.hand[0]
 
-        self.assertEqual(game.energy_cost(0, item), 1)
+        self.assertEqual(game.energy_cost(0, item), 2)
         game.play_card(0, 0)
 
         self.assertEqual(game.card_fun(0, canoe), 2)

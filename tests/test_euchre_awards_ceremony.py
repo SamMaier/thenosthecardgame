@@ -15,23 +15,24 @@ class EuchreAwardsCeremonyTests(unittest.TestCase):
         card = make_card("euchre-awards-ceremony")
 
         self.assertEqual(card.title, "Euchre Awards Ceremony")
-        self.assertEqual(card.definition.cost, 5)
+        self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(
             card.definition.tags,
             frozenset({"Social", "Outdoors"}),
         )
 
-    def test_each_card_played_after_picks_one_card_from_suitcase(self) -> None:
+    def test_food_and_board_game_cards_played_after_pick_one_card_from_suitcase(self) -> None:
         game = empty_game()
         game.ais[0] = FirstSuitcaseAI(game.rng)
         player = game.players[0]
         player.energy = 8
-        earlier = make_card("nap")
+        earlier = make_card("m-ms")
         ceremony = make_card("euchre-awards-ceremony")
-        after_one = make_card("m-ms")
-        after_two = make_card("chalk-art")
-        player.hand.extend([earlier, ceremony, after_one, after_two])
+        after_food = make_card("m-ms")
+        after_relax = make_card("chalk-art")
+        after_board_game = make_card("tres-fute")
+        player.hand.extend([earlier, ceremony, after_food, after_relax, after_board_game])
 
         first_pick = make_card("waterski")
         second_pick = make_card("fajitas")
@@ -56,11 +57,36 @@ class EuchreAwardsCeremonyTests(unittest.TestCase):
         self.assertIn(first_pick, player.hand)
 
         game.play_card(0, 0)
+        self.assertEqual(sum(player.picked_cards.values()), 1)
+
+        game.play_card(0, 0)
         self.assertEqual(sum(player.picked_cards.values()), 2)
         self.assertIn(second_pick, player.hand)
         self.assertIs(game.suitcase[0], replacement)
         self.assertEqual(len(game.suitcase), 4)
         self.assertEqual(sum(game.stats.suitcase_picks.values()), 2)
+
+    def test_card_with_both_food_and_board_game_tags_picks_only_once(self) -> None:
+        game = empty_game()
+        game.ais[0] = FirstSuitcaseAI(game.rng)
+        player = game.players[0]
+        player.energy = 8
+        player.hand.extend(
+            [
+                make_card("euchre-awards-ceremony"),
+                make_card("colouring"),
+                make_card("nap"),
+            ]
+        )
+        game.suitcase = [make_card("solo") for _ in range(4)]
+        game.trunk = [make_card("wingspan") for _ in range(4)]
+
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+        self.assertEqual(sum(player.picked_cards.values()), 0)
+
+        game.play_card(0, 0)
+        self.assertEqual(sum(player.picked_cards.values()), 1)
 
 
 if __name__ == "__main__":

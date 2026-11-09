@@ -209,7 +209,7 @@ class SimulationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "workers must be positive"):
             simulate_games(1, workers=0)
 
-    def test_csv_report_preserves_metrics_denominators_and_metadata(self) -> None:
+    def test_csv_report_writes_only_requested_card_columns(self) -> None:
         report = SimulationReport(
             games=1,
             cards={
@@ -234,19 +234,29 @@ class SimulationTests(unittest.TestCase):
                 metadata={"seed": 123, "workers": 16},
             )
             with written.open(encoding="utf-8", newline="") as stream:
-                rows = list(DictReader(stream))
+                reader = DictReader(stream)
+                fieldnames = reader.fieldnames
+                rows = list(reader)
 
+        self.assertEqual(
+            fieldnames,
+            [
+                "card",
+                "free_pick_rate",
+                "win_rate",
+                "fun_added",
+                "play_rate",
+                "win_credit_when_acquired",
+            ],
+        )
         self.assertEqual(len(rows), 1)
         row = rows[0]
-        self.assertEqual(row["seed"], "123")
-        self.assertEqual(row["workers"], "16")
         self.assertEqual(row["card"], "Biography")
-        self.assertEqual(row["free_pick_offers"], "4")
-        self.assertEqual(row["free_picks"], "1")
-        self.assertEqual(row["player_games_with_card"], "2")
-        self.assertEqual(row["player_games_without_card"], "2")
-        self.assertEqual(row["fun_total_with_card"], "18")
-        self.assertEqual(row["fun_total_without_card"], "10")
+        self.assertEqual(row["free_pick_rate"], "0.25")
+        self.assertEqual(row["win_rate"], "0.25")
+        self.assertEqual(row["fun_added"], "4.0")
+        self.assertEqual(row["play_rate"], "0.5")
+        self.assertEqual(row["win_credit_when_acquired"], "0.5")
 
 
 if __name__ == "__main__":

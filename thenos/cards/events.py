@@ -104,9 +104,10 @@ class StayUpLateBehavior(CardBehavior):
 
 
 class PhotoShootBehavior(CardBehavior):
-    """While active Tomorrow, pick a Suitcase card after each play."""
+    """While active Tomorrow, pick a Suitcase card after each Social or Relax play."""
 
     has_tomorrow_action = True
+    tags = frozenset({"Social", "Relax"})
 
     def on_tomorrow_card_play(
         self,
@@ -115,7 +116,8 @@ class PhotoShootBehavior(CardBehavior):
         source: CardInstance,
         played_card: CardInstance,
     ) -> None:
-        game.pick_from_suitcase(game.players.index(player))
+        if bool(self.tags.intersection(played_card.tags)):
+            game.pick_from_suitcase(game.players.index(player))
 
 
 SING_SONG = CardDefinition(
@@ -147,7 +149,7 @@ PHOTO_SHOOT = CardDefinition(
     slug="photo-shoot",
     title="Photo Shoot",
     tags=frozenset({"Social", "Outdoors"}),
-    cost=5,
-    base_fun=-2,
+    cost=2,
+    base_fun=-1,
     behavior=PhotoShootBehavior(),
 )

@@ -282,11 +282,13 @@ def main() -> None:
     card_width = max(len(str(row["card"])) for row in rows)
     print(
         f"{'Card':<{card_width}}  Free pick rate   Win rate   Fun added"
+        "   Play rate   Win credit when acquired"
     )
     for row in rows:
         print(
             f"{row['card']:<{card_width}} {row['free_pick_rate']:>14.1%} "
-            f"{row['win_rate']:>10.1%} {row['fun_added']:>+11.2f}"
+            f"{row['win_rate']:>10.1%} {row['fun_added']:>+11.2f} "
+            f"{row['play_rate']:>11.1%} {row['win_credit_when_acquired']:>26.2f}"
         )
     if report.daily_conditions:
         print("\nDaily conditions: net Fun per player per day (including immediate effects)")

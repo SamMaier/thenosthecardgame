@@ -361,7 +361,9 @@ class EuchreTournamentBehavior(CardBehavior):
 
 
 class EuchreTournamentAwardsCeremonyBehavior(CardBehavior):
-    """Pick a card from the Suitcase whenever a later card is played today."""
+    """Pick a card from the Suitcase whenever a later Food or Board Game card is played today."""
+
+    tags = frozenset({"Food", "Board Game"})
 
     def on_card_play(
         self,
@@ -376,6 +378,7 @@ class EuchreTournamentAwardsCeremonyBehavior(CardBehavior):
             and played_card in player.played_today
             and player.played_today.index(played_card)
             > player.played_today.index(source)
+            and bool(self.tags.intersection(played_card.tags))
         ):
             game.pick_from_suitcase(game.players.index(player))
 
@@ -532,7 +535,7 @@ EUCHRE_TOURNAMENT_AWARDS_CEREMONY = CardDefinition(
     slug="euchre-awards-ceremony",
     title="Euchre Awards Ceremony",
     tags=frozenset({"Social", "Outdoors"}),
-    cost=5,
+    cost=2,
     behavior=EuchreTournamentAwardsCeremonyBehavior(),
 )
 

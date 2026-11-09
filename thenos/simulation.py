@@ -192,24 +192,10 @@ class SimulationReport:
             {
                 "card": title,
                 "free_pick_rate": stats.free_pick_rate,
-                "free_pick_offers": stats.free_pick_offers,
-                "free_picks": stats.free_picks,
                 "win_rate": stats.win_rate,
-                "win_credit_when_acquired": stats.win_credit_when_acquired,
-                "player_games_with_card": stats.player_games_with_card,
                 "fun_added": stats.fun_added,
-                "fun_total_with_card": stats.fun_total_with_card,
-                "player_games_without_card": stats.player_games_without_card,
-                "fun_total_without_card": stats.fun_total_without_card,
-                "offers": stats.offers,
-                "picks": stats.picks,
-                "pick_rate": stats.pick_rate,
-                "acquisitions": stats.acquisitions,
-                "plays": stats.plays,
-                "plays_without_acquisition": stats.plays_without_acquisition,
                 "play_rate": stats.play_rate,
-                "win_rate_when_picked": stats.win_rate_when_picked,
-                "win_rate_when_acquired": stats.win_rate_when_acquired,
+                "win_credit_when_acquired": stats.win_credit_when_acquired,
             }
             for title, stats in sorted(self.cards.items())
         ]
@@ -235,10 +221,10 @@ def write_report_csv(
     condition_rows = report.condition_rows()
     character_rows = report.character_rows()
     # Validate every schema before replacing any file.
-    for table in (rows, condition_rows, character_rows):
+    for table in (condition_rows, character_rows):
         if table and set(run_metadata).intersection(table[0]):
             raise ValueError("metadata duplicates report fields")
-    _write_rows_csv(destination, rows, run_metadata)
+    _write_rows_csv(destination, rows, {})
     if condition_rows:
         _write_rows_csv(condition_report_path(destination), condition_rows, run_metadata)
     if character_rows:

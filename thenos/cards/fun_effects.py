@@ -576,8 +576,8 @@ class FunForAllCardsAfterDoubleBehavior(CardBehavior):
         return current_cost
 
 
-class PickThreeAndFunForSocialAfterBehavior(FunForTagAfterBehavior):
-    """Pick three Suitcase cards, then reward Social cards played after this."""
+class PickTwoAndFunForSocialAfterBehavior(FunForTagAfterBehavior):
+    """Pick two Suitcase cards, then reward Social cards played after this."""
 
     def __init__(self) -> None:
         super().__init__("Social", 1)
@@ -589,7 +589,7 @@ class PickThreeAndFunForSocialAfterBehavior(FunForTagAfterBehavior):
         card: CardInstance,
     ) -> None:
         player_index = game.players.index(player)
-        for _ in range(3):
+        for _ in range(2):
             game.pick_from_suitcase(player_index)
 
 
@@ -852,7 +852,7 @@ LONG_DISTANCE_VISITORS = CardDefinition(
     title="Long Distance Visitors",
     tags=frozenset({"Social"}),
     cost=4,
-    behavior=PickThreeAndFunForSocialAfterBehavior(),
+    behavior=PickTwoAndFunForSocialAfterBehavior(),
 )
 
 HOLD_THE_BABY = CardDefinition(

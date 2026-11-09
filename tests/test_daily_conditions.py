@@ -189,10 +189,11 @@ class DailyConditionTests(unittest.TestCase):
 
     def test_csv_preserves_mode_for_programmatic_runs(self):
         from tempfile import TemporaryDirectory
+        from thenos.simulation import condition_report_path
         report = simulate_games(1, seed=909, workers=1, daily_conditions=True)
         with TemporaryDirectory() as directory:
             output = write_report_csv(report, Path(directory) / "report.csv")
-            with output.open() as source:
+            with condition_report_path(output).open() as source:
                 rows = list(csv.DictReader(source))
         self.assertEqual({r["daily_conditions"] for r in rows}, {"True"})
 

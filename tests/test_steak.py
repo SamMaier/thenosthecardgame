@@ -25,8 +25,8 @@ class SteakTests(unittest.TestCase):
         game.play_card(0, 0)
         steak = game.play_card(0, 0)
 
-        # Rouladen discounts Agricola to three Energy, and both Rouladen and
-        # Agricola have a written cost of five and therefore trigger Steak.
+        # Rouladen discounts Agricola to four Energy, and Agricola still has a
+        # written cost of five and therefore triggers Steak.
         self.assertEqual(player.energy, 15)
         self.assertEqual(game.card_fun(0, steak), 1)
 

@@ -30,7 +30,7 @@ BOOBY PRIZE,ITEM,0,Draw (trunk),"It was your partner's fault, really"
 BOUGIE COFFEE MACHINE,"FOOD, ITEM, INDOORS",4,"Draw 3 (trunk), playing any drawn (FOOD_card) for free, ignoring any restrictions","I'll take a venti nonfat, sugar free vanilla, caramel macchiato quad shot, with whipped cream and 3 Splenda"
 BRACELET MAKING,"RELAX, SOCIAL",3,"(fun)
 Your next (SOCIAL_card) scores +(fun)(fun)(fun)(fun)",It is mandatory to drop the bucket of beads at least once
-BRING A FRIEND,SOCIAL,1,"For (card)(after), (energy) costs are doubled, and (fun) scored on those cards is doubled","""This has got to be the most competitive family I've ever seen!"" Marc-André"
+BRING A FRIEND,SOCIAL,1,(card)(after) cost double (energy) and score double (fun),"""This has got to be the most competitive family I've ever seen!"" Marc-André"
 BUBLY,FOOD,0,"If any (before)(card) has given you (energy), +(fun)(fun)","Really, you bought lime?"
 BUG SPRAY,"ITEM, OUTDOORS",1,(OUTDOORS_card)(after) score +(fun),"""I would rather ingest deet and live a short, bug-free life"" - Jorja"
 BUTTER TARTS,FOOD,3,Double your current (energy),Never disappoints
@@ -63,7 +63,7 @@ CLASSIC BOOK,RELAX,2,"(fun)(fun)
 Costs -(energy) per (before)(RELAX_card)","""Call me Ishmael."" - Moby Dick"
 CLIFF CLIMBING,"EXERCISE, OUTDOORS",4,"(fun)(fun)
 (before)(OUTDOORS_card) score +(fun)(fun)(fun)","If you're going to fall, PUSH OFF"
-COLOURING,RELAX,2,(card)(after) count as having all tags,
+COLOURING,RELAX,3,(card)(after) count as having all tags,
 COUCH TUBE,"EXERCISE, OUTDOORS",5,Score +(fun) for the total written (energy) cost on all (before)(card),"""It's good to try new things, and bad things"" - Nola on trying tubing"
 DATE'S FIRST NOS,SOCIAL,7,TOMORROW: Each (card) you play scores +(fun)(fun),Keep em away from the uncles
 DECAF,FOOD,0,"At END OF DAY, each leftover (energy) is worth +(fun)","Well, if it's decaf..."
@@ -83,7 +83,7 @@ Optionally discard an (ITEM_card) for +(fun)(fun)(fun)(fun)(fun)
 (cubes)",Sponsored by SC Johnson
 EUCHRE,"BOARDGAME, INDOORS",2,"(fun)(fun)
 (SOCIAL_card)(after) score +(fun)","""Lose the lead as fast as you can"" - Gord "
-EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",5,"When playing each (card)(after), pick (suitcase)","""But I say it is the Mount Everest of competition"" - Scott"
+EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",2,"When playing (FOOD_card)(BOARDGAME_card)(after), pick (suitcase)","""But I say it is the Mount Everest of competition"" - Scott"
 EUCHRE TOURNAMENT,"BOARDGAME, INDOORS",6,"(fun)(fun)(fun)(fun)(fun)
 Draw 4 (trunk)
 Discard 4 cards from your hand","""Some say it is the pinnacle of card playing"" - Scott"
@@ -129,10 +129,10 @@ You may choose to spend any number of additional (energy), score that much +(fun
 KEEPER,FOOD,2,"(fun)
 (energy) for each (before)(OUTDOORS_card)",I caught you a delicious bass
 KNEEBOARD,"EXERCISE, OUTDOORS",4,(fun)(fun)(fun)(fun)(fun),Try not to traumatize the children by putting them in too tight
-LAST YEAR'S SHIRT,ITEM,1,Pick any number of (suitcase) but replenish any taken from your own hand ,"Hmmm, what else is behind some furniture?"
+LAST YEAR'S SHIRT,ITEM,1,Pick any number of (suitcase) but replenish any taken from your own hand,"Hmmm, what else is behind some furniture?"
 LEFTOVERS,FOOD,2,"Copy the effects (but not tags or cost) of a (before)(FOOD_card)
 (cubes)","""I haven't been full for 3 years since I got filled up at a hockey banquet"" - Chris"
-LONG DISTANCE VISITORS,SOCIAL,4,"Pick 3 (suitcase)
+LONG DISTANCE VISITORS,SOCIAL,4,"Pick 2 (suitcase)
 (SOCIAL_card)(after) score +(fun)","""I want to live in Canada forever because it's always warm"" - Henry"
 M&MS,FOOD,0,(energy),Take the bowl away from me
 MAKE PLANS,SOCIAL,2,Pick 2 (suitcase),My cottage or yours?
@@ -171,8 +171,8 @@ PAINT,RELAX,3,"(fun)(fun)(fun)(fun)
 Your next turn is skipped",How long does this take to dry?
 PAINT ROCKS,RELAX,2,"(fun)(fun)
 If you have played at least 2 (before)(OUTDOORS_card), +(fun)(fun)",
-PHOTO SHOOT,"SOCIAL, OUTDOORS",5,"-(fun)(fun)
-TOMORROW: When playing each (card), pick (suitcase)",The closest thing to being taken hostage most men will experience
+PHOTO SHOOT,"SOCIAL, OUTDOORS",2,"-(fun)
+TOMORROW: When playing (SOCIAL_card)(RELAX_card), pick (suitcase)",The closest thing to being taken hostage most men will experience
 PLAY WITH THE KIDS,EXERCISE,4,"(fun)(fun)(fun)
 If you have more (card) in your hand at END OF DAY than all opponents, +(fun)(fun)(fun)","""Are you the star player on the team?""
 ""No, I am the team"" - Ben"
@@ -192,7 +192,7 @@ QUACKS,BOARDGAME,1,"Reveal and discard (trunk), stopping any time. +(fun)(fun) f
 READ THE RADAR,RELAX,1,Privately view the top 5 (trunk). Arrange them in any order and re-place them,"Accuweather says we're in trouble, but the weather network says we're good"
 RISK,BOARDGAME,7,"(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)(fun)",Don't let him get Australia!
-ROULADEN,FOOD,5,(card)(after) cost -(energy)(energy),Pickles or no pickles?
+ROULADEN,FOOD,3,(card)(after) cost -(energy),Pickles or no pickles?
 SAN JUAN,BOARDGAME,3,"(fun)(fun)
 Choose a player who has 2 or fewer cards played. If they do not play a (BOARDGAME_card) today, +(fun)(fun)(fun)
 (cubes)",zHope I can snag a Guild Hall

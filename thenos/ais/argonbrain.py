@@ -646,6 +646,10 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
     signed_match_benefit = float(fun_bonus) - float(energy_delta) * 0.90
     if "Double" in cls_name and signed_match_benefit == 0.0:
         signed_match_benefit = 2.5
+    elif "EuchreTournamentAwardsCeremony" in cls_name:
+        signed_match_benefit = 1.8
+    elif after_all_tags:
+        signed_match_benefit = 1.7
 
     is_single_buff = bool(
         signed_match_benefit > 0.0
@@ -672,6 +676,7 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
         and (
             modifies_other_fun
             or modifies_other_cost
+            or has_on_card_play
             or "After" in cls_name
             or "Before" in cls_name
         )
@@ -684,10 +689,6 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
             and "Next" not in cls_name
         )
     )
-    if "EuchreTournamentAwardsCeremony" in cls_name:
-        signed_match_benefit = 1.8
-    elif after_all_tags:
-        signed_match_benefit = 1.7
     is_global_after_scaler = bool(
         not target_tags
         and signed_match_benefit > 0.0
