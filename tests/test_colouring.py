@@ -9,7 +9,7 @@ class ColouringTests(unittest.TestCase):
         card = make_card("colouring")
 
         self.assertEqual(card.title, "Colouring")
-        self.assertEqual(card.definition.cost, 3)
+        self.assertEqual(card.definition.cost, 4)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Relax"}))
 

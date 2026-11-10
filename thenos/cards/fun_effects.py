@@ -878,7 +878,7 @@ CLIFF_CLIMBING = CardDefinition(
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=4,
     base_fun=2,
-    behavior=FunForTagBeforeBehavior("Outdoors", 3),
+    behavior=FunForTagBeforeBehavior("Outdoors", 2),
 )
 
 ICE_WINE = CardDefinition(

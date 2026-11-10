@@ -15,7 +15,7 @@ class EuchreAwardsCeremonyTests(unittest.TestCase):
         card = make_card("euchre-awards-ceremony")
 
         self.assertEqual(card.title, "Euchre Awards Ceremony")
-        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(
             card.definition.tags,

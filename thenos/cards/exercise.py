@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class MorningWalkBehavior(CardBehavior):
-    """Start the next day with two additional Energy; play first today."""
+    """Start the next day with three additional Energy; play first today."""
 
     has_tomorrow_action = True
 
@@ -30,7 +30,7 @@ class MorningWalkBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        game.gain_energy(player, 2, card)
+        game.gain_energy(player, 3, card)
 
 
 class MorningBikeBehavior(CardBehavior):

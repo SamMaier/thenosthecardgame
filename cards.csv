@@ -62,8 +62,8 @@ CIVILIZATION THE BOARDGAME,"BOARDGAME, INDOORS",10,(fun)(fun)(fun)(fun),It's no 
 CLASSIC BOOK,RELAX,2,"(fun)(fun)
 Costs -(energy) per (before)(RELAX_card)","""Call me Ishmael."" - Moby Dick"
 CLIFF CLIMBING,"EXERCISE, OUTDOORS",4,"(fun)(fun)
-(before)(OUTDOORS_card) score +(fun)(fun)(fun)","If you're going to fall, PUSH OFF"
-COLOURING,RELAX,3,(card)(after) count as having all tags,
+(before)(OUTDOORS_card) score +(fun)(fun)","If you're going to fall, PUSH OFF"
+COLOURING,RELAX,4,(card)(after) count as having all tags,
 COUCH TUBE,"EXERCISE, OUTDOORS",5,Score +(fun) for the total written (energy) cost on all (before)(card),"""It's good to try new things, and bad things"" - Nola on trying tubing"
 DATE'S FIRST NOS,SOCIAL,7,TOMORROW: Each (card) you play scores +(fun)(fun),Keep em away from the uncles
 DECAF,FOOD,0,"At END OF DAY, each leftover (energy) is worth +(fun)","Well, if it's decaf..."
@@ -83,7 +83,7 @@ Optionally discard an (ITEM_card) for +(fun)(fun)(fun)(fun)(fun)
 (cubes)",Sponsored by SC Johnson
 EUCHRE,"BOARDGAME, INDOORS",2,"(fun)(fun)
 (SOCIAL_card)(after) score +(fun)","""Lose the lead as fast as you can"" - Gord "
-EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",2,"When playing (FOOD_card)(BOARDGAME_card)(after), pick (suitcase)","""But I say it is the Mount Everest of competition"" - Scott"
+EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",3,"When playing (FOOD_card)(BOARDGAME_card)(after), pick (suitcase)","""But I say it is the Mount Everest of competition"" - Scott"
 EUCHRE TOURNAMENT,"BOARDGAME, INDOORS",6,"(fun)(fun)(fun)(fun)(fun)
 Draw 4 (trunk)
 Discard 4 cards from your hand","""Some say it is the pinnacle of card playing"" - Scott"
@@ -120,7 +120,7 @@ If you have played a (before)(FOOD_card), (energy)(energy)(energy)",How did we g
 ICE WINE,FOOD,3,"(fun)
 (before)(FOOD_card) score +(fun)(fun)",Basically expensive juice
 ISTANBUL,BOARDGAME,3,"(fun)
-Discard any number of cards. (energy)(energy) for each card discarded",Gotta dump this load at the Large Market
+Discard any number of cards. (energy)(energy)(energy) for each card discarded",Gotta dump this load at the Large Market
 JOHNNY APPLESEED,SOCIAL,1,"(fun)
 Your next (FOOD_card) scores +(fun)(fun)",Amen Amen Amen
 KAYAK,"EXERCISE, OUTDOORS",2,"(fun)(fun)
@@ -146,7 +146,7 @@ Must be your 1st card today",Required before I can be friendly
 MORNING RUN,"EXERCISE, OUTDOORS",5,"Must be your 1st card today
 TOMORROW: (energy)(energy)(energy)(energy)(energy)(energy)(energy)","Sorry, I totally would come, but I forgot my Fitbit"
 MORNING WALK,"EXERCISE, OUTDOORS",1,"Must be your 1st card today
-TOMORROW: (energy)(energy)","zBe bold, start cold "
+TOMORROW: (energy)(energy)(energy)","zBe bold, start cold "
 MOVIE,"RELAX, INDOORS",1,"(fun)
 (INDOORS_card)(after) score +(fun)(fun)","Nunchuk skills, bowhunting skills, computer hacking skills"
 NAP,RELAX,0,(energy),How long was I out?
@@ -171,7 +171,7 @@ PAINT,RELAX,3,"(fun)(fun)(fun)(fun)
 Your next turn is skipped",How long does this take to dry?
 PAINT ROCKS,RELAX,2,"(fun)(fun)
 If you have played at least 2 (before)(OUTDOORS_card), +(fun)(fun)",
-PHOTO SHOOT,"SOCIAL, OUTDOORS",2,"-(fun)
+PHOTO SHOOT,"SOCIAL, OUTDOORS",3,"-(fun)
 TOMORROW: When playing (SOCIAL_card)(RELAX_card), pick (suitcase)",The closest thing to being taken hostage most men will experience
 PLAY WITH THE KIDS,EXERCISE,4,"(fun)(fun)(fun)
 If you have more (card) in your hand at END OF DAY than all opponents, +(fun)(fun)(fun)","""Are you the star player on the team?""
@@ -274,7 +274,7 @@ WORK CALL,"RELAX, INDOORS",1,"-(fun)(fun)(fun)(fun)
 Your next (card) scores double (fun)","""You light up my life"" - Grandma, discussing endoscopy"
 WRESTLE THE KIDS,EXERCISE,5,"(fun)
 +(fun) for each (card) in your hand at END OF DAY","Probably ending in tears, but fun while it lasted"
-WÜRSTCHEN,FOOD,5,+(energy) for each (card) in your hand,"""Mark, did you tell Scott about your sausage?"" - Grandma"
+WÜRSTCHEN,FOOD,6,+(energy) for each (card) in your hand,"""Mark, did you tell Scott about your sausage?"" - Grandma"
 ZERO GRAVITY CHAIR,"RELAX, ITEM",1,(RELAX_card)(after) cost -(energy),The La-Z-Boy of the beach
 ZUMBA,EXERCISE,4,"(fun)
 TOMORROW: (energy)(energy)(energy)(energy)",If only we had 15 Dance Dance Revolution mats

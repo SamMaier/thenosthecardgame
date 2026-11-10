@@ -23,7 +23,7 @@ class IstanbulTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 1)
         self.assertEqual(card.definition.tags, frozenset({"Board Game"}))
 
-    def test_discards_selected_hand_cards_for_two_energy_each(self) -> None:
+    def test_discards_selected_hand_cards_for_three_energy_each(self) -> None:
         game = empty_game()
         game.ais[0] = IstanbulChoiceAI((0, 2), game.rng)
         player = game.players[0]
@@ -38,7 +38,7 @@ class IstanbulTests(unittest.TestCase):
 
         self.assertEqual(player.hand, [kept])
         self.assertCountEqual(game.discard, [discard_one, discard_two])
-        self.assertEqual(player.energy, 8)
+        self.assertEqual(player.energy, 10)
         self.assertEqual(game.card_fun(0, played), 1)
 
     def test_discarding_zero_cards_gains_no_energy(self) -> None:

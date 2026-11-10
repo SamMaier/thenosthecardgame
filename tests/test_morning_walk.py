@@ -39,7 +39,7 @@ class MorningWalkTests(unittest.TestCase):
         self.assertTrue(card.is_tomorrow)
 
         game.start_day()
-        self.assertEqual(player.energy, 9)
+        self.assertEqual(player.energy, 10)
 
         game.end_day()
         self.assertEqual(player.tomorrow_cards, [])

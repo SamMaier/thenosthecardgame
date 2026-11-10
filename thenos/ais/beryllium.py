@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from itertools import combinations
 from typing import Any, Sequence, TYPE_CHECKING
 import random
 
@@ -154,6 +155,94 @@ _TAGGED_NEUTRAL_3_BY_TAG: dict[str, CardDefinition] = {
 _BEHAVIOR_ID_TO_DEFN: dict[int, CardDefinition] = {}
 _CANONICAL_DEFN_IDS: set[int] = set()
 _BERYLLIUM_DEFN_CACHE: dict[int, CardSynergyProfile] = {}
+_ISTANBUL_ENERGY_CACHE: dict[int, int] = {}
+
+
+class _IstanbulProbeAI:
+    def choose_cards_to_discard(
+        self,
+        game: Any,
+        player_index: int,
+        options: Sequence[CardInstance],
+    ) -> Sequence[int]:
+        return (0,) if options else ()
+
+
+def _istanbul_energy_per_discard(card: CardInstance) -> int:
+    """Return how much Energy `card`'s behavior grants per discarded card."""
+    beh = card.effective_behavior
+    if not _BEHAVIOR_ID_TO_DEFN:
+        _ensure_behavior_defn_map()
+    bid = id(beh)
+    is_canonical = bid in _BEHAVIOR_ID_TO_DEFN
+    if is_canonical:
+        cached = _ISTANBUL_ENERGY_CACHE.get(bid)
+        if cached is not None:
+            return cached
+    from thenos.ais.random_ai import RandomAI
+    from thenos.game import Game
+
+    ais: list[Any] = [RandomAI(_seeded_random(9910 + i)) for i in range(4)]
+    ais[0] = _IstanbulProbeAI()
+    probe = Game([], ais, _seeded_random(9909))
+    p0 = probe.players[0]
+    p0.energy = 0
+    src = CardInstance(-1, card.effective_definition)
+    p0.hand.append(CardInstance(-2, _NEUTRAL_DRAFT_DEFNS[0]))
+    p0.played_today.append(src)
+    try:
+        beh.on_play(probe, p0, src)
+        per_discard = max(0, p0.energy)
+    except Exception:
+        per_discard = 3
+    if is_canonical:
+        _ISTANBUL_ENERGY_CACHE[bid] = per_discard
+    return per_discard
+
+
+def _allows_energy_gain_today(
+    game: Game,
+    player: PlayerState,
+    source_card: CardInstance | None = None,
+) -> bool:
+    return all(
+        c.effective_behavior.allows_energy_gain(game, player, c, source_card)
+        for c in player.played_today
+    )
+
+
+def _istanbul_extra_energy_support(
+    game: Game,
+    player_index: int,
+    target: CardInstance,
+    *,
+    extra_fodder: int = 0,
+    ignore_today_block: bool = False,
+) -> int:
+    """Estimate net ramp Energy `Istanbul` in hand can contribute toward `target`."""
+    player = game.players[player_index]
+    extra = 0
+    rem_fodder = sum(1 for hc in player.hand if hc is not target) + extra_fodder
+    for hc in player.hand:
+        if hc is target or _effective_card_title(hc) != "Istanbul":
+            continue
+        if not ignore_today_block:
+            if not hc.effective_behavior.can_play(game, player, hc):
+                continue
+            if not _allows_energy_gain_today(game, player, hc):
+                continue
+        rem_fodder -= 1
+        discards = min(3, max(0, rem_fodder))
+        if discards > 0:
+            rem_fodder -= discards
+            e_per = _istanbul_energy_per_discard(hc)
+            hc_cost = (
+                hc.effective_cost
+                if ignore_today_block
+                else game.energy_cost(player_index, hc)
+            )
+            extra += max(0, e_per * discards - hc_cost)
+    return extra
 
 
 def _ensure_behavior_defn_map() -> None:
@@ -332,6 +421,34 @@ def _beryllium_quick_card_desirability(
         - cost * 0.78
         + imm_energy * 1.30
     )
+    if title == "Istanbul" and _allows_energy_gain_today(game, player, card):
+        e_per = _istanbul_energy_per_discard(card)
+        other_cnt = sum(1 for hc in player.hand if hc is not card)
+        has_e_or_empty_sink = any(
+            _effective_card_title(hc) in {"Kayak", "Decaf", "Wakesurf"}
+            for hc in player.hand
+            if hc is not card
+        ) or any(
+            _effective_card_title(pc) in {"Decaf", "Wakesurf"}
+            for pc in player.played_today
+        )
+        disc_est = min(
+            3,
+            other_cnt if has_e_or_empty_sink else max(0, other_cnt - 1),
+        )
+        if disc_est > 0:
+            other_cost = sum(
+                game.energy_cost(player_index, hc)
+                for hc in player.hand
+                if hc is not card
+                and hc.effective_behavior.can_play(game, player, hc)
+            )
+            has_sink = has_e_or_empty_sink or other_cost > max(
+                3, player.energy - cost
+            )
+            sac_cost = 0.75 if days_left == 0 else 1.55
+            net_per = max(0.0, e_per * (1.15 if has_sink else 0.70) - sac_cost)
+            val += disc_est * net_per
     if (
         prof.immediate_cards_gained > 0
         and not prof.penalizes_before
@@ -352,7 +469,14 @@ def _beryllium_quick_card_desirability(
         val -= 0.85
 
     if eff_cost >= 8 and cost > player.energy:
-        support = _extra_energy_support_for_card(player, card)
+        support = _extra_energy_support_for_card(
+            player, card
+        ) + _istanbul_extra_energy_support(
+            game,
+            player_index,
+            card,
+            extra_fodder=2 if (days_left >= 1 and card not in player.hand) else 0,
+        )
         unfunded = max(0, eff_cost - (6 + support))
         if unfunded > 0:
             val -= unfunded * 1.65
@@ -660,17 +784,29 @@ def _contextual_hand_keep_value(
     if game.day >= DAY_COUNT:
         if not can_play_now:
             return -5.0
-        extra_e = sum(
-            max(
-                0,
-                _beryllium_build_profile(hc).immediate_energy_gain
-                - game.energy_cost(player_index, hc),
+        extra_e = 0
+        if _allows_energy_gain_today(game, player):
+            extra_e = sum(
+                max(
+                    0,
+                    _beryllium_build_profile(hc).immediate_energy_gain
+                    - game.energy_cost(player_index, hc),
+                )
+                for hc in player.hand
+                if hc is not card
+                and hc.effective_behavior.can_play(game, player, hc)
+                and game.energy_cost(player_index, hc) <= player.energy
             )
-            for hc in player.hand
-            if hc is not card
-            and hc.effective_behavior.can_play(game, player, hc)
-            and game.energy_cost(player_index, hc) <= player.energy
-        )
+            if any(
+                hc is not card
+                and _effective_card_title(hc) == "Istanbul"
+                and hc.effective_behavior.can_play(game, player, hc)
+                and game.energy_cost(player_index, hc) <= player.energy + extra_e
+                for hc in player.hand
+            ):
+                extra_e += _istanbul_extra_energy_support(
+                    game, player_index, card
+                )
         if cost > player.energy + extra_e and not any(
             c.title in {"Wrestle the Kids", "Play With the Kids"}
             for c in (*player.played_today, *player.hand)
@@ -732,7 +868,7 @@ def _contextual_copy_value(
                 1 for c in prior_cards if "Food" in c.tags
             )
         elif title == "Cliff Climbing":
-            board_fun = 2.0 + 3.0 * sum(
+            board_fun = 2.0 + 2.0 * sum(
                 1 for c in prior_cards if "Outdoors" in c.tags
             )
         elif title == "Outdoor Movie":
@@ -773,8 +909,26 @@ def _contextual_copy_value(
             )
 
     # 2. Immediate Energy gain (valued by whether we have playable cards left in hand)
-    if title == "Würstchen":
+    if not _allows_energy_gain_today(game, player, source_card):
+        imm_e = 0.0
+    elif title == "Würstchen":
         imm_e = float(len(player.hand))
+    elif title == "Istanbul":
+        e_per = _istanbul_energy_per_discard(option)
+        has_e_sink = any(
+            _effective_card_title(hc) in {"Kayak", "Decaf", "Wakesurf"}
+            for hc in player.hand
+        ) or any(
+            _effective_card_title(pc) in {"Decaf", "Wakesurf"}
+            for pc in player.played_today
+        )
+        disc_est = min(
+            3,
+            len(player.hand) if has_e_sink else max(0, len(player.hand) - 1),
+        )
+        imm_e = float(disc_est) * max(
+            0.0, float(e_per) - (0.45 if days_left == 0 else 1.15)
+        )
     elif title == "Butter Tarts":
         imm_e = float(rem_energy)
     elif title == "Potato Pancakes":
@@ -784,7 +938,7 @@ def _contextual_copy_value(
     elif title == "Camp Crossroads Dessert":
         imm_e = float(sum(1 for c in prior_cards if "Exercise" in c.tags))
     elif title == "Pudding Chômeur":
-        imm_e = 2.0 if player.hand else 0.0
+        imm_e = 3.0 if not player.hand else 2.0
     elif prof.conditional_energy_gain > 0:
         imm_e = (
             float(prof.conditional_energy_gain)
@@ -803,8 +957,13 @@ def _contextual_copy_value(
         else (
             1.10
             if any(
-                hc.title in {"Kayak", "Make Plans", "Long Distance Visitors"}
+                _effective_card_title(hc)
+                in {"Kayak", "Decaf", "Make Plans", "Long Distance Visitors"}
                 for hc in player.hand
+            )
+            or any(
+                _effective_card_title(pc) == "Decaf"
+                for pc in player.played_today
             )
             else 0.35
         )
@@ -932,7 +1091,7 @@ def _select_bohnanza_discards(
             ):
                 aura += 0.8
             elif hc.title == "Cliff Climbing" and "Outdoors" in card.tags:
-                aura += 2.7
+                aura += 1.8
             elif hc.title == "Ice Wine" and "Food" in card.tags:
                 aura += 1.8
             elif hc.title == "Outdoor Movie" and "Relax" in card.tags:
@@ -972,6 +1131,565 @@ def _select_bohnanza_discards(
             )
 
     return tuple(chosen)
+
+
+def _evaluate_istanbul_discards(
+    game: Game,
+    player_index: int,
+    options: Sequence[CardInstance],
+) -> list[tuple[float, tuple[int, ...]]]:
+    """Rank candidate discard index tuples for Istanbul by today's playable plan + tomorrow reserve."""
+    if not options:
+        return [(0.0, ())]
+    sim = _fast_copy_game(game)
+    player = sim.players[player_index]
+    source_card = player.played_today[-1] if player.played_today else None
+    if source_card is None:
+        return [(0.0, ())]
+
+    raw_e_per = _istanbul_energy_per_discard(source_card)
+    allows_e = raw_e_per > 0 and _allows_energy_gain_today(
+        sim, player, source_card
+    )
+    e_per = raw_e_per if allows_e else 0
+    orig_energy = player.energy
+    days_left = DAY_COUNT - sim.day
+    wanted_tags = _wanted_tags_for_player(player)
+    n = len(options)
+
+    sim_opts = [
+        player.hand[i]
+        if i < len(player.hand)
+        and player.hand[i].instance_id == options[i].instance_id
+        else _clone_card(options[i])
+        for i in range(n)
+    ]
+
+    sim._sync_played_today_tags(player)
+    orig_played = tuple(player.played_today)
+    pending_post_e = (
+        2
+        if (
+            allows_e
+            and len(orig_played) >= 2
+            and _effective_card_title(orig_played[-2]) == "Beach Volleyball"
+            and "Indoors" in source_card.tags
+        )
+        else 0
+    )
+    eff_start_energy = orig_energy + pending_post_e
+
+    max_opp_hand = max(
+        (
+            len(opp.hand)
+            for idx, opp in enumerate(sim.players)
+            if idx != player_index
+        ),
+        default=0,
+    )
+    baf_positions = [
+        idx_p
+        for idx_p, pc in enumerate(orig_played)
+        if _effective_card_title(pc) == "Bring a Friend"
+    ]
+    char = player.character
+
+    def _prior_card_mult(pos: int, pc: CardInstance) -> float:
+        if (
+            char is not None
+            and char.zero_fun_tag
+            and char.zero_fun_tag in pc.tags
+        ):
+            return 0.0
+        m = 1.0
+        for bp in baf_positions:
+            if bp < pos:
+                m *= 2.0
+        if pos >= 1 and _effective_card_title(orig_played[pos - 1]) == "Work Call":
+            m *= 2.0
+        return m
+
+    future_mult = float(2 ** len(baf_positions))
+    decaf_played = sum(
+        _prior_card_mult(pos, c)
+        for pos, c in enumerate(orig_played)
+        if _effective_card_title(c) == "Decaf"
+    )
+    wrestle_played = sum(
+        _prior_card_mult(pos, c)
+        for pos, c in enumerate(orig_played)
+        if _effective_card_title(c) == "Wrestle the Kids"
+    )
+    pwtk_played = sum(
+        _prior_card_mult(pos, c)
+        for pos, c in enumerate(orig_played)
+        if _effective_card_title(c) == "Play With the Kids"
+    )
+    wakesurf_played = sum(
+        _prior_card_mult(pos, c)
+        for pos, c in enumerate(orig_played)
+        if _effective_card_title(c) == "Wakesurf"
+    )
+    slalom_played = sum(
+        _prior_card_mult(pos, c)
+        for pos, c in enumerate(orig_played)
+        if _effective_card_title(c) == "Slalom Start"
+    )
+    paddleboat_played = sum(
+        _prior_card_mult(pos, c)
+        for pos, c in enumerate(orig_played)
+        if _effective_card_title(c) == "Paddleboat"
+    )
+    prior_gave_energy = pending_post_e > 0 or any(
+        c.markers.get("_gave_energy") for c in orig_played
+    )
+
+    post_draws = 0
+    s_tags = source_card.tags
+    for pc in orig_played[:-1]:
+        if _effective_card_title(pc) == "Euchre Awards Ceremony" and (
+            s_tags & {"Food", "Board Game"}
+        ):
+            post_draws += 1
+    for tc in player.tomorrow_cards:
+        if _effective_card_title(tc) == "Photo Shoot" and (
+            s_tags & {"Social", "Relax"}
+        ):
+            post_draws += 1
+
+    neutral_pair = [
+        CardInstance(-951, _NEUTRAL_DRAFT_DEFNS[0]),
+        CardInstance(-952, _NEUTRAL_DRAFT_DEFNS[1]),
+    ]
+
+    profs: list[CardSynergyProfile] = []
+    costs: list[int] = []
+    can_plays: list[bool] = []
+    titles: list[str] = []
+    card_mults: list[float] = []
+    funded_des: list[float] = []
+    gross_play_vals: list[float] = []
+    hold_surpluses: list[float] = []
+
+    orig_hand = player.hand
+    sim_hand = list(sim_opts)
+    try:
+        player.energy = 0
+        player.hand = neutral_pair
+        base_prior_fun = sum(sim.card_fun(player_index, pc) for pc in orig_played)
+
+        for c in sim_opts:
+            prof = _beryllium_build_profile(c)
+            title = _effective_card_title(c)
+            player.hand = sim_hand
+            player.energy = eff_start_energy
+            can_p = c.effective_behavior.can_play(sim, player, c)
+            cost_c = sim.energy_cost(player_index, c)
+
+            player.energy = max(eff_start_energy, 30)
+            f_des = _beryllium_quick_card_desirability(
+                sim, player_index, c, wanted_tags, cost=cost_c, prof=prof
+            )
+
+            had_all_tags = "_all_tags" in c.markers
+            player.played_today.append(c)
+            try:
+                player.energy = 0
+                player.hand = neutral_pair
+                prior_delta = (
+                    sum(sim.card_fun(player_index, pc) for pc in orig_played)
+                    - base_prior_fun
+                )
+                c_mult = (
+                    0.0
+                    if (
+                        char is not None
+                        and char.zero_fun_tag
+                        and char.zero_fun_tag in c.tags
+                    )
+                    else future_mult
+                )
+                if title not in {"Wakesurf", "Slalom Start"}:
+                    player.hand = []
+                own_fun = sim.card_fun(player_index, c)
+                base_board_fun = float(own_fun + prior_delta)
+            finally:
+                player.played_today.pop()
+                if not had_all_tags:
+                    c.markers.pop("_all_tags", None)
+                sim._sync_played_today_tags(player)
+
+            imm_fun_bonus = (
+                float(own_fun)
+                if title == "Wingspan"
+                else prof.immediate_fun_gain * c_mult
+            )
+            g_val = base_board_fun + imm_fun_bonus
+            if title == "Nos Book":
+                g_val += 3.0
+            elif title == "San Juan":
+                if any(
+                    not opp.asleep
+                    and len(opp.played_today) <= 2
+                    and not any(
+                        "Board Game" in oc.tags for oc in opp.played_today
+                    )
+                    for idx, opp in enumerate(sim.players)
+                    if idx != player_index
+                ):
+                    g_val += 2.2 * c_mult
+            elif title in {"Quacks", "Poker"}:
+                g_val += 1.8 * c_mult
+            elif title == "Bohnanza":
+                if any(
+                    sim.card_fun(player_index, pc) <= 1 for pc in orig_played
+                ):
+                    g_val += 2.2 * c_mult
+
+            if days_left >= 1:
+                if prof.goes_to_tomorrow:
+                    g_val += (
+                        prof.tomorrow_start_fun * 0.95
+                        + prof.tomorrow_start_energy * 1.20
+                        + max(0.0, prof.signed_match_benefit) * 0.90
+                    )
+                    if title == "Photo Shoot":
+                        g_val += 3.5
+                    elif title == "Date's First Nos":
+                        g_val += 2.5
+                elif title == "Chuck a Frisbee":
+                    g_val += 2.0
+                elif title == "Scout Other Cottages":
+                    g_val += 2.8
+
+            if (
+                prof.immediate_cards_gained > 0
+                and not prof.penalizes_before
+                and not prof.penalizes_after
+            ):
+                g_val += min(prof.immediate_cards_gained, 3) * (
+                    1.10 + 2.0 * paddleboat_played
+                )
+            elif (
+                title == "Medical Advice"
+                and days_left >= 1
+                and len(orig_played) <= 2
+            ):
+                g_val += (
+                    3.0 - 0.9 * len(orig_played) + 6.0 * paddleboat_played
+                )
+
+            if (
+                (prof.is_multi_scaler and not prof.is_before_scaler)
+                or prof.is_global_after_scaler
+                or prof.is_single_buff
+            ) and prof.signed_match_benefit > 0:
+                g_val += prof.signed_match_benefit * 0.85
+
+            h_surp = 0.0 if days_left <= 0 else (max(0.0, f_des) + 0.30)
+
+            profs.append(prof)
+            costs.append(cost_c)
+            can_plays.append(can_p)
+            titles.append(title)
+            card_mults.append(c_mult)
+            funded_des.append(f_des)
+            gross_play_vals.append(g_val)
+            hold_surpluses.append(h_surp)
+    finally:
+        player.hand = orig_hand
+        player.energy = orig_energy
+
+    def ramp_gain_for(idx: int, cur_e: int, rem_cards: int) -> int:
+        if not allows_e:
+            return 0
+        t = titles[idx]
+        p = profs[idx]
+        if t == "Würstchen":
+            return max(0, rem_cards - 1)
+        if t == "Butter Tarts":
+            return max(0, cur_e - costs[idx])
+        if t == "Pudding Chômeur":
+            return 3
+        if p.conditional_energy_gain > 0 and p.immediate_energy_gain == 0:
+            if t == "Potato Pancakes":
+                return 2 * sum(
+                    1 for pc in orig_played if "Relax" in pc.tags
+                )
+            if t == "Keeper":
+                return sum(
+                    1 for pc in orig_played if "Outdoors" in pc.tags
+                )
+            if t == "Camp Crossroads Dessert":
+                return sum(
+                    1 for pc in orig_played if "Exercise" in pc.tags
+                )
+            return (
+                p.conditional_energy_gain
+                if _condition_met_in_played(player, sim_opts[idx], p)
+                else 0
+            )
+        return p.immediate_energy_gain
+
+    candidate_tuples: list[tuple[int, ...]] = []
+    if n <= 6:
+        for k in range(n + 1):
+            candidate_tuples.extend(combinations(range(n), k))
+    else:
+        seen_tuples: set[tuple[int, ...]] = set()
+
+        def _add_cand(cand: tuple[int, ...]) -> None:
+            if cand not in seen_tuples:
+                seen_tuples.add(cand)
+                candidate_tuples.append(cand)
+
+        for i in range(n):
+            _add_cand((i,))
+        if n <= 8:
+            for cand in combinations(range(n), 2):
+                _add_cand(cand)
+
+        for k in range(n + 1):
+            e_k = eff_start_energy + k * e_per
+            m_kept = n - k
+            extra_ramp = 0
+            for i in range(n):
+                if can_plays[i] and costs[i] <= e_k:
+                    rg = ramp_gain_for(i, e_k, m_kept)
+                    if rg > costs[i]:
+                        extra_ramp += rg - costs[i]
+            reach_e = e_k + extra_ramp
+
+            for cost_w in (0.18, 0.52, 1.05):
+                def rank_key(i: int, cw: float = cost_w) -> float:
+                    h_val = hold_surpluses[i] * 0.75
+                    if can_plays[i] and costs[i] <= reach_e:
+                        rg = ramp_gain_for(i, e_k, m_kept)
+                        net_e_bonus = max(0, rg - costs[i]) * 1.15
+                        t = titles[i]
+                        cm = card_mults[i]
+                        extra_sink = 0.0
+                        if t == "Kayak":
+                            extra_sink = min(max(0, e_k - costs[i]), 8) * 0.85 * cm
+                        elif t == "Decaf":
+                            extra_sink = min(max(0, e_k - costs[i]), 8) * 0.80 * cm
+                        elif (
+                            t == "Bubly"
+                            and not prior_gave_energy
+                            and k > 0
+                            and e_per > 0
+                        ):
+                            extra_sink = 2.0 * cm
+                        p_val = (
+                            gross_play_vals[i]
+                            + extra_sink
+                            + net_e_bonus
+                            - costs[i] * cw
+                        )
+                        return max(h_val, p_val)
+                    if days_left >= 1:
+                        return h_val
+                    return -10.0 + 0.01 * funded_des[i]
+
+                ordered = sorted(range(n), key=rank_key)
+                _add_cand(tuple(sorted(ordered[:k])))
+
+    slot_weights = (1.0, 0.92, 0.50, 0.25)
+
+    def score_discard_tuple(disc_tuple: tuple[int, ...]) -> float:
+        k = len(disc_tuple)
+        disc_set = set(disc_tuple)
+        base_kept = [i for i in range(n) if i not in disc_set]
+        start_e = eff_start_energy + k * e_per
+        start_gave_e = prior_gave_energy or (k > 0 and e_per > 0)
+
+        best_mode_score = float("-inf")
+        for peak_first in (False, True):
+            cur_e = start_e
+            cur_gave_e = start_gave_e
+            unplayed = list(base_kept)
+            today_val = 0.0
+            decaf_w = decaf_played
+            wrestle_w = wrestle_played
+            pwtk_w = pwtk_played
+            wakesurf_w = wakesurf_played
+            slalom_w = slalom_played
+            kayak_w = 0.0
+            extra_draws = post_draws
+
+            # 1. Play strictly net-Energy-positive ramps when profitable or needed
+            progressed = True
+            while progressed and unplayed:
+                progressed = False
+                other_cost_sum = sum(
+                    costs[j] for j in unplayed if can_plays[j]
+                )
+                has_sink_card = (
+                    decaf_w > 0
+                    or any(titles[j] in {"Kayak", "Decaf"} for j in unplayed)
+                    or extra_draws > 0
+                )
+                for idx in list(unplayed):
+                    if not can_plays[idx] or costs[idx] > cur_e:
+                        continue
+                    rg = ramp_gain_for(idx, cur_e, len(unplayed))
+                    if rg <= costs[idx]:
+                        continue
+                    need_e = (other_cost_sum > cur_e) or has_sink_card
+                    h_keep = hold_surpluses[idx] * 0.55
+                    if not need_e and gross_play_vals[idx] < h_keep:
+                        continue
+                    if titles[idx] == "Pudding Chômeur":
+                        others = [j for j in unplayed if j != idx]
+                        if others:
+                            fodder = min(others, key=lambda j: hold_surpluses[j])
+                            if (
+                                not need_e
+                                and gross_play_vals[idx]
+                                < h_keep + hold_surpluses[fodder] * 0.55
+                            ):
+                                continue
+                            unplayed.remove(fodder)
+                    cur_e = cur_e - costs[idx] + rg
+                    cur_gave_e = True
+                    today_val += gross_play_vals[idx]
+                    extra_draws += min(profs[idx].immediate_cards_gained, 2)
+                    unplayed.remove(idx)
+                    progressed = True
+                    break
+
+            # 2. Pack remaining playable cards in `unplayed`
+            def play_Card_effective_val(idx: int, avail_e: int) -> float:
+                v = gross_play_vals[idx]
+                t = titles[idx]
+                cm = card_mults[idx]
+                if t == "Bubly" and cur_gave_e and not prior_gave_energy:
+                    v += 2.0 * cm
+                elif t == "Kayak":
+                    v += min(max(0, avail_e - costs[idx]), 10) * 0.85 * cm
+                elif t == "Decaf":
+                    v += min(max(0, avail_e - costs[idx]), 10) * 0.80 * cm
+                return v
+
+            playable_rem = [j for j in unplayed if can_plays[j]]
+            if peak_first:
+                playable_rem.sort(
+                    key=lambda j: play_Card_effective_val(j, cur_e)
+                    - hold_surpluses[j] * 0.55,
+                    reverse=True,
+                )
+            else:
+                playable_rem.sort(
+                    key=lambda j: (
+                        play_Card_effective_val(j, cur_e)
+                        - hold_surpluses[j] * 0.55
+                    )
+                    / max(1, costs[j]),
+                    reverse=True,
+                )
+
+            for idx in playable_rem:
+                if idx not in unplayed or costs[idx] > cur_e:
+                    continue
+                t = titles[idx]
+                cm = card_mults[idx]
+                c_val = gross_play_vals[idx]
+                if t == "Bubly" and cur_gave_e and not prior_gave_energy:
+                    c_val += 2.0 * cm
+                proj_sink = 0.0
+                if t == "Kayak":
+                    proj_sink = max(0, cur_e - costs[idx]) * cm
+                elif t == "Decaf":
+                    proj_sink = max(0, cur_e - costs[idx]) * cm
+                elif t == "Wrestle the Kids":
+                    proj_sink = max(0, len(unplayed) - 1) * cm
+                elif t == "Play With the Kids" and (len(unplayed) - 1) > max_opp_hand:
+                    proj_sink = 3.0 * cm
+                elif t == "Wakesurf" and (len(unplayed) - 1) == 0:
+                    proj_sink = 5.0 * cm
+                elif t == "Slalom Start" and (len(unplayed) - 1) == 1:
+                    proj_sink = 4.0 * cm
+
+                # Account for losing 1 point per active Wrestle / Decaf cost
+                eod_hand_cost = wrestle_w
+                eod_decaf_cost = (
+                    costs[idx] * decaf_w if decaf_w > 0 else 0.0
+                )
+                hold_opp = (
+                    hold_surpluses[idx] * 0.55 if days_left >= 1 else 0.0
+                )
+                if (
+                    c_val + proj_sink - eod_hand_cost - eod_decaf_cost
+                    <= hold_opp - 1e-6
+                ):
+                    continue
+
+                cur_e -= costs[idx]
+                today_val += c_val
+                unplayed.remove(idx)
+                extra_draws += min(profs[idx].immediate_cards_gained, 2)
+                if t == "Kayak":
+                    kayak_w = max(kayak_w, cm)
+                elif t == "Decaf":
+                    decaf_w += cm
+                elif t == "Wrestle the Kids":
+                    wrestle_w += cm
+                elif t == "Play With the Kids":
+                    pwtk_w += cm
+                elif t == "Wakesurf":
+                    wakesurf_w += cm
+                elif t == "Slalom Start":
+                    slalom_w += cm
+
+            # 3. Leftover Energy sinks (drawn Suitcase/Trunk cards, Kayak, Decaf)
+            rem_sink_e = cur_e
+            if extra_draws > 0 and rem_sink_e > 0:
+                used_draw_e = min(rem_sink_e, 2 * extra_draws)
+                today_val += used_draw_e * 1.05
+                rem_sink_e -= used_draw_e
+            if rem_sink_e > 0 and (kayak_w > 0 or decaf_w > 0):
+                per_e = max(kayak_w, decaf_w)
+                today_val += rem_sink_e * per_e
+
+            # 4. End-of-day hand-count bonuses & tomorrow reserve value
+            m_rem = len(unplayed)
+            if wrestle_w > 0:
+                today_val += wrestle_w * m_rem
+            if pwtk_w > 0 and m_rem > max_opp_hand:
+                today_val += pwtk_w * 3.0
+            if wakesurf_w > 0 and m_rem == 0:
+                today_val += wakesurf_w * 5.0
+            if slalom_w > 0 and m_rem == 1:
+                today_val += slalom_w * 4.0
+
+            reserve_val = 0.0
+            if days_left >= 1 and unplayed:
+                rem_surpluses = sorted(
+                    (hold_surpluses[j] for j in unplayed), reverse=True
+                )
+                reserve_val = 0.75 * sum(
+                    s * (slot_weights[pos] if pos < len(slot_weights) else 0.08)
+                    for pos, s in enumerate(rem_surpluses)
+                )
+
+            mode_score = today_val + reserve_val - 0.02 * k
+            if mode_score > best_mode_score:
+                best_mode_score = mode_score
+
+        return best_mode_score
+
+    scored = [(score_discard_tuple(cand), cand) for cand in candidate_tuples]
+    scored.sort(key=lambda item: (-item[0], len(item[1])))
+    return scored
+
+
+def _select_istanbul_discards(
+    game: Game,
+    player_index: int,
+    options: Sequence[CardInstance],
+) -> tuple[int, ...]:
+    """Select cards to discard for Istanbul by optimizing post-discard playable value + reserve."""
+    return _evaluate_istanbul_discards(game, player_index, options)[0][1]
 
 
 class _BerylliumEvalAI(_EvalPlayerAI):
@@ -1099,8 +1817,10 @@ class _BerylliumEvalAI(_EvalPlayerAI):
         )
         if last_played == "Bohnanza":
             return _select_bohnanza_discards(game, player_index, options)
+        if last_played == "Istanbul":
+            return _select_istanbul_discards(game, player_index, options)
 
-        if last_played in {"Navy SEALing", "Istanbul"}:
+        if last_played == "Navy SEALing":
             wanted_tags = _wanted_tags_for_player(player)
             ranked = sorted(
                 range(len(options)),
@@ -1108,31 +1828,21 @@ class _BerylliumEvalAI(_EvalPlayerAI):
                     game, player_index, options[i], wanted_tags
                 ),
             )
-            if last_played == "Navy SEALing":
-                is_doubled = any(
-                    c.title == "Bring a Friend"
-                    for c in player.played_today[:-1]
-                ) or (
-                    len(player.played_today) >= 2
-                    and player.played_today[-2].title == "Work Call"
-                )
-                thresh = 4.2 if is_doubled else 2.2
-                return tuple(
-                    i
-                    for i in ranked
-                    if _contextual_hand_keep_value(
-                        game, player_index, options[i], wanted_tags
-                    )
-                    < thresh
-                )
-            max_discards = min(3, max(0, len(options) - 1))
+            is_doubled = any(
+                c.title == "Bring a Friend"
+                for c in player.played_today[:-1]
+            ) or (
+                len(player.played_today) >= 2
+                and player.played_today[-2].title == "Work Call"
+            )
+            thresh = 4.2 if is_doubled else 2.2
             return tuple(
                 i
-                for i in ranked[:max_discards]
+                for i in ranked
                 if _contextual_hand_keep_value(
                     game, player_index, options[i], wanted_tags
                 )
-                < 2.3
+                < thresh
             )
 
         return super().choose_cards_to_discard(game, player_index, options)
@@ -1208,6 +1918,21 @@ class _BerylliumEvalAI(_EvalPlayerAI):
 
 class _FastArgonEvalAI(_EvalPlayerAI):
     """Exact _EvalPlayerAI with fast-pathed tag and desirability evaluation."""
+
+    def choose_cards_to_discard(
+        self,
+        game: Game,
+        player_index: int,
+        options: Sequence[CardInstance],
+    ) -> Sequence[int]:
+        if options:
+            player = game.players[player_index]
+            if (
+                player.played_today
+                and _effective_card_title(player.played_today[-1]) == "Istanbul"
+            ):
+                return _select_istanbul_discards(game, player_index, options)
+        return super().choose_cards_to_discard(game, player_index, options)
 
     def choose_suitcase_card(
         self,
@@ -2677,6 +3402,33 @@ class BerylliumBrain(ArgonBrain):
                 if len(player.hand) >= 3:
                     bucket = 5
                     desirability -= 2.0
+            elif title == "Istanbul":
+                if not _allows_energy_gain_today(sim, player, card):
+                    bucket = 5
+                    desirability -= 3.0
+                elif len(player.hand) >= 2:
+                    other_cost = sum(
+                        sim.energy_cost(player_index, other)
+                        for other in player.hand
+                        if other is not card
+                        and other.effective_behavior.can_play(sim, player, other)
+                    )
+                    if (
+                        other_cost > player.energy - cost
+                        or any(
+                            _effective_card_title(other)
+                            in {"Kayak", "Decaf", "Wakesurf", "Slalom Start"}
+                            for other in player.hand
+                            if other is not card
+                        )
+                        or any(
+                            _effective_card_title(pc)
+                            in {"Decaf", "Wakesurf", "Slalom Start"}
+                            for pc in player.played_today
+                        )
+                    ):
+                        bucket = 2
+                        desirability += 2.2
 
             if last_card is not None and last_prof is not None:
                 last_tags = (
@@ -3491,9 +4243,17 @@ class BerylliumBrain(ArgonBrain):
                     continue
 
                 if cost >= 8:
-                    support = max(
-                        0, tom_energy_delta
-                    ) + _extra_energy_support_for_card(player, c)
+                    support = (
+                        max(0, tom_energy_delta)
+                        + _extra_energy_support_for_card(player, c)
+                        + _istanbul_extra_energy_support(
+                            sim,
+                            player_index,
+                            c,
+                            extra_fodder=3,
+                            ignore_today_block=True,
+                        )
+                    )
                     if days_left == 1 and cost > 7 + support:
                         if not (
                             any(
@@ -3512,6 +4272,13 @@ class BerylliumBrain(ArgonBrain):
 
                 if c_title == "Würstchen":
                     imm_e = max(3.0, float(len(hand)))
+                elif c_title == "Istanbul":
+                    e_per = _istanbul_energy_per_discard(c)
+                    disc_tom = min(2, max(1, len(hand) - 1))
+                    imm_e = max(
+                        0.0,
+                        float(disc_tom) * max(0.0, e_per - 1.45),
+                    )
                 elif (
                     c_prof.conditional_energy_gain > 0
                     and c_title
@@ -3883,10 +4650,78 @@ class BerylliumBrain(ArgonBrain):
         )
         if last_played == "Bohnanza":
             return _select_bohnanza_discards(game, player_index, options)
-        if last_played in {"Navy SEALing", "Istanbul"}:
+        if last_played == "Navy SEALing":
             return _BERYLLIUM_EVAL_AI_SINGLETON.choose_cards_to_discard(
                 game, player_index, options
             )
+        if last_played == "Istanbul":
+            ranked = _evaluate_istanbul_discards(game, player_index, options)
+            if (
+                len(ranked) <= 1
+                or self._evaluation_depth >= 1
+                or len(player.played_today) >= 8
+                or game.stats is _get_shared_sim_stats()
+                or len(player.hand) != len(options)
+                or any(
+                    hc.instance_id != opt.instance_id
+                    for hc, opt in zip(player.hand, options)
+                )
+            ):
+                return ranked[0][1]
+
+            to_verify: list[tuple[int, ...]] = [
+                cand for _, cand in ranked[:7]
+            ]
+            if () not in to_verify:
+                to_verify.append(())
+            to_verify.sort(key=len)
+
+            base_sim = self._prepare_observable_game(game, player_index)
+            sim_p0 = base_sim.players[player_index]
+            if not sim_p0.played_today or len(sim_p0.hand) != len(options):
+                return ranked[0][1]
+            raw_e_per = _istanbul_energy_per_discard(sim_p0.played_today[-1])
+
+            best_choice = ranked[0][1]
+            best_val = float("-inf")
+            prev_depth = self._evaluation_depth
+            self._evaluation_depth = 1
+            try:
+                for disc_tuple in to_verify:
+                    sim = _beryllium_copy_game(base_sim)
+                    sim_player = sim.players[player_index]
+                    sim_source = sim_player.played_today[-1]
+                    try:
+                        discarded = sim.discard_cards_from_hand(
+                            player_index, disc_tuple
+                        )
+                        sim.gain_energy(
+                            sim_player, raw_e_per * len(discarded), sim_source
+                        )
+                        for t_src in tuple(sim_player.tomorrow_cards):
+                            t_src.effective_behavior.on_tomorrow_card_play(
+                                sim, sim_player, t_src, sim_source
+                            )
+                        for p_src in tuple(sim_player.played_today):
+                            p_src.effective_behavior.on_card_play(
+                                sim, sim_player, p_src, sim_source
+                            )
+                        _, val = self._search_best_day_plan(
+                            sim,
+                            player_index,
+                            beam_width=6,
+                            max_plays=7,
+                            allow_bed_now=True,
+                        )
+                    except Exception:
+                        continue
+                    adj_val = val - 0.02 * len(disc_tuple)
+                    if adj_val > best_val + 1e-9:
+                        best_val = adj_val
+                        best_choice = disc_tuple
+            finally:
+                self._evaluation_depth = prev_depth
+            return best_choice
         return super().choose_cards_to_discard(game, player_index, options)
 
     def choose_card_to_discard(

@@ -149,7 +149,7 @@ PHOTO_SHOOT = CardDefinition(
     slug="photo-shoot",
     title="Photo Shoot",
     tags=frozenset({"Social", "Outdoors"}),
-    cost=2,
+    cost=3,
     base_fun=-1,
     behavior=PhotoShootBehavior(),
 )
