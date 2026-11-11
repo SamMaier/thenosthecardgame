@@ -218,6 +218,9 @@ class CardDefinition:
         return self
 
 
+_ALL_CARD_TAGS: frozenset[str] | None = None
+
+
 @dataclass(slots=True)
 class CardInstance:
     """A physical card copy and any state attached to that copy."""
@@ -234,33 +237,53 @@ class CardInstance:
     @property
     def effective_definition(self) -> CardDefinition:
         """Return the definition currently supplying this copy's behavior."""
-        copied_definition = self.markers.get("_copied_definition")
-        if isinstance(copied_definition, CardDefinition):
-            return copied_definition
+        if self.markers and "_copied_definition" in self.markers:
+            copied_definition = self.markers["_copied_definition"]
+            if isinstance(copied_definition, CardDefinition):
+                return copied_definition
         return self.definition
 
     @property
     def effective_behavior(self) -> CardBehavior:
-        return self.effective_definition.behavior
+        if self.markers and "_copied_definition" in self.markers:
+            copied_definition = self.markers["_copied_definition"]
+            if isinstance(copied_definition, CardDefinition):
+                return copied_definition.behavior
+        return self.definition.behavior
 
     @property
     def effective_cost(self) -> int:
-        return self.effective_definition.cost
+        if self.markers and "_copied_definition" in self.markers:
+            copied_definition = self.markers["_copied_definition"]
+            if isinstance(copied_definition, CardDefinition):
+                return copied_definition.cost
+        return self.definition.cost
 
     @property
     def effective_base_fun(self) -> int:
-        return self.effective_definition.base_fun
+        if self.markers and "_copied_definition" in self.markers:
+            copied_definition = self.markers["_copied_definition"]
+            if isinstance(copied_definition, CardDefinition):
+                return copied_definition.base_fun
+        return self.definition.base_fun
 
     @property
     def tags(self) -> frozenset[str]:
         """The tags currently used by rules, preserving printed copy tags."""
-        if self.markers.get("_all_tags"):
-            # Import lazily to avoid the catalog/base module cycle.
-            from thenos.cards.catalog import CARD_REGISTRY
+        if (
+            self.markers
+            and "_all_tags" in self.markers
+            and self.markers["_all_tags"]
+        ):
+            global _ALL_CARD_TAGS
+            if _ALL_CARD_TAGS is None:
+                # Import lazily to avoid the catalog/base module cycle.
+                from thenos.cards.catalog import CARD_REGISTRY
 
-            return frozenset(
-                tag
-                for definition in CARD_REGISTRY.values()
-                for tag in definition.tags
-            )
+                _ALL_CARD_TAGS = frozenset(
+                    tag
+                    for definition in CARD_REGISTRY.values()
+                    for tag in definition.tags
+                )
+            return _ALL_CARD_TAGS
         return self.definition.tags

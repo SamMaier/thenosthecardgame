@@ -40,8 +40,8 @@ class ChuckAFrisbeeTests(unittest.TestCase):
                 game.players[fit_player_index].played_today.append(
                     make_card("fit-to-print")
                 )
-                game.players[chuck_player_index].played_today.append(
-                    make_card("chuck-a-frisbee")
+                game.players[chuck_player_index].played_today.extend(
+                    [make_card("chuck-a-frisbee"), make_card("nap")]
                 )
 
                 game.end_day()

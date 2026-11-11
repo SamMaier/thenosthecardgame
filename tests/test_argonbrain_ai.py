@@ -197,7 +197,7 @@ class ArgonBrainAITests(unittest.TestCase):
             _build_profile(make_card("puerto-rico")).conditional_fun_bonus, 3
         )
         self.assertEqual(
-            _build_profile(make_card("cities-and-knights")).conditional_fun_bonus, 3
+            _build_profile(make_card("cities-and-knights")).conditional_fun_bonus, 4
         )
         self.assertEqual(
             tuple(_EVAL_AI_SINGLETON.order_daily_conditions(game, 0, ("a", "b", "c"))),

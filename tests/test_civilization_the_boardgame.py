@@ -16,13 +16,13 @@ class CivilizationTheBoardgameTests(unittest.TestCase):
         self.assertEqual(card.definition.slug, "civilization-the-boardgame")
         self.assertEqual(card.title, "Civilization the Boardgame")
         self.assertEqual(card.definition.cost, 10)
-        self.assertEqual(card.definition.base_fun, 4)
+        self.assertEqual(card.definition.base_fun, 14)
         self.assertEqual(
             card.definition.tags,
             frozenset({"Board Game", "Indoors"}),
         )
         self.assertEqual(player.energy, 0)
-        self.assertEqual(game.card_fun(0, card), 4)
+        self.assertEqual(game.card_fun(0, card), 14)
 
 
 if __name__ == "__main__":

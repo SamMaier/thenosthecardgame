@@ -26,13 +26,18 @@ def _is_after(
     source: CardInstance,
     target: CardInstance,
 ) -> bool:
-    source_position = _today_position(player, source)
-    target_position = _today_position(player, target)
-    return (
-        source_position is not None
-        and target_position is not None
-        and target_position > source_position
-    )
+    if source is target:
+        return False
+    seen_source = False
+    for played_card in player.played_today:
+        if not seen_source:
+            if played_card is source:
+                seen_source = True
+            elif played_card is target:
+                return False
+        elif played_card is target:
+            return True
+    return False
 
 
 def _is_before(
@@ -40,13 +45,18 @@ def _is_before(
     source: CardInstance,
     target: CardInstance,
 ) -> bool:
-    source_position = _today_position(player, source)
-    target_position = _today_position(player, target)
-    return (
-        source_position is not None
-        and target_position is not None
-        and target_position < source_position
-    )
+    if source is target:
+        return False
+    seen_target = False
+    for played_card in player.played_today:
+        if not seen_target:
+            if played_card is target:
+                seen_target = True
+            elif played_card is source:
+                return False
+        elif played_card is source:
+            return True
+    return False
 
 
 def _is_after_for_cost(
@@ -55,12 +65,14 @@ def _is_after_for_cost(
     target: CardInstance,
 ) -> bool:
     """A hand card is a future card while its cost is being evaluated."""
-    source_position = _today_position(player, source)
-    target_position = _today_position(player, target)
-    return (
-        source_position is not None
-        and (target_position is None or target_position > source_position)
-    )
+    if source is target:
+        return False
+    for played_card in player.played_today:
+        if played_card is source:
+            return True
+        if played_card is target:
+            return False
+    return False
 
 
 def _is_today_and_matches(
@@ -94,12 +106,16 @@ def _is_next_card(
     source: CardInstance,
     target: CardInstance,
 ) -> bool:
-    source_position = _today_position(player, source)
-    target_position = _today_position(player, target)
-    return (
-        source_position is not None
-        and target_position == source_position + 1
-    )
+    if source is target:
+        return False
+    played = player.played_today
+    for i in range(len(played) - 1):
+        c = played[i]
+        if c is source:
+            return played[i + 1] is target
+        if c is target:
+            return False
+    return False
 
 
 def _is_nth_matching(
@@ -641,7 +657,7 @@ CANOE = CardDefinition(
     title="Canoe",
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=3,
-    base_fun=2,
+    base_fun=3,
     behavior=FunForNextTagWrittenCostBehavior("Item"),
 )
 

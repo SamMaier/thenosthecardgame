@@ -25,10 +25,10 @@ class WakesurfTests(unittest.TestCase):
         card = game.play_card(0, 0)
 
         self.assertEqual(player.energy, 0)
-        self.assertEqual(game.card_fun(0, card), 7)
+        self.assertEqual(game.card_fun(0, card), 8)
         game.end_day()
 
-        self.assertEqual(player.fun, 7)
+        self.assertEqual(player.fun, 8)
 
     def test_scores_only_base_fun_when_hand_is_not_empty_at_end_of_day(self) -> None:
         game = empty_game()

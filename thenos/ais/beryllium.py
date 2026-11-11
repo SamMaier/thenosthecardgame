@@ -39,10 +39,10 @@ if TYPE_CHECKING:
 
 _STOCHASTIC_PLAY_TITLES: frozenset[str] = frozenset(
     {
-        "5 10 15",
         "Assorted Cutlery",
         "Booby Prize",
         "Bougie Coffee Machine",
+        "Dominion",
         "Euchre Awards Ceremony",
         "Euchre Tournament",
         "Fishing Boat",
@@ -62,9 +62,9 @@ _STOCHASTIC_PLAY_TITLES: frozenset[str] = frozenset(
 
 _ACQUIRER_TITLES: frozenset[str] = frozenset(
     {
-        "5 10 15",
         "Booby Prize",
         "Bougie Coffee Machine",
+        "Dominion",
         "Euchre Awards Ceremony",
         "Euchre Tournament",
         "Fancy Floatie",
@@ -205,10 +205,19 @@ def _allows_energy_gain_today(
     player: PlayerState,
     source_card: CardInstance | None = None,
 ) -> bool:
-    return all(
-        c.effective_behavior.allows_energy_gain(game, player, c, source_card)
-        for c in player.played_today
-    )
+    for c in player.played_today:
+        m = c.markers
+        c_beh = (
+            c.definition.behavior
+            if (not m or "_copied_definition" not in m)
+            else c.effective_behavior
+        )
+        if (
+            type(c_beh).allows_energy_gain is not CardBehavior.allows_energy_gain
+            and not c_beh.allows_energy_gain(game, player, c, source_card)
+        ):
+            return False
+    return True
 
 
 def _istanbul_extra_energy_support(
@@ -222,15 +231,27 @@ def _istanbul_extra_energy_support(
     """Estimate net ramp Energy `Istanbul` in hand can contribute toward `target`."""
     player = game.players[player_index]
     extra = 0
-    rem_fodder = sum(1 for hc in player.hand if hc is not target) + extra_fodder
+    rem_fodder: int | None = None
     for hc in player.hand:
-        if hc is target or _effective_card_title(hc) != "Istanbul":
+        if hc is target:
+            continue
+        m = hc.markers
+        h_title = (
+            hc.definition.title
+            if (not m or "_copied_definition" not in m)
+            else _effective_card_title(hc)
+        )
+        if h_title != "Istanbul":
             continue
         if not ignore_today_block:
             if not hc.effective_behavior.can_play(game, player, hc):
                 continue
             if not _allows_energy_gain_today(game, player, hc):
                 continue
+        if rem_fodder is None:
+            rem_fodder = (
+                sum(1 for oc in player.hand if oc is not target) + extra_fodder
+            )
         rem_fodder -= 1
         discards = min(3, max(0, rem_fodder))
         if discards > 0:
@@ -263,8 +284,8 @@ def _ensure_behavior_defn_map() -> None:
 def _effective_source_definition(card: CardInstance) -> CardDefinition:
     """Return the canonical source CardDefinition for copied cards, or card.definition."""
     markers = card.markers
-    if markers:
-        copied = markers.get("_copied_definition")
+    if markers and "_copied_definition" in markers:
+        copied = markers["_copied_definition"]
         if isinstance(copied, CardDefinition):
             if not _BEHAVIOR_ID_TO_DEFN:
                 _ensure_behavior_defn_map()
@@ -275,8 +296,8 @@ def _effective_source_definition(card: CardInstance) -> CardDefinition:
 def _effective_card_title(card: CardInstance) -> str:
     """Return the exact effective card title, resolving copied effects via _effective_source_definition."""
     markers = card.markers
-    if markers:
-        copied = markers.get("_copied_definition")
+    if markers and "_copied_definition" in markers:
+        copied = markers["_copied_definition"]
         if isinstance(copied, CardDefinition):
             if not _BEHAVIOR_ID_TO_DEFN:
                 _ensure_behavior_defn_map()
@@ -287,16 +308,16 @@ def _effective_card_title(card: CardInstance) -> str:
 def _beryllium_build_profile(card: CardInstance) -> CardSynergyProfile:
     """Return the behavioral profile of card's effective source definition without marker cache collisions."""
     markers = card.markers
-    if not markers:
+    if not markers or "_copied_definition" not in markers:
         defn = card.definition
-        fast = _BERYLLIUM_DEFN_CACHE.get(id(defn))
-        if fast is not None:
-            return fast
+        did = id(defn)
+        if did in _BERYLLIUM_DEFN_CACHE:
+            return _BERYLLIUM_DEFN_CACHE[did]
         if not _CANONICAL_DEFN_IDS:
             _ensure_behavior_defn_map()
-        prof = _build_profile(card)
-        if not _ACTIVE_PROBE_KEYS and id(defn) in _CANONICAL_DEFN_IDS:
-            _BERYLLIUM_DEFN_CACHE[id(defn)] = prof
+        prof = _build_profile(CardInstance(card.instance_id, defn) if markers else card)
+        if not _ACTIVE_PROBE_KEYS and did in _CANONICAL_DEFN_IDS:
+            _BERYLLIUM_DEFN_CACHE[did] = prof
         return prof
     if not _BEHAVIOR_ID_TO_DEFN:
         _ensure_behavior_defn_map()
@@ -948,27 +969,35 @@ def _contextual_copy_value(
     else:
         imm_e = float(prof.immediate_energy_gain)
 
-    unspent_hand_cost = sum(
-        game.energy_cost(player_index, hc) for hc in player.hand
-    )
-    energy_need_weight = (
-        1.35
-        if unspent_hand_cost > rem_energy
-        else (
-            1.10
-            if any(
-                _effective_card_title(hc)
-                in {"Kayak", "Decaf", "Make Plans", "Long Distance Visitors"}
-                for hc in player.hand
-            )
-            or any(
-                _effective_card_title(pc) == "Decaf"
-                for pc in player.played_today
-            )
-            else 0.35
+    if imm_e == 0.0:
+        e_val = 0.0
+    else:
+        unspent_hand_cost = sum(
+            game.energy_cost(player_index, hc) for hc in player.hand
         )
-    )
-    e_val = imm_e * energy_need_weight
+        energy_need_weight = (
+            1.35
+            if unspent_hand_cost > rem_energy
+            else (
+                1.10
+                if any(
+                    _effective_card_title(hc)
+                    in {
+                        "Kayak",
+                        "Decaf",
+                        "Make Plans",
+                        "Long Distance Visitors",
+                    }
+                    for hc in player.hand
+                )
+                or any(
+                    _effective_card_title(pc) == "Decaf"
+                    for pc in player.played_today
+                )
+                else 0.35
+            )
+        )
+        e_val = imm_e * energy_need_weight
 
     # 3. Future cards in hand buffed by "After" scalers or single buffs
     after_val = 0.0
@@ -1606,9 +1635,9 @@ def _evaluate_istanbul_discards(
                 elif t == "Play With the Kids" and (len(unplayed) - 1) > max_opp_hand:
                     proj_sink = 3.0 * cm
                 elif t == "Wakesurf" and (len(unplayed) - 1) == 0:
-                    proj_sink = 5.0 * cm
+                    proj_sink = 6.0 * cm
                 elif t == "Slalom Start" and (len(unplayed) - 1) == 1:
-                    proj_sink = 4.0 * cm
+                    proj_sink = 5.0 * cm
 
                 # Account for losing 1 point per active Wrestle / Decaf cost
                 eod_hand_cost = wrestle_w
@@ -1658,9 +1687,9 @@ def _evaluate_istanbul_discards(
             if pwtk_w > 0 and m_rem > max_opp_hand:
                 today_val += pwtk_w * 3.0
             if wakesurf_w > 0 and m_rem == 0:
-                today_val += wakesurf_w * 5.0
+                today_val += wakesurf_w * 6.0
             if slalom_w > 0 and m_rem == 1:
-                today_val += slalom_w * 4.0
+                today_val += slalom_w * 5.0
 
             reserve_val = 0.0
             if days_left >= 1 and unplayed:
@@ -1904,7 +1933,7 @@ class _BerylliumEvalAI(_EvalPlayerAI):
                 len(player.played_today) >= 2
                 and player.played_today[-2].title == "Work Call"
             )
-            base_thresh = 4.5 if "Epic Prank" in action else 2.5
+            base_thresh = 4.5 if "Epic Prank" in action else 3.5
             if is_doubled:
                 base_thresh *= 1.8
             if any(c.title == "Wakesurf" for c in player.played_today) or (
@@ -4020,7 +4049,7 @@ class BerylliumBrain(ArgonBrain):
                     and len(player.played_today) <= 4
                 ):
                     if all(
-                        len(player.played_today) > len(opp.played_today)
+                        len(player.played_today) >= len(opp.played_today)
                         for idx, opp in enumerate(players)
                         if idx != player_index
                     ):

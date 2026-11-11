@@ -38,7 +38,7 @@ class CardRunnerTests(unittest.TestCase):
         self.assertEqual(self.jobs[0].cards[-1].title, "DOCK FISHING")
         self.assertEqual(self.jobs[1].cards[0].title, "M&MS")
         self.assertEqual(self.jobs[4].cards[-1].title, "AFTER DINNER ENTERTAINMENT")
-        self.assertEqual(self.jobs[5].cards[0].title, "5 10 15")
+        self.assertEqual(self.jobs[5].cards[0].title, "ADDRESS THE FOOD")
         self.assertEqual(self.jobs[2].cards[-1].title, "HOLD THE BABY")
 
     def test_existing_cards_are_removed_from_pending_group(self) -> None:

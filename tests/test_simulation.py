@@ -14,6 +14,8 @@ from thenos.simulation import (
     _merge_outcome,
     simulate_argonbrain_vs_planner,
     simulate_beryllium_vs_planner,
+    simulate_carbon_vs_planner,
+    simulate_four_carbon,
     simulate_galaxybrain_vs_planner,
     simulate_games,
     simulate_greedy_vs_random,
@@ -204,6 +206,52 @@ class SimulationTests(unittest.TestCase):
 
         self.assertEqual(report.ais["Beryllium"].games, 1)
         self.assertEqual(report.ais["Planner"].games, 3)
+
+    def test_carbon_matchup_aggregates_three_planner_opponents(self) -> None:
+        report = simulate_carbon_vs_planner(1, seed=102)
+
+        self.assertEqual(report.ais["Carbon"].games, 1)
+        self.assertEqual(report.ais["Planner"].games, 3)
+
+    def test_four_carbon_aggregates_four_carbon_entries(self) -> None:
+        report = simulate_four_carbon(1, seed=103, workers=1)
+
+        self.assertEqual(report.ais["Carbon"].games, 4)
+        self.assertAlmostEqual(report.ais["Carbon"].win_credit, 1.0)
+
+    def test_four_carbon_cli_requires_output_and_records_metadata(self) -> None:
+        import io
+        import sys
+        from contextlib import redirect_stderr
+        from thenos.__main__ import main
+
+        with patch.object(sys, "argv", ["thenos", "4", "--four-carbon"]):
+            with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                main()
+
+        fake_report = simulate_games(1, seed=104, workers=1)
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["thenos", "4", "--four-carbonbrain", "--output", "unused.csv"],
+            ),
+            patch(
+                "thenos.__main__.simulate_four_carbon", return_value=fake_report
+            ) as run_mock,
+            patch("thenos.__main__._code_revision", return_value="test"),
+            patch(
+                "thenos.__main__.write_report_csv",
+                return_value=Path("unused.csv"),
+            ) as write_mock,
+            patch("builtins.print"),
+        ):
+            main()
+        run_mock.assert_called_once()
+        metadata = write_mock.call_args.kwargs["metadata"]
+        self.assertEqual(metadata["run_mode"], "four-carbon")
+        self.assertEqual(metadata["competitors"], "Carbon,Carbon,Carbon,Carbon")
+        self.assertTrue(metadata["rotate_seats"])
 
     def test_worker_count_must_be_positive(self) -> None:
         with self.assertRaisesRegex(ValueError, "workers must be positive"):

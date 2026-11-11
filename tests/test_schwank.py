@@ -21,7 +21,7 @@ class SchwankTests(unittest.TestCase):
         self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
         self.assertEqual(game.card_fun(0, first), 6)
-        self.assertEqual(game.card_fun(0, second), 4)
+        self.assertEqual(game.card_fun(0, second), 6)
         self.assertEqual(game.card_fun(0, third), 5)
 
 

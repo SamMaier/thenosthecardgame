@@ -25,10 +25,10 @@ class SlalomStartTests(unittest.TestCase):
         card = game.play_card(0, 0)
 
         self.assertEqual(player.energy, 0)
-        self.assertEqual(game.card_fun(0, card), 6)
+        self.assertEqual(game.card_fun(0, card), 7)
         game.end_day()
 
-        self.assertEqual(player.fun, 6)
+        self.assertEqual(player.fun, 7)
 
     def test_scores_only_base_fun_with_zero_or_two_cards_in_hand(self) -> None:
         for hand_size in (0, 2):

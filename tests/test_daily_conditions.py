@@ -167,7 +167,9 @@ class DailyConditionTests(unittest.TestCase):
     def test_cli_flag_reaches_every_mode_and_defaults_off(self):
         from thenos.__main__ import main
         import sys
-        modes = {"": "simulate_games", "--four-beryllium": "simulate_four_beryllium",
+        modes = {"": "simulate_games", "--four-carbon": "simulate_four_carbon",
+                 "--carbon-vs-planner": "simulate_carbon_vs_planner",
+                 "--four-beryllium": "simulate_four_beryllium",
                  "--beryllium-vs-planner": "simulate_beryllium_vs_planner",
                  "--four-argonbrain": "simulate_four_argonbrain",
                  "--argonbrain-vs-planner": "simulate_argonbrain_vs_planner",

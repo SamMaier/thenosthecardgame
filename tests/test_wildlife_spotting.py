@@ -25,7 +25,7 @@ class WildlifeSpottingTests(unittest.TestCase):
         second = game.play_card(0, 0)
         self.assertIn(spotting, player.tomorrow_cards)
         self.assertEqual(game.card_fun(0, first), 4)
-        self.assertEqual(game.card_fun(0, second), 2)
+        self.assertEqual(game.card_fun(0, second), 3)
 
     def test_no_bonus_if_first_card_is_not_outdoors(self) -> None:
         game = empty_game()

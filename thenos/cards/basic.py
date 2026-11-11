@@ -126,7 +126,7 @@ class CarcassonneBehavior(CardBehavior):
         return card.effective_base_fun
 
 
-class FiveTenFifteenBehavior(CardBehavior):
+class DominionBehavior(CardBehavior):
     """Pick one card from the Suitcase when this card is played."""
 
     def on_play(
@@ -255,7 +255,7 @@ class SettlersCitiesAndKnightsBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        bonus = 3 if card.markers.get("discarded_card") else 0
+        bonus = 4 if card.markers.get("discarded_card") else 0
         return card.effective_base_fun + bonus
 
 
@@ -317,7 +317,7 @@ class EpicDuelsBehavior(CardBehavior):
 
 
 class FitToPrintBehavior(CardBehavior):
-    """Score a bonus when this player played more cards than every opponent."""
+    """Score a bonus when this player tied or led in cards played today."""
 
     def fun_value(
         self,
@@ -332,7 +332,7 @@ class FitToPrintBehavior(CardBehavior):
             if opponent is not player
         ]
         bonus = 4 if all(
-            player_card_count > opponent_count
+            player_card_count >= opponent_count
             for opponent_count in opponent_card_counts
         ) else 0
         return card.effective_base_fun + bonus
@@ -459,13 +459,13 @@ CARCASSONNE = CardDefinition(
     behavior=CarcassonneBehavior(),
 )
 
-FIVE_TEN_FIFTEEN = CardDefinition(
-    slug="5-10-15",
-    title="5 10 15",
+DOMINION = CardDefinition(
+    slug="dominion",
+    title="Dominion",
     tags=frozenset({"Board Game"}),
     cost=3,
     base_fun=2,
-    behavior=FiveTenFifteenBehavior(),
+    behavior=DominionBehavior(),
 )
 
 SAN_JUAN = CardDefinition(
@@ -490,8 +490,8 @@ SETTLERS_CITIES_AND_KNIGHTS = CardDefinition(
     slug="cities-and-knights",
     title="Cities and Knights",
     tags=frozenset({"Board Game"}),
-    cost=5,
-    base_fun=4,
+    cost=4,
+    base_fun=3,
     behavior=SettlersCitiesAndKnightsBehavior(),
 )
 
@@ -552,7 +552,7 @@ SCRABBLE = CardDefinition(
     title="Scrabble",
     tags=frozenset({"Board Game", "Outdoors"}),
     cost=3,
-    base_fun=2,
+    base_fun=3,
     behavior=ScrabbleBehavior(),
 )
 

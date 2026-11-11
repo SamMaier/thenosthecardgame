@@ -22,11 +22,11 @@ class SettlersCitiesAndKnightsTests(unittest.TestCase):
         card = make_card("cities-and-knights")
 
         self.assertEqual(card.title, "Cities and Knights")
-        self.assertEqual(card.definition.cost, 5)
-        self.assertEqual(card.definition.base_fun, 4)
+        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.base_fun, 3)
         self.assertEqual(card.definition.tags, frozenset({"Board Game"}))
 
-    def test_discards_one_hand_card_for_three_fun(self) -> None:
+    def test_discards_one_hand_card_for_four_fun(self) -> None:
         game = empty_game()
         game.ais[0] = TargetDiscardAI(0, game.rng)
         player = game.players[0]
@@ -39,7 +39,7 @@ class SettlersCitiesAndKnightsTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 2)
+        self.assertEqual(player.energy, 3)
         self.assertEqual(player.hand, [retained])
         self.assertIn(discarded, game.discard)
         self.assertTrue(card.markers["discarded_card"])
@@ -48,7 +48,7 @@ class SettlersCitiesAndKnightsTests(unittest.TestCase):
     def test_without_a_card_in_hand_scores_only_base_fun(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 5
+        player.energy = 4
         player.hand.append(make_card("settlers-cities-and-knights"))
 
         card = game.play_card(0, 0)
@@ -56,7 +56,7 @@ class SettlersCitiesAndKnightsTests(unittest.TestCase):
         self.assertEqual(player.hand, [])
         self.assertEqual(game.discard, [])
         self.assertNotIn("discarded_card", card.markers)
-        self.assertEqual(game.card_fun(0, card), 4)
+        self.assertEqual(game.card_fun(0, card), 3)
 
 
 if __name__ == "__main__":

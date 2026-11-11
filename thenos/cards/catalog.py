@@ -16,12 +16,12 @@ from thenos.cards.new_cards import (
 from thenos.cards.copy_effects import LAST_YEARS_SHIRT, NOS_SHIRT, WEDDING_ANNIVERSARY
 from thenos.cards.basic import (
     CARCASSONNE,
+    DOMINION,
     EPIC_DUELS,
     EPIC_PRANK,
     EUCHRE_TOURNAMENT,
     EUCHRE_TOURNAMENT_AWARDS_CEREMONY,
     FAJITAS,
-    FIVE_TEN_FIFTEEN,
     FIT_TO_PRINT,
     MAKE_PLANS,
     PUERTO_RICO,
@@ -101,12 +101,12 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
     card.slug: card
     for card in (
         CARCASSONNE,
+        DOMINION,
         EPIC_DUELS,
         EPIC_PRANK,
         EUCHRE_TOURNAMENT,
         EUCHRE_TOURNAMENT_AWARDS_CEREMONY,
         FAJITAS,
-        FIVE_TEN_FIFTEEN,
         FIT_TO_PRINT,
         MAKE_PLANS,
         PUERTO_RICO,
@@ -184,6 +184,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
 _instance_ids = count()
 
 _SLUG_ALIASES = {
+    "5-10-15": "dominion",
     "beaver-burger": "beaver-burgers",
     "biography": "non-fiction-book",
     "civilization-the-board-game": "civilization-the-boardgame",

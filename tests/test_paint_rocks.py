@@ -31,7 +31,7 @@ class PaintRocksTests(unittest.TestCase):
 
         self.assertEqual(player.energy, 0)
         self.assertEqual(game.card_fun(0, first), 2)
-        self.assertEqual(game.card_fun(0, second), 2)
+        self.assertEqual(game.card_fun(0, second), 3)
         self.assertEqual(game.card_fun(0, card), 4)
 
     def test_needs_two_previous_outdoors_cards_and_later_cards_do_not_count(self) -> None:
@@ -52,7 +52,7 @@ class PaintRocksTests(unittest.TestCase):
 
         self.assertEqual(game.card_fun(0, card), 2)
         self.assertEqual(game.card_fun(0, first), 2)
-        self.assertEqual(game.card_fun(0, second), 2)
+        self.assertEqual(game.card_fun(0, second), 3)
 
 
 if __name__ == "__main__":

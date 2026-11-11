@@ -19,8 +19,8 @@ class NavySEALingTests(unittest.TestCase):
         card = make_card("navy-sealing")
 
         self.assertEqual(card.title, "Navy SEALing")
-        self.assertEqual(card.definition.cost, 8)
-        self.assertEqual(card.definition.base_fun, 4)
+        self.assertEqual(card.definition.cost, 7)
+        self.assertEqual(card.definition.base_fun, 5)
         self.assertEqual(
             card.definition.tags,
             frozenset({"Exercise", "Outdoors"}),
@@ -40,7 +40,7 @@ class NavySEALingTests(unittest.TestCase):
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 1)
+        self.assertEqual(player.energy, 2)
         self.assertEqual(player.hand, [retained])
         self.assertEqual(
             {id(discarded) for discarded in game.discard},
@@ -48,13 +48,13 @@ class NavySEALingTests(unittest.TestCase):
         )
         self.assertEqual(second_discard.markers, {})
         self.assertEqual(card.markers["energy_cubes"], 2)
-        self.assertEqual(game.card_fun(0, card), 8)
+        self.assertEqual(game.card_fun(0, card), 9)
 
     def test_may_discard_zero_cards(self) -> None:
         game = empty_game()
         game.ais[0] = NavySEALingAI((), game.rng)
         player = game.players[0]
-        player.energy = 8
+        player.energy = 7
         navy_sealing = make_card("navy-sealing")
         player.hand.append(navy_sealing)
 
@@ -63,7 +63,7 @@ class NavySEALingTests(unittest.TestCase):
         self.assertEqual(player.hand, [])
         self.assertEqual(game.discard, [])
         self.assertEqual(card.markers["energy_cubes"], 0)
-        self.assertEqual(game.card_fun(0, card), 4)
+        self.assertEqual(game.card_fun(0, card), 5)
 
 
 if __name__ == "__main__":

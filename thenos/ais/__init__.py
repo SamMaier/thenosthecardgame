@@ -7,6 +7,12 @@ from thenos.ais.beryllium import (
     BerylliumBrain,
     BerylliumbrainAI,
 )
+from thenos.ais.carbon import (
+    Carbon,
+    CarbonAI,
+    CarbonBrain,
+    CarbonbrainAI,
+)
 from thenos.ais.greedy import GreedyAI
 from thenos.ais.galaxybrain import GalaxybrainAI
 from thenos.ais.interface import PlayerAI
@@ -20,6 +26,10 @@ __all__ = [
     "BerylliumAI",
     "BerylliumBrain",
     "BerylliumbrainAI",
+    "Carbon",
+    "CarbonAI",
+    "CarbonBrain",
+    "CarbonbrainAI",
     "GreedyAI",
     "GalaxybrainAI",
     "PlannerAI",

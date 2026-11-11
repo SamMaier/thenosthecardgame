@@ -1,6 +1,4 @@
 Title,Tags,Cost,Effect,Flavor text
-5 10 15,BOARDGAME,3,"(fun)(fun)
-Pick (suitcase)",zPlaying via E-Transfer has made this game a lot more cumbersome
 7 WONDERS,BOARDGAME,2,(fun)(fun)(fun),I hope nobody notices I'm the only one going for science...
 ADDRESS THE FOOD,"FOOD, SOCIAL",2,"Pick a (FOOD_card) from (suitcase), then immediately play it for free","If you use the word ""gourmet"", it means it's better"
 ADVENTURE RACE,"EXERCISE, OUTDOORS",12,"(fun)(fun)(fun)(fun)(fun)(fun)
@@ -39,8 +37,8 @@ CALZONES,FOOD,3,"(fun)(fun)
 TOMORROW: (EXERCISE_card) cost +(energy)","The winner of ""fave meal"" of 2009"
 CAMP CROSSROADS DESSERT,FOOD,1,(energy) for each (before)(EXERCISE_card),An all-time classic
 CAMPFIRE,"SOCIAL, OUTDOORS",2,"+(fun)(fun) for each ""TOMORROW"" card you have today (played yesterday)",Has anyone tried doing spider würstchen?
-CANOE,"EXERCISE, OUTDOORS",3,"(fun)(fun)
-Your next (ITEM_card) scores +(fun) equal to its written (energy) cost",Do you even know how to J-stroke?
+CANOE,"EXERCISE, OUTDOORS",3,"(fun)(fun)(fun)
+Your next (ITEM_card)(after) scores +(fun) equal to its written (energy) cost",Do you even know how to J-stroke?
 CARCASSONNE,BOARDGAME,2,"(fun)
 If the adjacent (before)(card)(after) are both (BOARDGAME_card), +(fun)(fun)(fun)(fun)",No points for longest road?
 CHALK ART,"RELAX, OUTDOORS",0,(fun),
@@ -55,10 +53,12 @@ CHRISTMAS NAME DRAW,SOCIAL,3,"Choose an opponent's card. Each (card)(after) that
 (cubes)",CLOTHES
 CHUCK A FRISBEE,"EXERCISE, OUTDOORS",3,"(fun)(fun)(fun)
 After END OF DAY scoring is completed, return to your hand",Hammer toss - go long
-CITIES AND KNIGHTS,BOARDGAME,5,"(fun)(fun)(fun)(fun)
-Optionally discard 1 card for +(fun)(fun)(fun)
+CITIES AND KNIGHTS,BOARDGAME,4,"(fun)(fun)(fun)
+Optionally discard 1 card for +(fun)(fun)(fun)(fun)
 (cubes)","Don't trade with him, he's winning!"
-CIVILIZATION THE BOARDGAME,"BOARDGAME, INDOORS",10,(fun)(fun)(fun)(fun),It's no Campaign for North Africa
+CIVILIZATION THE BOARDGAME,"BOARDGAME, INDOORS",10,"(fun)(fun)(fun)(fun)(fun)
+(fun)(fun)(fun)(fun)(fun)
+(fun)(fun)(fun)(fun)",It's no Campaign for North Africa
 CLASSIC BOOK,RELAX,2,"(fun)(fun)
 Costs -(energy) per (before)(RELAX_card)","""Call me Ishmael."" - Moby Dick"
 CLIFF CLIMBING,"EXERCISE, OUTDOORS",4,"(fun)(fun)
@@ -69,6 +69,8 @@ DATE'S FIRST NOS,SOCIAL,7,TOMORROW: Each (card) you play scores +(fun)(fun),Keep
 DECAF,FOOD,0,"At END OF DAY, each leftover (energy) is worth +(fun)","Well, if it's decaf..."
 DISHWASHING,FOOD,1,TOMORROW: (FOOD_card) cost -(energy),"Turns out, dishwashing soap is different from dishwashing detergent"
 DOCK FISHING,"RELAX, OUTDOORS",1,(fun)(fun),A valuable lesson in disappointment
+DOMINION,BOARDGAME,3,"(fun)(fun)
+Pick (suitcase)","With my village, I'll play two markets, and then I'll play another village, then another market, then a smithy, then another village..."
 DORITOS,FOOD,0,"If you have played a (before)(FOOD_card), (energy)(energy)",Sweet Chili Heat? Cool Ranch? Zesty?
 DOXOLOGY,SOCIAL,2,(SOCIAL_card)(after) score +(fun)(fun),Aaaaaaaammmeeeeennnnnnnn
 DUMBED DOWN SETTLERS,BOARDGAME,3,(fun)(fun)(fun)(fun),"While we're at it, let's remove the robber and development cards"
@@ -102,7 +104,7 @@ FISHING EVENING,"RELAX, OUTDOORS",3,"(fun)(fun)(fun)(fun)(fun)
 Must be your 4th or later card today",When trolling had a different meaning
 FISHING MORNING,"RELAX, OUTDOORS",3,"(fun)(fun)(fun)(fun)(fun)
 Must be your 1st card today",That seaweed really gave a good fight
-FIT TO PRINT,"BOARDGAME, INDOORS",2,"If you have played more cards than all of your opponents at END OF DAY, +(fun)(fun)(fun)(fun)",Your green articles are touching
+FIT TO PRINT,"BOARDGAME, INDOORS",2,"If you have played the most cards (including ties) by END OF DAY, +(fun)(fun)(fun)(fun)",Your green articles are touching
 FLOATING,"RELAX, OUTDOORS",1,"(energy)(energy)(energy)
 TOMORROW: -(energy)","""I keep floating to the surface?"" - Darcy"
 FORCED FAMILY FUN,"BOARDGAME, INDOORS",2,Your next (BOARDGAME_card) costs half (energy) (rounded down),"If you play this card during an actual FFF, you get to choose what the fam is playing next"
@@ -150,7 +152,7 @@ TOMORROW: (energy)(energy)(energy)","zBe bold, start cold "
 MOVIE,"RELAX, INDOORS",1,"(fun)
 (INDOORS_card)(after) score +(fun)(fun)","Nunchuk skills, bowhunting skills, computer hacking skills"
 NAP,RELAX,0,(energy),How long was I out?
-NAVY SEALING,"EXERCISE, OUTDOORS",8,"(fun)(fun)(fun)(fun)
+NAVY SEALING,"EXERCISE, OUTDOORS",7,"(fun)(fun)(fun)(fun)(fun)
 Discard any number of cards. +(fun)(fun) for each discard
 (cubes)",This will test the limits of your drawstring
 NEW NOS BOOK ENTRY,SOCIAL,2,"(fun)
@@ -170,7 +172,7 @@ PADDLEBOAT,"EXERCISE, OUTDOORS",3,"+(fun)(fun) for each card acquired from (trun
 PAINT,RELAX,3,"(fun)(fun)(fun)(fun)
 Your next turn is skipped",How long does this take to dry?
 PAINT ROCKS,RELAX,2,"(fun)(fun)
-If you have played at least 2 (before)(OUTDOORS_card), +(fun)(fun)",
+If you have played at least 2 (before)(OUTDOORS_card), +(fun)(fun)","A ladybug, how original!"
 PHOTO SHOOT,"SOCIAL, OUTDOORS",3,"-(fun)
 TOMORROW: When playing (SOCIAL_card)(RELAX_card), pick (suitcase)",The closest thing to being taken hostage most men will experience
 PLAY WITH THE KIDS,EXERCISE,4,"(fun)(fun)(fun)
@@ -180,7 +182,7 @@ POKER,BOARDGAME,2,"(fun)
 Say a card tag, then reveal and discard 1 (trunk). If that card had the tag, +(fun)(fun)(fun)(fun)",I'm all in
 PONYBACK,ITEM,2,"(fun)
 TOMORROW: (OUTDOORS_card) cost -(energy)",Still waiting for a Nos Shirt pattern
-POTATO PANCAKES,"FOOD, OUTDOORS",2,(energy)(energy) for each (before)(RELAX_card),
+POTATO PANCAKES,"FOOD, OUTDOORS",2,(energy)(energy) for each (before)(RELAX_card),May only be cooked on a 1960s green Coleman stove
 PRIME PICNIC TABLE,"ITEM, OUTDOORS",3,(OUTDOORS_card)(after) cost -(energy) and score +(fun),"Under a tree, a view of the beach, perfectly level, what more could you ask for"
 PUDDING CHÔMEUR,FOOD,1,"(energy)(energy)(energy)
 Discard a card from your hand","Sure uses a lot of maple syrup for ""unemployed pudding"""
@@ -199,7 +201,7 @@ Choose a player who has 2 or fewer cards played. If they do not play a (BOARDGAM
 SCHWANK,FOOD,2,The 2nd (EXERCISE_card)(after) scores double (fun),"""I don't want to buy it from some guy with a long beard who looks kind of messy"" - Grandpa"
 SCOUT OTHER COTTAGES,"SOCIAL, INDOORS",1,"Place (cubes) on all (suitcase). After END OF DAY, add remaining marked cards to your hand
 (before)(card) score -(fun)",They brought up some sweet new games
-SCRABBLE,"BOARDGAME, OUTDOORS",3,"(fun)(fun)
+SCRABBLE,"BOARDGAME, OUTDOORS",3,"(fun)(fun)(fun)
 Discard any number of cards, then pick that many (suitcase)","Wo or woah? ""I don't think the horse would care how it's spelled"" - Grandma"
 SCREAMER BATTLE,"EXERCISE, OUTDOORS",7,"(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)(fun)","""I want to do girls tubing... Well, we could do mixed sex."" - Connie"
@@ -211,7 +213,7 @@ SKI ON SHOULDERS,"EXERCISE, OUTDOORS",5,"(fun)(fun)(fun)
 If your current (fun) total is lower than at least half of your opponents' scores, +(fun)(fun)(fun)(fun)(fun)
 (cubes)",What's next? A kneeboarding human pyramid?
 SLALOM START,"EXERCISE, OUTDOORS",3,"(fun)(fun)
-If you have exactly 1 (card) in your hand at END OF DAY, +(fun)(fun)(fun)(fun)",HIT IT
+If you have exactly 1 (card) in your hand at END OF DAY, +(fun)(fun)(fun)(fun)(fun)",HIT IT
 SLEEP IN,"RELAX, INDOORS",0,"(energy)(energy)
 You do not gain additional (energy) from any other source today
 Must be your 1st card today","""I may be sleepy, but I'm still sensitive"" - Sally"
@@ -219,7 +221,7 @@ SOLO,BOARDGAME,3,"(fun)(fun)(fun)
 If none of your opponents have played a (BOARDGAME_card) yet today, +(fun)(fun)
 (cubes)",zEuchre but I can actually play on the same team as my spouse
 SPA DAY,"RELAX, SOCIAL",2,"(fun)(fun)
-(RELAX_card)(after) score +(fun)",
+(RELAX_card)(after) score +(fun)","I brought 18 shades of pink nail polish - would you like Amaranth, Taffy, Flamingo, Bubblegum, Cerise..."
 SPIKEBALL,"EXERCISE, OUTDOORS",6,"(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)",Rim!
 SPLENDOR,BOARDGAME,1,(fun)(fun),zWho doesn't love jewels?
@@ -255,7 +257,7 @@ TRÈS FUTÉ,BOARDGAME,0,(fun),You left us all junk!
 WAKEBOARD,"EXERCISE, OUTDOORS",8,"(fun)(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)(fun)(fun)",zDo a backflip!
 WAKESURF,"EXERCISE, OUTDOORS",3,"(fun)(fun)
-If you have no (card) in your hand at END OF DAY, +(fun)(fun)(fun)(fun)(fun)",Blame your falls on the driver
+If you have no (card) in your hand at END OF DAY, +(fun)(fun)(fun)(fun)(fun)(fun)",Blame your falls on the driver
 WATER TRAMPOLINE,"EXERCISE, OUTDOORS",3,"(fun)
 Your next (RELAX_card) scores double (fun)",Actually more difficult to jump on than hard ground
 WATER VOLLEYBALL,"EXERCISE, OUTDOORS",4,"(fun)(fun)

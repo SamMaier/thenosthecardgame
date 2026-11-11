@@ -15,6 +15,7 @@ from typing import Callable, Mapping, Sequence
 from thenos.ais import (
     ArgonbrainAI,
     BerylliumbrainAI,
+    CarbonAI,
     GalaxybrainAI,
     GreedyAI,
     PlannerAI,
@@ -534,6 +535,32 @@ def simulate_greedy_vs_random(
     )
 
 
+def simulate_four_carbon(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 16,
+    daily_conditions: bool = False,
+    characters: bool = False,
+) -> SimulationReport:
+    """Run the standard seat-rotated four-Carbon card-data batch."""
+    return simulate_games(
+        games,
+        seed,
+        tuple(
+            Competitor("Carbon", CarbonAI)
+            for _ in range(PLAYER_COUNT)
+        ),
+        rotate_seats=True,
+        workers=workers,
+        daily_conditions=daily_conditions,
+        characters=characters,
+    )
+
+
+simulate_four_carbonbrain = simulate_four_carbon
+
+
 def simulate_four_beryllium(
     games: int,
     seed: int | None = None,
@@ -542,7 +569,7 @@ def simulate_four_beryllium(
     daily_conditions: bool = False,
     characters: bool = False,
 ) -> SimulationReport:
-    """Run the standard seat-rotated four-Beryllium card-data batch."""
+    """Run a seat-rotated four-Beryllium batch."""
     return simulate_games(
         games,
         seed,
@@ -629,6 +656,34 @@ def simulate_planner_vs_greedy(
         daily_conditions=daily_conditions,
         characters=characters,
     )
+
+
+def simulate_carbon_vs_planner(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 16,
+    daily_conditions: bool = False,
+    characters: bool = False,
+) -> SimulationReport:
+    """Run a seat-balanced match of one Carbon against three Planners."""
+    return simulate_games(
+        games,
+        seed,
+        (
+            Competitor("Carbon", CarbonAI),
+            Competitor("Planner", PlannerAI),
+            Competitor("Planner", PlannerAI),
+            Competitor("Planner", PlannerAI),
+        ),
+        rotate_seats=True,
+        workers=workers,
+        daily_conditions=daily_conditions,
+        characters=characters,
+    )
+
+
+simulate_carbonbrain_vs_planner = simulate_carbon_vs_planner
 
 
 def simulate_beryllium_vs_planner(

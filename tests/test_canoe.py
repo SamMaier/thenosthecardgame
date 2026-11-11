@@ -19,7 +19,7 @@ class CanoeTests(unittest.TestCase):
 
         self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.tags, frozenset({"Exercise", "Outdoors"}))
-        self.assertEqual(game.card_fun(0, card), 2)
+        self.assertEqual(game.card_fun(0, card), 3)
         self.assertEqual(game.card_fun(0, non_item), 3)
         self.assertEqual(game.card_fun(0, item), 7)
 
@@ -42,7 +42,7 @@ class CanoeTests(unittest.TestCase):
         self.assertEqual(game.energy_cost(0, item), 2)
         game.play_card(0, 0)
 
-        self.assertEqual(game.card_fun(0, canoe), 2)
+        self.assertEqual(game.card_fun(0, canoe), 3)
         self.assertEqual(game.card_fun(0, item), 7)
 
 

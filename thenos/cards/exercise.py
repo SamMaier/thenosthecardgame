@@ -130,7 +130,7 @@ class WakesurfBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        bonus = 5 if not player.hand else 0
+        bonus = 6 if not player.hand else 0
         return card.effective_base_fun + bonus
 
 
@@ -143,7 +143,7 @@ class SlalomStartBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        bonus = 4 if len(player.hand) == 1 else 0
+        bonus = 5 if len(player.hand) == 1 else 0
         return card.effective_base_fun + bonus
 
 
@@ -426,8 +426,8 @@ NAVY_SEALING = CardDefinition(
     slug="navy-sealing",
     title="Navy SEALing",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=8,
-    base_fun=4,
+    cost=7,
+    base_fun=5,
     behavior=NavySEALingBehavior(),
 )
 

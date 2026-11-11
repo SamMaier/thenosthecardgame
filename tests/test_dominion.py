@@ -10,18 +10,20 @@ class FirstSuitcaseAI(RandomAI):
         return 0
 
 
-class FiveTenFifteenTests(unittest.TestCase):
+class DominionTests(unittest.TestCase):
     def test_printed_values_and_base_fun(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
-        player.hand.append(make_card("5-10-15"))
+        player.hand.append(make_card("dominion"))
         game.suitcase = [make_card("biography") for _ in range(4)]
         game.trunk = [make_card("biography")]
 
         card = game.play_card(0, 0)
 
-        self.assertEqual(card.title, "5 10 15")
+        self.assertEqual(card.definition.slug, "dominion")
+        self.assertEqual(card.title, "Dominion")
+        self.assertEqual(make_card("5-10-15").title, "Dominion")
         self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 2)
         self.assertEqual(card.definition.tags, frozenset({"Board Game"}))
@@ -33,7 +35,7 @@ class FiveTenFifteenTests(unittest.TestCase):
         game.ais[0] = FirstSuitcaseAI(game.rng)
         player = game.players[0]
         player.energy = 7
-        player.hand.append(make_card("5-10-15"))
+        player.hand.append(make_card("dominion"))
         picked = make_card("waterski")
         refill = make_card("biography")
         game.suitcase = [picked, make_card("fajitas"), make_card("solo"), make_card("nap")]
