@@ -16,10 +16,16 @@ from thenos.simulation import (
     simulate_beryllium_vs_planner,
     simulate_carbon_vs_planner,
     simulate_four_carbon,
+    simulate_four_hydrogen,
+    simulate_four_hydrogenbrain,
     simulate_galaxybrain_vs_planner,
     simulate_games,
     simulate_greedy_vs_random,
+    simulate_hydrogen_vs_planner,
+    simulate_hydrogenbrain_vs_planner,
     simulate_planner_vs_greedy,
+    simulate_two_hydrogen_two_carbon,
+    simulate_two_hydrogenbrain_two_carbonbrain,
     write_report_csv,
 )
 
@@ -251,6 +257,146 @@ class SimulationTests(unittest.TestCase):
         metadata = write_mock.call_args.kwargs["metadata"]
         self.assertEqual(metadata["run_mode"], "four-carbon")
         self.assertEqual(metadata["competitors"], "Carbon,Carbon,Carbon,Carbon")
+        self.assertTrue(metadata["rotate_seats"])
+
+    def test_hydrogen_matchup_aggregates_three_planner_opponents(self) -> None:
+        report = simulate_hydrogen_vs_planner(1, seed=102)
+
+        self.assertEqual(report.ais["Hydrogen"].games, 1)
+        self.assertEqual(report.ais["Planner"].games, 3)
+
+    def test_four_hydrogen_aggregates_four_hydrogen_entries(self) -> None:
+        report = simulate_four_hydrogen(1, seed=103, workers=1)
+
+        self.assertEqual(report.ais["Hydrogen"].games, 4)
+        self.assertAlmostEqual(report.ais["Hydrogen"].win_credit, 1.0)
+
+    def test_four_hydrogen_cli_requires_output_and_records_metadata(self) -> None:
+        import io
+        import sys
+        from contextlib import redirect_stderr
+        from thenos.__main__ import main
+
+        with patch.object(sys, "argv", ["thenos", "4", "--four-hydrogen"]):
+            with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                main()
+
+        fake_report = simulate_games(1, seed=104, workers=1)
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["thenos", "4", "--four-hydrogenbrain", "--output", "unused.csv"],
+            ),
+            patch(
+                "thenos.__main__.simulate_four_hydrogen",
+                return_value=fake_report,
+            ) as run_mock,
+            patch("thenos.__main__._code_revision", return_value="test"),
+            patch(
+                "thenos.__main__.write_report_csv",
+                return_value=Path("unused.csv"),
+            ) as write_mock,
+            patch("builtins.print"),
+        ):
+            main()
+        run_mock.assert_called_once()
+        metadata = write_mock.call_args.kwargs["metadata"]
+        self.assertEqual(metadata["run_mode"], "four-hydrogen")
+        self.assertEqual(
+            metadata["competitors"], "Hydrogen,Hydrogen,Hydrogen,Hydrogen"
+        )
+        self.assertTrue(metadata["rotate_seats"])
+
+    def test_two_hydrogen_two_carbon_aggregates_and_cli_records_metadata(self) -> None:
+        import io
+        import sys
+        from contextlib import redirect_stderr
+        from thenos.__main__ import main
+
+        self.assertIs(
+            simulate_two_hydrogenbrain_two_carbonbrain,
+            simulate_two_hydrogen_two_carbon,
+        )
+        report = simulate_two_hydrogen_two_carbon(1, seed=106, workers=1)
+        self.assertEqual(report.ais["Hydrogen"].games, 2)
+        self.assertEqual(report.ais["Carbon"].games, 2)
+        self.assertAlmostEqual(
+            report.ais["Hydrogen"].win_credit + report.ais["Carbon"].win_credit,
+            1.0,
+        )
+
+        with patch.object(sys, "argv", ["thenos", "4", "--two-hydrogen-two-carbon"]):
+            with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                main()
+
+        fake_report = simulate_games(1, seed=107, workers=1)
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["thenos", "4", "--2-hydrogen-2-carbon", "--output", "unused.csv"],
+            ),
+            patch(
+                "thenos.__main__.simulate_two_hydrogen_two_carbon",
+                return_value=fake_report,
+            ) as run_mock,
+            patch("thenos.__main__._code_revision", return_value="test"),
+            patch(
+                "thenos.__main__.write_report_csv",
+                return_value=Path("unused.csv"),
+            ) as write_mock,
+            patch("builtins.print"),
+        ):
+            main()
+        run_mock.assert_called_once()
+        metadata = write_mock.call_args.kwargs["metadata"]
+        self.assertEqual(metadata["run_mode"], "two-hydrogen-two-carbon")
+        self.assertEqual(
+            metadata["competitors"], "Hydrogen,Carbon,Hydrogen,Carbon"
+        )
+        self.assertTrue(metadata["rotate_seats"])
+
+    def test_hydrogenbrain_aliases_and_vs_planner_cli(self) -> None:
+        import sys
+        from thenos.__main__ import main
+
+        self.assertIs(simulate_four_hydrogenbrain, simulate_four_hydrogen)
+        self.assertIs(
+            simulate_hydrogenbrain_vs_planner, simulate_hydrogen_vs_planner
+        )
+
+        fake_report = simulate_games(1, seed=105, workers=1)
+        with (
+            patch.object(
+                sys,
+                "argv",
+                [
+                    "thenos",
+                    "4",
+                    "--hydrogenbrain-vs-planner",
+                    "--output",
+                    "unused.csv",
+                ],
+            ),
+            patch(
+                "thenos.__main__.simulate_hydrogen_vs_planner",
+                return_value=fake_report,
+            ) as run_mock,
+            patch("thenos.__main__._code_revision", return_value="test"),
+            patch(
+                "thenos.__main__.write_report_csv",
+                return_value=Path("unused.csv"),
+            ) as write_mock,
+            patch("builtins.print"),
+        ):
+            main()
+        run_mock.assert_called_once()
+        metadata = write_mock.call_args.kwargs["metadata"]
+        self.assertEqual(metadata["run_mode"], "hydrogen-vs-planner")
+        self.assertEqual(
+            metadata["competitors"], "Hydrogen,Planner,Planner,Planner"
+        )
         self.assertTrue(metadata["rotate_seats"])
 
     def test_worker_count_must_be_positive(self) -> None:

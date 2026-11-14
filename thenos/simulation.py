@@ -18,6 +18,7 @@ from thenos.ais import (
     CarbonAI,
     GalaxybrainAI,
     GreedyAI,
+    HydrogenAI,
     PlannerAI,
     PlayerAI,
     RandomAI,
@@ -561,6 +562,60 @@ def simulate_four_carbon(
 simulate_four_carbonbrain = simulate_four_carbon
 
 
+def simulate_four_hydrogen(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 16,
+    daily_conditions: bool = False,
+    characters: bool = False,
+) -> SimulationReport:
+    """Run a seat-rotated four-Hydrogen card-data batch."""
+    return simulate_games(
+        games,
+        seed,
+        tuple(
+            Competitor("Hydrogen", HydrogenAI)
+            for _ in range(PLAYER_COUNT)
+        ),
+        rotate_seats=True,
+        workers=workers,
+        daily_conditions=daily_conditions,
+        characters=characters,
+    )
+
+
+simulate_four_hydrogenbrain = simulate_four_hydrogen
+
+
+def simulate_two_hydrogen_two_carbon(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 16,
+    daily_conditions: bool = False,
+    characters: bool = False,
+) -> SimulationReport:
+    """Run a seat-rotated two-Hydrogen, two-Carbon card-data batch."""
+    return simulate_games(
+        games,
+        seed,
+        (
+            Competitor("Hydrogen", HydrogenAI),
+            Competitor("Carbon", CarbonAI),
+            Competitor("Hydrogen", HydrogenAI),
+            Competitor("Carbon", CarbonAI),
+        ),
+        rotate_seats=True,
+        workers=workers,
+        daily_conditions=daily_conditions,
+        characters=characters,
+    )
+
+
+simulate_two_hydrogenbrain_two_carbonbrain = simulate_two_hydrogen_two_carbon
+
+
 def simulate_four_beryllium(
     games: int,
     seed: int | None = None,
@@ -684,6 +739,34 @@ def simulate_carbon_vs_planner(
 
 
 simulate_carbonbrain_vs_planner = simulate_carbon_vs_planner
+
+
+def simulate_hydrogen_vs_planner(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 16,
+    daily_conditions: bool = False,
+    characters: bool = False,
+) -> SimulationReport:
+    """Run a seat-balanced match of one Hydrogen against three Planners."""
+    return simulate_games(
+        games,
+        seed,
+        (
+            Competitor("Hydrogen", HydrogenAI),
+            Competitor("Planner", PlannerAI),
+            Competitor("Planner", PlannerAI),
+            Competitor("Planner", PlannerAI),
+        ),
+        rotate_seats=True,
+        workers=workers,
+        daily_conditions=daily_conditions,
+        characters=characters,
+    )
+
+
+simulate_hydrogenbrain_vs_planner = simulate_hydrogen_vs_planner
 
 
 def simulate_beryllium_vs_planner(

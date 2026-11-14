@@ -17,10 +17,13 @@ from thenos.simulation import (
     simulate_four_beryllium,
     simulate_four_carbon,
     simulate_four_galaxybrain,
+    simulate_four_hydrogen,
     simulate_galaxybrain_vs_planner,
     simulate_games,
     simulate_greedy_vs_random,
+    simulate_hydrogen_vs_planner,
     simulate_planner_vs_greedy,
+    simulate_two_hydrogen_two_carbon,
     write_report_csv,
 )
 
@@ -84,6 +87,29 @@ def main() -> None:
         help="run the standard seat-rotated four-Carbon card-data batch",
     )
     parser.add_argument(
+        "--hydrogen-vs-planner",
+        "--hydrogenbrain-vs-planner",
+        dest="hydrogen_vs_planner",
+        action="store_true",
+        help="seat-balance one Hydrogen AI against three Planner AIs",
+    )
+    parser.add_argument(
+        "--four-hydrogen",
+        "--four-hydrogenbrain",
+        "--4-hydrogen",
+        dest="four_hydrogen",
+        action="store_true",
+        help="run a seat-rotated four-Hydrogen card-data batch",
+    )
+    parser.add_argument(
+        "--two-hydrogen-two-carbon",
+        "--two-hydrogenbrain-two-carbonbrain",
+        "--2-hydrogen-2-carbon",
+        dest="two_hydrogen_two_carbon",
+        action="store_true",
+        help="run a seat-rotated two-Hydrogen, two-Carbon card-data batch",
+    )
+    parser.add_argument(
         "--beryllium-vs-planner",
         "--berylliumbrain-vs-planner",
         dest="beryllium_vs_planner",
@@ -137,6 +163,9 @@ def main() -> None:
             args.planner_vs_greedy,
             args.carbon_vs_planner,
             args.four_carbon,
+            args.hydrogen_vs_planner,
+            args.four_hydrogen,
+            args.two_hydrogen_two_carbon,
             args.beryllium_vs_planner,
             args.four_beryllium,
             args.argonbrain_vs_planner,
@@ -150,6 +179,14 @@ def main() -> None:
     if args.four_carbon and args.output is None:
         parser.error(
             "--four-carbon requires --output so card stats are preserved"
+        )
+    if args.four_hydrogen and args.output is None:
+        parser.error(
+            "--four-hydrogen requires --output so card stats are preserved"
+        )
+    if args.two_hydrogen_two_carbon and args.output is None:
+        parser.error(
+            "--two-hydrogen-two-carbon requires --output so card stats are preserved"
         )
     if args.four_beryllium and args.output is None:
         parser.error(
@@ -187,6 +224,39 @@ def main() -> None:
         )
         run_mode = "carbon-vs-planner"
         competitors = "Carbon,Planner,Planner,Planner"
+        rotate_seats = True
+    elif args.four_hydrogen:
+        report = simulate_four_hydrogen(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
+        run_mode = "four-hydrogen"
+        competitors = "Hydrogen,Hydrogen,Hydrogen,Hydrogen"
+        rotate_seats = True
+    elif args.two_hydrogen_two_carbon:
+        report = simulate_two_hydrogen_two_carbon(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
+        run_mode = "two-hydrogen-two-carbon"
+        competitors = "Hydrogen,Carbon,Hydrogen,Carbon"
+        rotate_seats = True
+    elif args.hydrogen_vs_planner:
+        report = simulate_hydrogen_vs_planner(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
+        run_mode = "hydrogen-vs-planner"
+        competitors = "Hydrogen,Planner,Planner,Planner"
         rotate_seats = True
     elif args.four_beryllium:
         report = simulate_four_beryllium(
