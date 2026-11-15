@@ -13,7 +13,7 @@ from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.catalog import CARD_REGISTRY, create_default_deck, make_card
 from thenos.daily_conditions import DAILY_CONDITIONS
 from thenos.game import Game
-from scripts.implement_cards import normalized_title
+from scripts.pull_cards_csv import _title_key as normalized_title
 from thenos.simulation import simulate_games, simulate_four_galaxybrain, write_report_csv
 
 

@@ -41,7 +41,6 @@ PROTECTED_TEST_FILES = frozenset(
     {
         "__init__.py",
         "helpers.py",
-        "test_card_runner.py",
         "test_characters.py",
         "test_condition_statistics.py",
         "test_daily_conditions.py",

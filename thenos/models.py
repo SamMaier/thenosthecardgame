@@ -38,6 +38,10 @@ class GameStats:
     condition_fun: Counter[str] = field(default_factory=Counter)
     free_pick_offers: Counter[str] = field(default_factory=Counter)
     free_picks: Counter[str] = field(default_factory=Counter)
+    first_seen_by_player: tuple[Counter[str], ...] = field(
+        default_factory=lambda: tuple(Counter() for _ in range(4))
+    )
+    seen_suitcase_ids: set[int] = field(default_factory=set)
     suitcase_offers: Counter[str] = field(default_factory=Counter)
     suitcase_picks: Counter[str] = field(default_factory=Counter)
     card_acquisitions: Counter[str] = field(default_factory=Counter)

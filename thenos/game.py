@@ -179,6 +179,10 @@ class Game:
             condition_fun=self.stats.condition_fun.copy(),
             free_pick_offers=self.stats.free_pick_offers.copy(),
             free_picks=self.stats.free_picks.copy(),
+            first_seen_by_player=tuple(
+                counter.copy() for counter in self.stats.first_seen_by_player
+            ),
+            seen_suitcase_ids=self.stats.seen_suitcase_ids.copy(),
             suitcase_offers=self.stats.suitcase_offers.copy(),
             suitcase_picks=self.stats.suitcase_picks.copy(),
             card_acquisitions=self.stats.card_acquisitions.copy(),
@@ -444,6 +448,12 @@ class Game:
         # physical card: 1.0 to the selected card and 0.0 to the others.
         # Bulk and restricted card effects call ``pick_suitcase_cards``
         # directly, so they intentionally do not enter this metric.
+        seen_ids = self.stats.seen_suitcase_ids
+        first_seen = self.stats.first_seen_by_player[player_index]
+        for card in offered_cards:
+            if card.instance_id not in seen_ids:
+                first_seen[card.title] += 1
+                seen_ids.add(card.instance_id)
         self.stats.free_pick_offers.update(card.title for card in offered_cards)
         self.stats.free_picks[offered_cards[choice].title] += 1
         return self.pick_suitcase_cards(player_index, (offered_cards[choice],))[0]
@@ -536,6 +546,7 @@ class Game:
         """
         player = self.players[player_index]
         player.hand.append(card)
+        self.stats.seen_suitcase_ids.add(card.instance_id)
         player.acquired_cards[card.title] += 1
         self.stats.card_acquisitions[card.title] += 1
         for source in player.played_today:
@@ -852,6 +863,7 @@ class Game:
         player.energy -= cost
         player.played_today.append(card)
         self._apply_tomorrow_tag_effects(player, card)
+        self.stats.seen_suitcase_ids.add(card.instance_id)
         self.stats.card_plays[card.title] += 1
         if acquired_from_effect:
             self.stats.card_plays_without_acquisition[card.title] += 1

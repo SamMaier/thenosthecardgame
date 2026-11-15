@@ -450,7 +450,12 @@ def _carbon_extra_energy_support(
             elif (
                 h_prof.conditional_energy_gain > h_cost
                 and h_title
-                not in {"Potato Pancakes", "Keeper", "Camp Crossroads Dessert"}
+                not in {
+                    "Potato Pancakes",
+                    "Keeper",
+                    "Camp Crossroads Dessert",
+                    "Würstchen",
+                }
             ):
                 support += h_prof.conditional_energy_gain - h_cost
             elif h_title == "Potato Pancakes":
@@ -466,8 +471,27 @@ def _carbon_extra_energy_support(
                 )
                 support += max(0, 2 * relax_cnt - h_cost)
             elif h_title == "Würstchen":
-                est_hand = len(player.hand) + extra_fodder - 1
-                support += max(0, est_hand - h_cost)
+                prior_cnt = (
+                    0
+                    if (ignore_today_block or include_future_tomorrow)
+                    else sum(
+                        1
+                        for oc in player.played_today
+                        if oc is not hc and oc is not card
+                    )
+                ) + sum(
+                    1
+                    for oc in player.hand
+                    if oc is not hc
+                    and oc is not card
+                    and (
+                        oc.definition.cost
+                        if not oc.markers
+                        else oc.effective_cost
+                    )
+                    <= 2
+                ) + (1 if extra_fodder >= 2 else 0)
+                support += max(0, prior_cnt - h_cost)
             elif h_title == "Butter Tarts":
                 support += 4
             elif (
@@ -558,14 +582,13 @@ _QUICK_BRANCH_TITLES: frozenset[str] = frozenset(
         "Ski on Shoulders",
         "Cheesy Phone Game",
         "Wakesurf",
-        "Slalom Start",
+        "Drop a Ski",
     }
 )
 _QUICK_PENALTY_BY_TITLE: dict[str, float] = {
     "High-End White": 0.55,
     "Euchre": 0.30,
     "Solo": 0.70,
-    "Hold the Baby": 0.45,
 }
 _TERMINAL_AWAKE_OPP_TITLES: frozenset[str] = frozenset(
     {
@@ -604,7 +627,7 @@ _RESERVE_DYNAMIC_EXTRA_2: frozenset[str] = frozenset(
         "Würstchen",
         "Medical Advice",
         "Wakesurf",
-        "Slalom Start",
+        "Drop a Ski",
     }
 )
 
@@ -646,13 +669,7 @@ def _carbon_quick_card_desirability(
     )
     is_zeroed = bool(zero_tag and zero_tag in c_tags)
 
-    if title == "Würstchen":
-        proj_hand = len(player.hand) + remaining_draw_picks
-        if card not in player.hand:
-            proj_hand += (1 if days_left == 0 else 2)
-        imm_energy = max(2, proj_hand)
-    else:
-        imm_energy = prof.immediate_energy_gain
+    imm_energy = prof.immediate_energy_gain
 
     scored_base_fun = 0.0 if is_zeroed else float(eff_base_fun)
     if (
@@ -785,6 +802,20 @@ def _carbon_quick_card_desirability(
             per_match = 2 if title == "Potato Pancakes" else 1
             future_matches = 0.8 if (days_left >= 1 and title == "Potato Pancakes") else 0.3
             val += (min(match_cnt, 3) + future_matches) * per_match * 0.95
+        elif title == "Würstchen":
+            prior_cnt = 0
+            for other in player.played_today:
+                if other is not card:
+                    prior_cnt += 1
+            for other in player.hand:
+                if other is not card and (
+                    other.definition.cost
+                    if not other.markers
+                    else other.effective_cost
+                ) <= 2:
+                    prior_cnt += 1
+            future_prior = 1.5 if days_left >= 1 else 0.0
+            val += (min(prior_cnt, 5) + future_prior) * 0.95
         else:
             t_tags = prof.target_tags
             has_cond = _condition_met_in_played(player, card, prof)
@@ -906,7 +937,7 @@ def _carbon_quick_card_desirability(
                     for other in player.hand
                 ):
                     val -= 0.65 * (len(player.hand) - 3)
-        elif title == "Slalom Start":
+        elif title == "Drop a Ski":
             if not is_zeroed:
                 val += 2.00
                 if len(player.hand) >= 4 and not any(
@@ -915,7 +946,7 @@ def _carbon_quick_card_desirability(
                     for other in player.hand
                 ):
                     val -= 0.65 * (len(player.hand) - 3)
-        if is_zeroed and title in {"Wakesurf", "Slalom Start"} and len(player.hand) >= 4:
+        if is_zeroed and title in {"Wakesurf", "Drop a Ski"} and len(player.hand) >= 4:
             if not any(
                 other.definition.title
                 in {"Paddleboard", "Navy SEALing", "Istanbul", "Scrabble"}
@@ -1011,7 +1042,7 @@ def _carbon_quick_card_desirability(
         val += prof.signed_match_benefit * 1.35
 
     if prof.is_global_after_scaler:
-        if zero_tag:
+        if zero_tag and title == "Colouring":
             val -= 8.0
         else:
             cheap_cards = 0
@@ -1380,7 +1411,7 @@ class _CarbonEvalAI:
                 if _effective_card_title(c) == "Paddleboat"
             )
             want_empty_hand = any(
-                _effective_card_title(c) in {"Wakesurf", "Slalom Start"}
+                _effective_card_title(c) in {"Wakesurf", "Drop a Ski"}
                 for c in player.played_today
             )
 
@@ -1748,7 +1779,7 @@ class _CarbonEvalAI:
                 return False
             if (
                 any(
-                    _effective_card_title(c) == "Slalom Start"
+                    _effective_card_title(c) == "Drop a Ski"
                     for c in player.played_today
                 )
                 and len(player.hand) == 1
@@ -1774,7 +1805,7 @@ class _CarbonEvalAI:
                 for c in player.played_today
             ) or (
                 any(
-                    _effective_card_title(c) == "Slalom Start"
+                    _effective_card_title(c) == "Drop a Ski"
                     for c in player.played_today
                 )
                 and len(player.hand) == 2
@@ -3730,8 +3761,12 @@ class CarbonAI(BerylliumBrain):
         elif title == "Scout Other Cottages" and days_left >= 1:
             bonus += 1.25
         elif title == "Würstchen":
-            proj_cards = len(player.hand) + (2 if days_left >= 1 else 0)
-            bonus += 1.45 + 0.35 * max(0, proj_cards - 4)
+            cheap_owned = sum(
+                1
+                for c in (*player.hand, *player.played_today)
+                if c is not card and c.effective_cost <= 2
+            )
+            bonus += 0.55 + 0.40 * min(cheap_owned, 4)
         elif title == "Date's First Nos":
             if days_left >= 1:
                 bonus += 1.45 if len(player.hand) >= 2 else 0.75
@@ -3808,7 +3843,7 @@ class CarbonAI(BerylliumBrain):
                 for c in player.hand
             ):
                 bonus += 1.50
-        elif title in {"Wakesurf", "Slalom Start"}:
+        elif title in {"Wakesurf", "Drop a Ski"}:
             has_dump = any(
                 c.title in {"Istanbul", "Navy SEALing", "Paddleboard"}
                 for c in player.hand
@@ -3860,8 +3895,6 @@ class CarbonAI(BerylliumBrain):
             )
             if not has_real_setup:
                 bonus -= 0.90
-        elif title == "Hold the Baby":
-            bonus -= 0.55
 
         return bonus
 
@@ -4500,13 +4533,13 @@ class CarbonAI(BerylliumBrain):
                         other_cost > player.energy - cost
                         or any(
                             _effective_card_title(other)
-                            in {"Kayak", "Decaf", "Wakesurf", "Slalom Start"}
+                            in {"Kayak", "Decaf", "Wakesurf", "Drop a Ski"}
                             for other in player.hand
                             if other is not card
                         )
                         or any(
                             _effective_card_title(pc)
-                            in {"Decaf", "Wakesurf", "Slalom Start"}
+                            in {"Decaf", "Wakesurf", "Drop a Ski"}
                             for pc in player.played_today
                         )
                     ):
@@ -5595,7 +5628,12 @@ class CarbonAI(BerylliumBrain):
                     over_budget = 0
 
                 if c_title == "Würstchen":
-                    imm_e = max(3.0, float(len(hand)))
+                    cheap_cnt = sum(
+                        1
+                        for other in hand
+                        if other is not c and other.definition.cost <= 2
+                    )
+                    imm_e = float(min(5, cheap_cnt + 2))
                 elif c_title == "Istanbul":
                     e_per = _istanbul_energy_per_discard(c)
                     disc_tom = min(2, max(1, len(hand) - 1))
@@ -5721,9 +5759,16 @@ class CarbonAI(BerylliumBrain):
                     ) * abundance
                     raw_val += wait_factor * c_prof.signed_match_benefit
                 elif c_prof.is_global_after_scaler:
-                    is_synergy_piece = True
-                    wait_factor = 2.10 if days_left >= 2 else 1.35
-                    raw_val += wait_factor * c_prof.signed_match_benefit
+                    if (
+                        char is not None
+                        and char.zero_fun_tag
+                        and c_title == "Colouring"
+                    ):
+                        raw_val -= 8.0
+                    else:
+                        is_synergy_piece = True
+                        wait_factor = 2.10 if days_left >= 2 else 1.35
+                        raw_val += wait_factor * c_prof.signed_match_benefit
                 elif c_title == "Couch Tube" and days_left >= 1:
                     is_synergy_piece = True
                     raw_val += 3.40 if days_left >= 2 else 2.40
@@ -6009,7 +6054,7 @@ class CarbonAI(BerylliumBrain):
                         elif ot in {"Butter Tarts", "Istanbul"}:
                             sup += 4
                         elif ot == "Würstchen":
-                            sup += 3
+                            sup += 1
                         elif op.immediate_energy_gain > other.definition.cost:
                             sup += op.immediate_energy_gain - other.definition.cost
                     if sup >= 3:
@@ -6018,11 +6063,17 @@ class CarbonAI(BerylliumBrain):
                         extra += 1.6 * rtw
                     elif sup == 0 and days_left <= 1:
                         extra -= 1.2 * rtw
-                elif h_title == "Würstchen" and len(hand) >= 3:
-                    extra += 1.8 * rtw
+                elif h_title == "Würstchen":
+                    cheap_cnt = sum(
+                        1
+                        for other in hand
+                        if other is not hc and other.definition.cost <= 2
+                    )
+                    if cheap_cnt >= 2:
+                        extra += 1.2 * rtw
                 elif h_title == "Medical Advice" and days_left >= 2:
                     extra += 1.8 * rtw
-                elif h_title in {"Wakesurf", "Slalom Start"} and len(hand) >= 3:
+                elif h_title in {"Wakesurf", "Drop a Ski"} and len(hand) >= 3:
                     extra -= 0.9 * rtw
 
         res_val = val + extra
@@ -6477,8 +6528,18 @@ class CarbonAI(BerylliumBrain):
         s_prof = _beryllium_build_profile(second_card)
         net_e_pos = (
             s_prof.immediate_energy_gain > second_cost
+            or (
+                second_card.title == "Würstchen"
+                and len(player.played_today)
+                + sum(
+                    1
+                    for hc in player.hand
+                    if game.energy_cost(player_index, hc) <= 1
+                )
+                > second_cost
+            )
             or second_card.title
-            in {"Würstchen", "Istanbul", "Potato Pancakes", "Pudding Chômeur"}
+            in {"Istanbul", "Potato Pancakes", "Pudding Chômeur"}
         )
         playable_hand_cost = sum(
             game.energy_cost(player_index, hc)

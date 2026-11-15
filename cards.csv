@@ -9,7 +9,7 @@ AFTERNOON COFFEE,FOOD,1,"(energy)(energy)(energy)
 Must be your 3rd or later card today",Gotta make bringing that coffee machine worth it!
 AGRICOLA,BOARDGAME,5,"(fun)(fun)(fun)
 (fun)(fun)(fun)",The closest we get to farming
-ASSORTED CUTLERY,ITEM,3,"Play the top card of (trunk) for free, ignoring any restrictions",Does anyone have any extra spoons? Our cottage has 4
+ASSORTED CUTLERY,ITEM,2,"Play the top card of (trunk) for free, ignoring any restrictions",Does anyone have any extra spoons? Our cottage has 4
 AUNTERVIEW,SOCIAL,2,"(fun)
 TOMORROW: (SOCIAL_card) score +(fun)(fun)",So... Any girls you're interested in?
 AZUL,BOARDGAME,3,(fun)(fun)(fun)(fun),Arts and crafts meets cutthroat strategy
@@ -63,7 +63,7 @@ CLASSIC BOOK,RELAX,2,"(fun)(fun)
 Costs -(energy) per (before)(RELAX_card)","""Call me Ishmael."" - Moby Dick"
 CLIFF CLIMBING,"EXERCISE, OUTDOORS",4,"(fun)(fun)
 (before)(OUTDOORS_card) score +(fun)(fun)","If you're going to fall, PUSH OFF"
-COLOURING,RELAX,4,(card)(after) count as having all tags,
+COLOURING,RELAX,5,(card)(after) count as having all tags,
 COUCH TUBE,"EXERCISE, OUTDOORS",5,Score +(fun) for the total written (energy) cost on all (before)(card),"""It's good to try new things, and bad things"" - Nola on trying tubing"
 DATE'S FIRST NOS,SOCIAL,7,TOMORROW: Each (card) you play scores +(fun)(fun),Keep em away from the uncles
 DECAF,FOOD,0,"At END OF DAY, each leftover (energy) is worth +(fun)","Well, if it's decaf..."
@@ -116,7 +116,7 @@ HIGH-END RED,FOOD,3,"(fun)
 (FOOD_card)(after) score +(fun)(fun)","Diesel with notes of dirt, in a good way"
 HIGH-END WHITE,FOOD,3,"(fun)(fun)
 (FOOD_card)(after) score +(fun)","Boasts delicate notes of white peach, wet river stone, and the subtle sting of a backhanded compliment"
-HOLD THE BABY,SOCIAL,1,(card)(after) cost +(energy) and score +(fun)(fun),Do you smell something?
+HOLD THE BABY,SOCIAL,2,(card)(after) cost +(energy) and score +(fun)(fun)(fun),Do you smell something?
 ICE CREAM SANDWICH,FOOD,2,"(fun)
 If you have played a (before)(FOOD_card), (energy)(energy)(energy)",How did we go through a 20 pack by the second day?
 ICE WINE,FOOD,3,"(fun)
@@ -212,7 +212,7 @@ SKI BOAT,"EXERCISE, ITEM, OUTDOORS",2,Reveal (trunk) until an (EXERCISE_card) is
 SKI ON SHOULDERS,"EXERCISE, OUTDOORS",5,"(fun)(fun)(fun)
 If your current (fun) total is lower than at least half of your opponents' scores, +(fun)(fun)(fun)(fun)(fun)
 (cubes)",What's next? A kneeboarding human pyramid?
-SLALOM START,"EXERCISE, OUTDOORS",3,"(fun)(fun)
+DROP A SKI,"EXERCISE, OUTDOORS",3,"(fun)(fun)
 If you have exactly 1 (card) in your hand at END OF DAY, +(fun)(fun)(fun)(fun)(fun)",HIT IT
 SLEEP IN,"RELAX, INDOORS",0,"(energy)(energy)
 You do not gain additional (energy) from any other source today
@@ -276,7 +276,7 @@ WORK CALL,"RELAX, INDOORS",1,"-(fun)(fun)(fun)(fun)
 Your next (card) scores double (fun)","""You light up my life"" - Grandma, discussing endoscopy"
 WRESTLE THE KIDS,EXERCISE,5,"(fun)
 +(fun) for each (card) in your hand at END OF DAY","Probably ending in tears, but fun while it lasted"
-WÜRSTCHEN,FOOD,6,+(energy) for each (card) in your hand,"""Mark, did you tell Scott about your sausage?"" - Grandma"
+WÜRSTCHEN,FOOD,4,+(energy) for each (before)(card),"""Mark, did you tell Scott about your sausage?"" - Grandma"
 ZERO GRAVITY CHAIR,"RELAX, ITEM",1,(RELAX_card)(after) cost -(energy),The La-Z-Boy of the beach
 ZUMBA,EXERCISE,4,"(fun)
 TOMORROW: (energy)(energy)(energy)(energy)",If only we had 15 Dance Dance Revolution mats

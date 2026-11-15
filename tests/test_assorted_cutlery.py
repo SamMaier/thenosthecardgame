@@ -9,14 +9,14 @@ class AssortedCutleryTests(unittest.TestCase):
         card = make_card("assorted-cutlery")
 
         self.assertEqual(card.title, "Assorted Cutlery")
-        self.assertEqual(card.definition.cost, 3)
+        self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
 
     def test_plays_the_top_trunk_card_for_zero_energy(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 3
+        player.energy = 2
         player.hand.append(make_card("assorted-cutlery"))
         played_card = make_card("fajitas")
         game.trunk = [played_card]
@@ -32,7 +32,7 @@ class AssortedCutleryTests(unittest.TestCase):
     def test_restricted_trunk_card_is_played_ignoring_its_restriction(self) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 3
+        player.energy = 2
         player.hand.append(make_card("assorted-cutlery"))
         restricted_card = make_card("morning-coffee")
         game.trunk = [restricted_card]

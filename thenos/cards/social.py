@@ -54,6 +54,7 @@ class TellAStoryBehavior(CardBehavior):
         target = player.hand.pop(choice)
         target.is_tomorrow = False
         target.markers.clear()
+        game.stats.seen_suitcase_ids.add(target.instance_id)
         game.return_cards_to_trunk_top(player_index, (target,))
 
 

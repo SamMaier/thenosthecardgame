@@ -452,7 +452,7 @@ CALZONES = CardDefinition(
 
 
 class WurstchenBehavior(CardBehavior):
-    """Gain one Energy for each card remaining in hand when played."""
+    """Gain one Energy for each earlier card played today."""
 
     def on_play(
         self,
@@ -460,14 +460,14 @@ class WurstchenBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        game.gain_energy(player, len(player.hand), card)
+        game.gain_energy(player, len(game.cards_played_before(player, card)), card)
 
 
 WURSTCHEN = CardDefinition(
     slug="wurstchen",
     title="Würstchen",
     tags=frozenset({"Food"}),
-    cost=6,
+    cost=4,
     behavior=WurstchenBehavior(),
 )
 

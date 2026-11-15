@@ -97,11 +97,15 @@ class LastYearsShirtBehavior(CardBehavior):
             return
         original_suitcase = list(game.suitcase)
         game.stats.suitcase_offers.update(c.title for c in original_suitcase)
+        game.stats.seen_suitcase_ids.update(
+            c.instance_id for c in original_suitcase
+        )
         replacements = [hand[index] for index in choices]
         for replacement in replacements:
             player.hand.remove(replacement)
             replacement.is_tomorrow = False
             replacement.markers.clear()
+            game.stats.seen_suitcase_ids.add(replacement.instance_id)
         taken_slot_to_replacement: dict[int, CardInstance] = {}
         try:
             for replacement in replacements:

@@ -70,6 +70,8 @@ class CardStatistics:
     win_credit_when_picked: float = 0.0
     win_credit_when_acquired: float = 0.0
     player_games_with_card: int = 0
+    win_credit_when_first_seen: float = 0.0
+    player_games_first_seen: int = 0
     fun_total_with_card: int = 0
     player_games_without_card: int = 0
     fun_total_without_card: int = 0
@@ -107,6 +109,15 @@ class CardStatistics:
     def win_rate(self) -> float:
         """Fractional win rate among player-games that acquired this card."""
         return self.win_rate_when_acquired
+
+    @property
+    def first_seen_win_rate(self) -> float:
+        """Fractional win rate for the first player offered a Suitcase card."""
+        return (
+            self.win_credit_when_first_seen / self.player_games_first_seen
+            if self.player_games_first_seen
+            else 0.0
+        )
 
     @property
     def fun_added(self) -> float:
@@ -198,6 +209,7 @@ class SimulationReport:
                 "fun_added": stats.fun_added,
                 "play_rate": stats.play_rate,
                 "win_credit_when_acquired": stats.win_credit_when_acquired,
+                "first_seen_win_rate": stats.first_seen_win_rate,
             }
             for title, stats in sorted(self.cards.items())
         ]
@@ -294,6 +306,7 @@ class _PlayerOutcome:
     win_share: float
     picked_cards: Counter[str]
     acquired_cards: Counter[str]
+    first_seen_cards: Counter[str] = field(default_factory=Counter)
     character_name: str | None = None
 
 
@@ -346,14 +359,16 @@ def _run_game(job: _GameJob) -> _GameOutcome:
                 win_share=win_share,
                 picked_cards=player.picked_cards,
                 acquired_cards=player.acquired_cards,
+                first_seen_cards=first_seen_cards,
                 character_name=(
                     player.character.title if player.character else None
                 ),
             )
-            for player, win_share, competitor in zip(
+            for player, win_share, competitor, first_seen_cards in zip(
                 game.players,
                 result.win_shares,
                 job.competitors,
+                game.stats.first_seen_by_player,
                 strict=True,
             )
         ),
@@ -370,6 +385,14 @@ def _merge_outcome(report: SimulationReport, outcome: _GameOutcome) -> None:
     titles.update(outcome.card_acquisitions)
     titles.update(outcome.card_plays)
     titles.update(outcome.card_plays_without_acquisition)
+    for player in outcome.players:
+        titles.update(player.picked_cards)
+        titles.update(player.acquired_cards)
+        titles.update(
+            title
+            for title, count in player.first_seen_cards.items()
+            if count > 0
+        )
     for title in titles:
         stats = report.cards.setdefault(title, CardStatistics())
         stats.free_pick_offers += outcome.free_pick_offers[title]
@@ -387,6 +410,11 @@ def _merge_outcome(report: SimulationReport, outcome: _GameOutcome) -> None:
             report.cards[title].win_credit_when_picked += (
                 player.win_share * copies_picked
             )
+        for title, first_seen_count in player.first_seen_cards.items():
+            if first_seen_count > 0:
+                first_seen_stats = report.cards[title]
+                first_seen_stats.player_games_first_seen += 1
+                first_seen_stats.win_credit_when_first_seen += player.win_share
         acquired_titles = {
             title
             for title, copies in player.acquired_cards.items()

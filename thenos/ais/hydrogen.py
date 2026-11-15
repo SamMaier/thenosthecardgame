@@ -228,7 +228,7 @@ _CQ_BY_TITLE: dict[str, int] = {
     "Ski on Shoulders": _CQ_SKI_ON_SHOULDERS,
     "Cheesy Phone Game": _CQ_CHEESY_PHONE_GAME,
     "Wakesurf": _CQ_WAKESURF,
-    "Slalom Start": _CQ_SLALOM_START,
+    "Drop a Ski": _CQ_SLALOM_START,
 }
 
 # Hydrogen quick desirability title dispatch codes
@@ -316,7 +316,7 @@ _RD2_BY_TITLE: dict[str, int] = {
     "Würstchen": _RD2_WURSTCHEN,
     "Medical Advice": _RD2_MEDICAL_ADVICE,
     "Wakesurf": _RD2_EMPTY_HAND_PAIR,
-    "Slalom Start": _RD2_EMPTY_HAND_PAIR,
+    "Drop a Ski": _RD2_EMPTY_HAND_PAIR,
 }
 
 _CUTLERY_SYNERGY_TITLES: frozenset[str] = _TRUNK_REORDER_TITLES | frozenset(
@@ -845,7 +845,7 @@ def _build_defn_meta(
     if title in {"Shady Spot", "Butter Tarts", "Istanbul"}:
         adv_sup = 4
     elif title == "Würstchen":
-        adv_sup = 3
+        adv_sup = 1
     elif prof.immediate_energy_gain > defn.cost:
         adv_sup = prof.immediate_energy_gain - defn.cost
     else:
@@ -1860,16 +1860,7 @@ def _hydrogen_quick_card_desirability(
         is_zeroed = False
 
     in_hand: bool | None = _in_hand
-
-    if title == "Würstchen":
-        if in_hand is None:
-            in_hand = card in hand
-        proj_hand = hand_len + remaining_draw_picks
-        if not in_hand:
-            proj_hand += 1 if days_left == 0 else 2
-        imm_energy = 2 if proj_hand < 2 else proj_hand
-    else:
-        imm_energy = prof.immediate_energy_gain
+    imm_energy = prof.immediate_energy_gain
 
     scored_base_fun = 0.0 if is_zeroed else float(eff_base_fun)
     cond = game.daily_condition
@@ -2046,6 +2037,20 @@ def _hydrogen_quick_card_desirability(
             val += (
                 (match_cnt if match_cnt < 3 else 3) + future_matches
             ) * per_match * 0.95
+        elif title == "Würstchen":
+            prior_cnt = 0
+            for other in played_today:
+                if other is not card:
+                    prior_cnt += 1
+            for other in hand:
+                if other is not card and (
+                    other.definition.cost
+                    if not other.markers
+                    else other.effective_cost
+                ) <= 2:
+                    prior_cnt += 1
+            future_prior = 1.5 if days_left >= 1 else 0.0
+            val += ((prior_cnt if prior_cnt < 5 else 5) + future_prior) * 0.95
         else:
             has_cond = _condition_met_in_played(player, card, prof)
             if not has_cond:
@@ -2369,7 +2374,7 @@ def _hydrogen_quick_card_desirability(
 
     if meta is None or meta.quick_global_kind != _QGLOB_NONE:
         if prof.is_global_after_scaler:
-            if zero_tag:
+            if zero_tag and title == "Colouring":
                 val -= 8.0
             else:
                 if _ctx is not None:
@@ -2461,7 +2466,7 @@ def _hydrogen_quick_card_desirability(
                     continue
                 od = other.definition
                 ot = od.title
-                if ot == "Wakesurf" or ot == "Slalom Start":
+                if ot == "Wakesurf" or ot == "Drop a Ski":
                     has_fodder_or_empty = True
                     break
                 if od.base_fun <= 0:
@@ -3209,7 +3214,7 @@ def _evaluate_istanbul_discards_fast(
             pwtk_played += _prior_card_mult(pos, pc)
         elif pt == "Wakesurf":
             wakesurf_played += _prior_card_mult(pos, pc)
-        elif pt == "Slalom Start":
+        elif pt == "Drop a Ski":
             slalom_played += _prior_card_mult(pos, pc)
         elif pt == "Paddleboat":
             paddleboat_played += _prior_card_mult(pos, pc)
@@ -3288,7 +3293,7 @@ def _evaluate_istanbul_discards_fast(
             try:
                 player.energy = 0
                 player.hand = neutral_pair
-                if is_hsim and title not in {"Wakesurf", "Slalom Start"}:
+                if is_hsim and title not in {"Wakesurf", "Drop a Ski"}:
                     if wrestle_played == 0.0 and pwtk_played == 0.0 and wakesurf_played == 0.0 and slalom_played == 0.0:
                         player.hand = []
                         total_with_c = sim.score_played_today_fast(player_index)[0]  # type: ignore[attr-defined]
@@ -3325,7 +3330,7 @@ def _evaluate_istanbul_discards_fast(
                         )
                         else future_mult
                     )
-                    if title not in {"Wakesurf", "Slalom Start"}:
+                    if title not in {"Wakesurf", "Drop a Ski"}:
                         player.hand = []
                     own_fun = sim.card_fun(player_index, c)
                     base_board_fun = float(own_fun + prior_delta)
@@ -3422,7 +3427,7 @@ def _evaluate_istanbul_discards_fast(
     outdoors_played_cnt = sum(1 for pc in orig_played if "Outdoors" in pc.tags)
     exercise_played_cnt = sum(1 for pc in orig_played if "Exercise" in pc.tags)
     static_ramp: list[int] = []
-    ramp_mode: list[int] = []  # 0=static, 1=wurstchen, 2=butter_tarts
+    ramp_mode: list[int] = []  # 0=static, 2=butter_tarts
     for idx_i in range(n):
         if not allows_e:
             static_ramp.append(0)
@@ -3431,8 +3436,8 @@ def _evaluate_istanbul_discards_fast(
         t = titles[idx_i]
         p = profs[idx_i]
         if t == "Würstchen":
-            static_ramp.append(0)
-            ramp_mode.append(1)
+            static_ramp.append(len(orig_played))
+            ramp_mode.append(0)
         elif t == "Butter Tarts":
             static_ramp.append(0)
             ramp_mode.append(2)
@@ -3458,12 +3463,8 @@ def _evaluate_istanbul_discards_fast(
             ramp_mode.append(0)
 
     def ramp_gain_for(idx_i: int, cur_e: int, rem_cards: int) -> int:
-        rm = ramp_mode[idx_i]
-        if rm == 0:
+        if ramp_mode[idx_i] == 0:
             return static_ramp[idx_i]
-        if rm == 1:
-            rc = rem_cards - 1
-            return rc if rc > 0 else 0
         ce = cur_e - costs[idx_i]
         return ce if ce > 0 else 0
 
@@ -3700,7 +3701,7 @@ def _evaluate_istanbul_discards_fast(
                     proj_sink = 3.0 * cm
                 elif t == "Wakesurf" and m_rem == 1:
                     proj_sink = 6.0 * cm
-                elif t == "Slalom Start" and m_rem == 2:
+                elif t == "Drop a Ski" and m_rem == 2:
                     proj_sink = 5.0 * cm
 
                 eod_hand_cost = wrestle_w
@@ -3728,7 +3729,7 @@ def _evaluate_istanbul_discards_fast(
                     pwtk_w += cm
                 elif t == "Wakesurf":
                     wakesurf_w += cm
-                elif t == "Slalom Start":
+                elif t == "Drop a Ski":
                     slalom_w += cm
 
             rem_sink_e = cur_e
@@ -4154,7 +4155,7 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                 ct = _effective_card_title(c)
                 if ct == "Paddleboat":
                     paddleboat_bonus += 2.0
-                elif ct == "Wakesurf" or ct == "Slalom Start":
+                elif ct == "Wakesurf" or ct == "Drop a Ski":
                     want_empty_hand = True
                 elif ct == "Wrestle the Kids" or ct == "Play With the Kids":
                     has_eod_hand = True
@@ -4331,7 +4332,7 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                 return False
             if (
                 any(
-                    _effective_card_title(c) == "Slalom Start"
+                    _effective_card_title(c) == "Drop a Ski"
                     for c in player.played_today
                 )
                 and len(player.hand) == 1
@@ -4357,7 +4358,7 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                 for c in player.played_today
             ) or (
                 any(
-                    _effective_card_title(c) == "Slalom Start"
+                    _effective_card_title(c) == "Drop a Ski"
                     for c in player.played_today
                 )
                 and len(player.hand) == 2
@@ -6873,7 +6874,7 @@ class HydrogenAI(CarbonAI):
             has_dump = any(
                 c is not card
                 and (
-                    c.title in {"Wakesurf", "Slalom Start"}
+                    c.title in {"Wakesurf", "Drop a Ski"}
                     or (
                         c.effective_base_fun <= 0
                         and not _get_card_meta(c).goes_to_tomorrow
@@ -7813,13 +7814,13 @@ class HydrogenAI(CarbonAI):
                             other_cost > player.energy - cost
                             or any(
                                 _effective_card_title(other)
-                                in {"Kayak", "Decaf", "Wakesurf", "Slalom Start"}
+                                in {"Kayak", "Decaf", "Wakesurf", "Drop a Ski"}
                                 for other in hand
                                 if other is not card
                             )
                             or any(
                                 _effective_card_title(pc)
-                                in {"Decaf", "Wakesurf", "Slalom Start"}
+                                in {"Decaf", "Wakesurf", "Drop a Ski"}
                                 for pc in played_today
                             )
                         ):
@@ -9118,6 +9119,7 @@ class HydrogenAI(CarbonAI):
             cost5_cnt = 0
             cutlery_combo_cnt = 0
             cutlery_real_combo_cnt = 0
+            cheap2_cnt = 0
             copy_food_cnt = 0
             acquirer_cnt = 0
             cutlery_cnt = 0
@@ -9137,6 +9139,8 @@ class HydrogenAI(CarbonAI):
                     out_cnt_total += 1
                 if cmask & _MASK_EXERCISE:
                     ex_cnt_total += 1
+                if hm.cost <= 2:
+                    cheap2_cnt += 1
                 if hm.cost >= 5:
                     cost5_cnt += 1
                 if hm.is_cutlery_combo:
@@ -9290,7 +9294,8 @@ class HydrogenAI(CarbonAI):
                         else 0.35
                     )
                 elif rie == _RIE_WURSTCHEN:
-                    imm_e = 3.0 if hand_len < 3 else float(hand_len)
+                    wc = cheap2_cnt - (1 if c_meta.cost <= 2 else 0) + 2
+                    imm_e = float(wc if wc < 5 else 5)
                 elif rie == _RIE_ISTANBUL:
                     e_per = c_meta.istanbul_e_per
                     disc_tom = min(2, max(1, hand_len - 1))
@@ -9383,10 +9388,13 @@ class HydrogenAI(CarbonAI):
                             1.55 if days_left >= 2 else 0.90
                         ) * abundance
                         raw_val += wait_factor * c_meta.signed_match_benefit
-                    elif c_meta.is_global_after_scaler and not zero_tag:
-                        is_synergy_piece = True
-                        wait_factor = 2.10 if days_left >= 2 else 1.35
-                        raw_val += wait_factor * c_meta.signed_match_benefit
+                    elif c_meta.is_global_after_scaler:
+                        if zero_tag and c_title == "Colouring":
+                            raw_val -= 8.0
+                        else:
+                            is_synergy_piece = True
+                            wait_factor = 2.10 if days_left >= 2 else 1.35
+                            raw_val += wait_factor * c_meta.signed_match_benefit
                     elif c_title == "Couch Tube" and days_left >= 1 and not is_zeroed:
                         is_synergy_piece = True
                         raw_val += 3.40 if days_left >= 2 else 2.40
@@ -9601,8 +9609,8 @@ class HydrogenAI(CarbonAI):
                             elif sup == 0 and days_left <= 1:
                                 extra -= 1.2 * rtw
                         elif d2 == _RD2_WURSTCHEN:
-                            if hand_len >= 3:
-                                extra += 1.8 * rtw
+                            if (cheap2_cnt - (1 if hm.cost <= 2 else 0)) >= 2:
+                                extra += 1.2 * rtw
                         elif d2 == _RD2_MEDICAL_ADVICE:
                             if days_left >= 2:
                                 extra += 1.8 * rtw
@@ -9741,7 +9749,12 @@ class HydrogenAI(CarbonAI):
                 over_budget = 0
 
             if c_title == "Würstchen":
-                imm_e = max(3.0, float(len(hand)))
+                cheap_cnt = sum(
+                    1
+                    for other in hand
+                    if other is not c and other.definition.cost <= 2
+                )
+                imm_e = float(min(5, cheap_cnt + 2))
             elif c_title == "Istanbul":
                 e_per = _istanbul_energy_per_discard(c)
                 disc_tom = min(2, max(1, len(hand) - 1))
@@ -9871,10 +9884,13 @@ class HydrogenAI(CarbonAI):
                     1.55 if days_left >= 2 else 0.90
                 ) * abundance
                 raw_val += wait_factor * c_prof.signed_match_benefit
-            elif c_prof.is_global_after_scaler and not zero_tag:
-                is_synergy_piece = True
-                wait_factor = 2.10 if days_left >= 2 else 1.35
-                raw_val += wait_factor * c_prof.signed_match_benefit
+            elif c_prof.is_global_after_scaler:
+                if zero_tag and c_title == "Colouring":
+                    raw_val -= 8.0
+                else:
+                    is_synergy_piece = True
+                    wait_factor = 2.10 if days_left >= 2 else 1.35
+                    raw_val += wait_factor * c_prof.signed_match_benefit
             elif c_title == "Couch Tube" and days_left >= 1 and not is_zeroed:
                 is_synergy_piece = True
                 raw_val += 3.40 if days_left >= 2 else 2.40
@@ -10162,7 +10178,7 @@ class HydrogenAI(CarbonAI):
                         elif ot in {"Butter Tarts", "Istanbul"}:
                             sup += 4
                         elif ot == "Würstchen":
-                            sup += 3
+                            sup += 1
                         elif op.immediate_energy_gain > other.definition.cost:
                             sup += op.immediate_energy_gain - other.definition.cost
                     if sup >= 3:
@@ -10171,11 +10187,17 @@ class HydrogenAI(CarbonAI):
                         extra += 1.6 * rtw
                     elif sup == 0 and days_left <= 1:
                         extra -= 1.2 * rtw
-                elif h_title == "Würstchen" and len(hand) >= 3:
-                    extra += 1.8 * rtw
+                elif h_title == "Würstchen":
+                    cheap_cnt = sum(
+                        1
+                        for other in hand
+                        if other is not hc and other.definition.cost <= 2
+                    )
+                    if cheap_cnt >= 2:
+                        extra += 1.2 * rtw
                 elif h_title == "Medical Advice" and days_left >= 2:
                     extra += 1.8 * rtw
-                elif h_title in {"Wakesurf", "Slalom Start"} and len(hand) >= 3:
+                elif h_title in {"Wakesurf", "Drop a Ski"} and len(hand) >= 3:
                     extra -= 0.9 * rtw
 
         res_val = val + extra
@@ -10657,8 +10679,18 @@ class HydrogenAI(CarbonAI):
         s_prof = _get_card_meta(second_card).prof
         net_e_pos = (
             s_prof.immediate_energy_gain > second_cost
+            or (
+                second_card.title == "Würstchen"
+                and len(player.played_today)
+                + sum(
+                    1
+                    for hc in player.hand
+                    if game.energy_cost(player_index, hc) <= 1
+                )
+                > second_cost
+            )
             or second_card.title
-            in {"Würstchen", "Istanbul", "Potato Pancakes", "Pudding Chômeur"}
+            in {"Istanbul", "Potato Pancakes", "Pudding Chômeur"}
         )
         playable_hand_cost = sum(
             game.energy_cost(player_index, hc)

@@ -151,7 +151,7 @@ ASSORTED_CUTLERY = CardDefinition(
     slug="assorted-cutlery",
     title="Assorted Cutlery",
     tags=frozenset({"Item"}),
-    cost=3,
+    cost=2,
     behavior=AssortedCutleryBehavior(),
 )
 

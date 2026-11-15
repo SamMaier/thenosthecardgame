@@ -4,11 +4,13 @@ from thenos.cards import make_card
 from tests.helpers import empty_game
 
 
-class SlalomStartTests(unittest.TestCase):
+class DropASkiTests(unittest.TestCase):
     def test_printed_values(self) -> None:
-        card = make_card("slalom-start")
+        card = make_card("drop-a-ski")
 
-        self.assertEqual(card.title, "Slalom Start")
+        self.assertEqual(card.definition.slug, "drop-a-ski")
+        self.assertEqual(card.title, "Drop a Ski")
+        self.assertEqual(make_card("slalom-start").title, "Drop a Ski")
         self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 2)
         self.assertEqual(
@@ -20,7 +22,7 @@ class SlalomStartTests(unittest.TestCase):
         game = empty_game()
         player = game.players[0]
         player.energy = 3
-        player.hand.extend([make_card("slalom-start"), make_card("biography")])
+        player.hand.extend([make_card("drop-a-ski"), make_card("biography")])
 
         card = game.play_card(0, 0)
 
@@ -36,7 +38,7 @@ class SlalomStartTests(unittest.TestCase):
                 game = empty_game()
                 player = game.players[0]
                 player.energy = 3
-                player.hand.append(make_card("slalom-start"))
+                player.hand.append(make_card("drop-a-ski"))
                 player.hand.extend(
                     make_card("biography") for _ in range(hand_size)
                 )

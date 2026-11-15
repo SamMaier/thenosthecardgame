@@ -3,7 +3,7 @@ import unittest
 from collections import Counter
 
 from thenos.ais import RandomAI
-from thenos.cards import CARD_REGISTRY, create_default_deck
+from thenos.cards import CARD_REGISTRY, create_default_deck, make_card
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.game import (
     DAILY_PICKS,
@@ -193,6 +193,212 @@ class GameTests(unittest.TestCase):
         game.pick_suitcase_cards(0, (game.suitcase[0],))
         self.assertEqual(game.stats.free_pick_offers, free_pick_offers)
         self.assertEqual(game.stats.free_picks, free_picks)
+
+    def test_first_seen_tracks_first_player_offered_each_suitcase_card(self) -> None:
+        class ChooseIndexAI(RandomAI):
+            def __init__(self, index: int) -> None:
+                super().__init__()
+                self.index = index
+
+            def choose_suitcase_card(self, game, player_index, suitcase):
+                return self.index
+
+        game = Game.default(seed=23)
+        game.setup()
+        c0 = make_card("azul")
+        c1 = make_card("agricola")
+        c2 = make_card("splendor")
+        c3 = make_card("wingspan")
+        sleep_in = make_card("sleep-in")
+        c4 = make_card("carcassonne")
+        c5 = make_card("terra-mystica")
+        game.suitcase = [c0, c1, c2, c3]
+        game.trunk.extend([c5, c4, sleep_in])
+
+        # Player 0 picks c0; Sleep In flips into slot 0 for Player 1.
+        game.ais[0] = ChooseIndexAI(0)
+        game.pick_from_suitcase(0)
+        self.assertEqual(
+            game.stats.first_seen_by_player[0],
+            Counter({c0.title: 1, c1.title: 1, c2.title: 1, c3.title: 1}),
+        )
+
+        # Player 1 sees Sleep In first, passes on it (picks c1), c4 flips into slot 1.
+        game.ais[1] = ChooseIndexAI(1)
+        game.pick_from_suitcase(1)
+        self.assertEqual(
+            game.stats.first_seen_by_player[1],
+            Counter({"Sleep In": 1}),
+        )
+
+        # Player 2 picks Sleep In, but only newly flipped c4 is first-seen by Player 2.
+        game.ais[2] = ChooseIndexAI(0)
+        picked = game.pick_from_suitcase(2)
+        self.assertIs(picked, sleep_in)
+        self.assertEqual(
+            game.stats.first_seen_by_player[2],
+            Counter({c4.title: 1}),
+        )
+
+        # Direct card-effect Suitcase picks do not count as first-seen offers,
+        # while their Trunk replacement is tracked for the next free picker.
+        replacement = make_card("fajitas")
+        game.trunk.append(replacement)
+        game.pick_suitcase_cards(3, (game.suitcase[1],))
+        self.assertEqual(game.stats.first_seen_by_player[3], Counter())
+
+        clone = game.copy_for_simulation()
+        clone.ais[3] = ChooseIndexAI(0)
+        clone.pick_from_suitcase(3)
+        self.assertEqual(game.stats.first_seen_by_player[3], Counter())
+
+        game.ais[3] = ChooseIndexAI(0)
+        game.pick_from_suitcase(3)
+        self.assertEqual(
+            game.stats.first_seen_by_player[3],
+            Counter({c5.title: 1, replacement.title: 1}),
+        )
+
+    def test_first_seen_ignores_recycled_and_hand_cycled_cards_but_tracks_new_flips(
+        self,
+    ) -> None:
+        class SwapFirstAI(RandomAI):
+            def choose_cards_to_discard(self, game, player_index, cards):
+                return (0,)
+
+            def choose_card_to_discard(self, game, player_index, cards):
+                return 0
+
+            def choose_suitcase_card(self, game, player_index, suitcase):
+                return 0
+
+        game = Game.default(seed=31)
+        game.setup()
+        c0 = make_card("azul")
+        c1 = make_card("agricola")
+        c2 = make_card("splendor")
+        c3 = make_card("wingspan")
+        unseen_flip = make_card("sleep-in")
+        hand_dump = make_card("booby-prize")
+        shirt = make_card("last-years-shirt")
+        game.suitcase = [c0, c1, c2, c3]
+        game.trunk.append(unseen_flip)
+
+        # Player 0 sees [c0..c3], picks c0 -> unseen_flip enters slot 0.
+        game.ais[0] = SwapFirstAI()
+        game.pick_from_suitcase(0)
+
+        # Player 0 plays Last Year's Shirt, choosing over original_suitcase (marking
+        # unseen_flip as already evaluated) and placing hand_dump into slot 1.
+        class PickSecondAI(SwapFirstAI):
+            def choose_suitcase_card(self, game, player_index, suitcase):
+                return 1
+
+        game.ais[0] = PickSecondAI()
+        game.players[0].energy = 10
+        game.players[0].hand = [hand_dump, shirt]
+        game.play_card(0, 1)
+        self.assertIs(game.suitcase[0], unseen_flip)
+        self.assertIs(game.suitcase[1], hand_dump)
+
+        # Neither the passed Last Year's Shirt card nor hand_dump is newly first-seen.
+        after_pick = make_card("carcassonne")
+        game.trunk.append(after_pick)
+        game.ais[1] = SwapFirstAI()
+        game.pick_from_suitcase(1)
+        self.assertEqual(game.stats.first_seen_by_player[1], Counter())
+
+        # Tell a Story puts a hand card on top of the Trunk; flipping it into the
+        # Suitcase does not count as a fresh first-seen Trunk card.
+        story_dump = make_card("wurstchen")
+        tell_story = make_card("tell-a-story")
+        game.players[0].hand = [story_dump, tell_story]
+        game.play_card(0, 1)
+        game.ais[2] = SwapFirstAI()
+        game.pick_from_suitcase(2)
+        self.assertEqual(
+            game.stats.first_seen_by_player[2],
+            Counter({after_pick.title: 1}),
+        )
+
+        # Unpack draws 3 fresh cards plus 1 already-seen recycled card; only the
+        # 3 genuinely unseen cards are recorded, and a card discarded unseen by
+        # unpack still counts if reshuffled into the Suitcase later.
+        never_seen_before_unpack = make_card("terra-mystica")
+        game.suitcase[3] = never_seen_before_unpack
+        u0 = make_card("steak")
+        u1 = make_card("canoe")
+        u2 = make_card("kayak")
+        game.trunk = [c0, u2, u1, u0]
+        game.discard = []
+        game.unpack(0)
+        game.trunk = [never_seen_before_unpack]
+        game.ais[3] = SwapFirstAI()
+        game.pick_from_suitcase(3)
+        self.assertEqual(
+            game.stats.first_seen_by_player[3],
+            Counter({u0.title: 1, u1.title: 1, u2.title: 1}),
+        )
+        game.ais[1] = SwapFirstAI()
+        game.pick_from_suitcase(1)
+        self.assertEqual(
+            game.stats.first_seen_by_player[1],
+            Counter({never_seen_before_unpack.title: 1}),
+        )
+
+    def test_first_seen_handles_multi_picks_and_next_day_starting_player(self) -> None:
+        class BedFirstAI(RandomAI):
+            def choose_suitcase_card(self, game, player_index, suitcase):
+                return 0
+
+            def choose_to_go_to_bed(
+                self, game, player_index, playable_hand_indices
+            ):
+                return True
+
+        game = Game.default(seed=41)
+        game.setup()
+        for idx in range(PLAYER_COUNT):
+            game.ais[idx] = BedFirstAI()
+
+        # Make Plans picks 2 Suitcase cards sequentially, so Player 1 first-sees
+        # both the initial unseen Suitcase card and the first pick's Trunk refill.
+        s0 = make_card("azul")
+        s1 = make_card("agricola")
+        s2 = make_card("splendor")
+        s3 = make_card("wingspan")
+        refill_1 = make_card("sleep-in")
+        refill_2 = make_card("fajitas")
+        make_plans = make_card("make-plans")
+        game.suitcase = [s0, s1, s2, s3]
+        game.stats.seen_suitcase_ids.update(c.instance_id for c in (s1, s2, s3))
+        game.trunk.extend([refill_2, refill_1])
+        game.players[1].energy = 10
+        game.players[1].hand = [make_plans]
+        game.play_card(1, 0)
+        self.assertEqual(
+            game.stats.first_seen_by_player[1],
+            Counter({s0.title: 1, "Sleep In": 1}),
+        )
+
+        # refill_2 remains unseen at end of Day 1; if Player 2 goes to bed first,
+        # Player 2 becomes Day 2's starting player and first-sees refill_2, while the
+        # final replacement on Day 6 stays unattributed when the game ends.
+        game.starting_player = 2
+        game.playing_phase()
+        self.assertEqual(game.starting_player, 2)
+        game.end_day()
+        game.day = DAYS_PER_GAME - 1
+        final_unseen = make_card("booby-prize")
+        filler_cards = [make_card("steak") for _ in range(11)]
+        game.trunk.extend([final_unseen, *filler_cards])
+        game.start_day()
+        game.draw_phase()
+        self.assertEqual(game.stats.first_seen_by_player[2][refill_2.title], 1)
+        for idx in range(PLAYER_COUNT):
+            self.assertEqual(
+                game.stats.first_seen_by_player[idx][final_unseen.title], 0
+            )
 
     def test_unpack_costs_fun_discards_and_refills_four_cards(self) -> None:
         game = Game.default(seed=8)

@@ -21,12 +21,36 @@ SUITCASE_SIZE = 4
 _SHARED_SIM_STATS: Any = None
 
 
+class _NoOpSeenSet:
+    """Zero-allocation dummy set for simulation clones."""
+
+    __slots__ = ()
+
+    def __contains__(self, item: object) -> bool:
+        return True
+
+    def add(self, item: object) -> None:
+        pass
+
+    def update(self, items: object) -> None:
+        pass
+
+    def discard(self, item: object) -> None:
+        pass
+
+    def clear(self) -> None:
+        pass
+
+    def copy(self) -> _NoOpSeenSet:
+        return self
+
+
 def _get_shared_sim_stats() -> Any:
     global _SHARED_SIM_STATS
     if _SHARED_SIM_STATS is None:
         from thenos.game import GameStats
 
-        _SHARED_SIM_STATS = GameStats()
+        _SHARED_SIM_STATS = GameStats(seen_suitcase_ids=_NoOpSeenSet())  # type: ignore[arg-type]
     return _SHARED_SIM_STATS
 
 
@@ -694,11 +718,7 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
         and signed_match_benefit > 0.0
         and not is_single_buff
         and (
-            (
-                "AllCardsAfter" in cls_name
-                and energy_delta <= 0
-                and "Double" not in cls_name
-            )
+            ("AllCardsAfter" in cls_name and "Double" not in cls_name)
             or "EuchreTournamentAwardsCeremony" in cls_name
             or after_all_tags
         )
@@ -753,7 +773,6 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
             and "SleepIn" not in cls_name
             and "PuddingChomeur" not in cls_name
         )
-        or "Wurstchen" in cls_name
     ):
         bucket = 1
     elif penalizes_after or is_count_finisher:
@@ -767,7 +786,6 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
         or has_on_card_play
         or has_on_card_acquire
         or "ChristmasNameDraw" in cls_name
-        or "FunAndEnergyForAllCardsAfter" in cls_name
     ):
         bucket = 2
     elif is_single_buff or "FunForAllCardsAfterDoubleBehavior" in cls_name:
@@ -881,13 +899,15 @@ def _free_play_card_value(
         direct_fun = 0.0
 
     imm_e = (
-        max(2, len(player.hand))
+        len(player.played_today)
         if title == "Würstchen"
         else prof.immediate_energy_gain
     )
     val = direct_fun + imm_e * 1.25
-    if prof.conditional_energy_gain > 0 and _condition_met_in_played(
-        player, card, prof
+    if (
+        title != "Würstchen"
+        and prof.conditional_energy_gain > 0
+        and _condition_met_in_played(player, card, prof)
     ):
         val += prof.conditional_energy_gain * 1.15
     if (
@@ -1146,7 +1166,7 @@ class _EvalPlayerAI(RandomAI):
                 1 for c in player.played_today if c.title == "Paddleboat"
             )
             want_empty_hand = any(
-                c.title in {"Wakesurf", "Slalom Start"}
+                c.title in {"Wakesurf", "Drop a Ski"}
                 for c in player.played_today
             )
 
@@ -1448,7 +1468,7 @@ class _EvalPlayerAI(RandomAI):
             if not player.hand:
                 return False
             if (
-                any(c.title == "Slalom Start" for c in player.played_today)
+                any(c.title == "Drop a Ski" for c in player.played_today)
                 and len(player.hand) == 1
             ):
                 return False
@@ -1458,7 +1478,7 @@ class _EvalPlayerAI(RandomAI):
                 for c in player.hand
             )
             if any(c.title == "Wakesurf" for c in player.played_today) or (
-                any(c.title == "Slalom Start" for c in player.played_today)
+                any(c.title == "Drop a Ski" for c in player.played_today)
                 and len(player.hand) == 2
             ):
                 return worst_val < 4.5
@@ -1469,7 +1489,7 @@ class _EvalPlayerAI(RandomAI):
             if not items:
                 return False
             if (
-                any(c.title == "Slalom Start" for c in player.played_today)
+                any(c.title == "Drop a Ski" for c in player.played_today)
                 and len(player.hand) == 1
             ):
                 return False
@@ -1708,6 +1728,8 @@ def _condition_met_in_played(
         return sum(1 for c in player.played_today if "Exercise" in c.tags) >= 2
     if title == "Keeper":
         return sum(1 for c in player.played_today if "Outdoors" in c.tags) >= 2
+    if title == "Würstchen":
+        return len(player.played_today) >= max(3, card.effective_cost)
     if prof.target_tags:
         return any(bool(c.tags & prof.target_tags) for c in player.played_today)
     return True
@@ -1731,11 +1753,21 @@ def _extra_energy_support_for_card(
         elif (
             h_prof.conditional_energy_gain > hc.effective_cost
             and hc.title
-            not in {"Potato Pancakes", "Keeper", "Camp Crossroads Dessert"}
+            not in {
+                "Potato Pancakes",
+                "Keeper",
+                "Camp Crossroads Dessert",
+                "Würstchen",
+            }
         ):
             support += h_prof.conditional_energy_gain - hc.effective_cost
         elif hc.title == "Würstchen":
-            support += max(0, len(player.hand) - 1 - hc.effective_cost)
+            prior_est = len(player.played_today) + sum(
+                1
+                for oc in player.hand
+                if oc is not hc and oc is not card and oc.effective_cost <= 2
+            )
+            support += max(0, prior_est - hc.effective_cost)
         elif h_prof.tomorrow_start_energy > 0:
             support += max(0, h_prof.tomorrow_start_energy - 1)
         elif hc.title == "Butter Tarts":
@@ -1760,11 +1792,7 @@ def _quick_card_desirability(
     cost = game.energy_cost(player_index, card)
     days_left = DAY_COUNT - game.day
 
-    imm_energy = (
-        max(2, len(player.hand))
-        if card.title == "Würstchen"
-        else prof.immediate_energy_gain
-    )
+    imm_energy = prof.immediate_energy_gain
     val = (
         float(card.effective_base_fun)
         + prof.immediate_fun_gain * 1.15
@@ -1806,6 +1834,15 @@ def _quick_card_desirability(
             )
             per_match = 2 if card.title == "Potato Pancakes" else 1
             val += min(match_cnt, 3) * per_match * 0.85
+        elif card.title == "Würstchen":
+            prior_cnt = sum(
+                1 for other in player.played_today if other is not card
+            ) + sum(
+                1
+                for other in player.hand
+                if other is not card and other.effective_cost <= 2
+            )
+            val += min(prior_cnt + (1 if days_left >= 1 else 0), 5) * 0.85
         else:
             has_cond = _condition_met_in_played(player, card, prof) or any(
                 other is not card and (other.tags & prof.target_tags)
@@ -1846,7 +1883,7 @@ def _quick_card_desirability(
     elif prof.conditional_fun_bonus > 0 and not prof.is_multi_scaler:
         val += min(prof.conditional_fun_bonus, 5) * 0.55
 
-    if card.title in {"Slalom Start", "Wakesurf"} and len(player.hand) >= 5:
+    if card.title in {"Drop a Ski", "Wakesurf"} and len(player.hand) >= 5:
         if not any(
             other.title in {"Paddleboard", "Navy SEALing", "Istanbul", "Scrabble"}
             for other in player.hand
@@ -2334,7 +2371,10 @@ class ArgonBrain(GreedyAI):
         ):
             bonus += 0.35 * min(prof.immediate_cards_gained, 3)
         if card.title == "Würstchen":
-            bonus += 0.35 + 0.40 * max(0, len(player.hand) - cost)
+            cheap_owned = sum(
+                1 for c in player.hand if c is not card and c.effective_cost <= 2
+            )
+            bonus += 0.25 + 0.35 * max(0, cheap_owned + 1 - cost)
         elif (
             prof.immediate_energy_gain > cost
             and prof.tomorrow_start_energy >= 0
@@ -2347,7 +2387,12 @@ class ArgonBrain(GreedyAI):
             prof.conditional_energy_gain > cost
             and card.effective_base_fun >= 0
             and card.title
-            not in {"Potato Pancakes", "Keeper", "Camp Crossroads Dessert"}
+            not in {
+                "Potato Pancakes",
+                "Keeper",
+                "Camp Crossroads Dessert",
+                "Würstchen",
+            }
         ):
             has_trig = any(
                 c is not card
@@ -2412,7 +2457,7 @@ class ArgonBrain(GreedyAI):
                 bonus += 0.90
             else:
                 bonus -= 0.35 if card.title == "Quacks" else 0.55
-        elif card.title in {"Slalom Start", "Wakesurf"}:
+        elif card.title in {"Drop a Ski", "Wakesurf"}:
             if len(player.hand) >= 4 and not any(
                 c.title in {"Paddleboard", "Navy SEALing", "Istanbul", "Scrabble"}
                 for c in player.hand
@@ -3319,7 +3364,12 @@ class ArgonBrain(GreedyAI):
                 over_budget = 0
 
             if c.title == "Würstchen":
-                imm_e = max(3.0, float(len(player.hand)))
+                cheap_cnt = sum(
+                    1
+                    for other in player.hand
+                    if other is not c and other.definition.cost <= 2
+                )
+                imm_e = float(min(5, cheap_cnt + 2))
             elif (
                 c_prof.conditional_energy_gain > 0
                 and c.title

@@ -50,6 +50,7 @@ from thenos.cards.items import (
 )
 from thenos.cards.exercise import (
     CHUCK_A_FRISBEE,
+    DROP_A_SKI,
     KAYAK,
     MORNING_BIKE,
     MORNING_RUN,
@@ -59,7 +60,6 @@ from thenos.cards.exercise import (
     PADDLEBOAT,
     PLAY_WITH_THE_KIDS,
     SKI_ON_COUSINS_SHOULDERS,
-    SLALOM_START,
     SWIMMING,
     THROW_A_BASEBALL,
     WAKESURF,
@@ -154,7 +154,7 @@ CARD_REGISTRY: dict[str, CardDefinition] = {
         SWIMMING,
         THROW_A_BASEBALL,
         WAKESURF,
-        SLALOM_START,
+        DROP_A_SKI,
         SKI_ON_COUSINS_SHOULDERS,
         WRESTLE_THE_KIDS,
         MORNING_BIKE,
@@ -192,6 +192,7 @@ _SLUG_ALIASES = {
     "settlers-cities-and-knights": "cities-and-knights",
     "scout-the-other-cottages": "scout-other-cottages",
     "ski-on-cousins-shoulders": "ski-on-shoulders",
+    "slalom-start": "drop-a-ski",
     "weird-chip-flavor": "weird-chip-flavour",
 }
 

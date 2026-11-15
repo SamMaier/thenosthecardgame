@@ -875,8 +875,8 @@ HOLD_THE_BABY = CardDefinition(
     slug="hold-the-baby",
     title="Hold the Baby",
     tags=frozenset({"Social"}),
-    cost=1,
-    behavior=FunAndEnergyForAllCardsAfterBehavior(1, 2),
+    cost=2,
+    behavior=FunAndEnergyForAllCardsAfterBehavior(1, 3),
 )
 
 OUTDOOR_MOVIE = CardDefinition(

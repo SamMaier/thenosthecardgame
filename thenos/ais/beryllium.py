@@ -431,11 +431,7 @@ def _beryllium_quick_card_desirability(
     eff_base_fun = c_defn.base_fun
     c_tags = c_defn.tags if not card.markers else card.tags
 
-    imm_energy = (
-        max(2, len(player.hand))
-        if title == "Würstchen"
-        else prof.immediate_energy_gain
-    )
+    imm_energy = prof.immediate_energy_gain
     val = (
         float(eff_base_fun)
         + prof.immediate_fun_gain * 1.15
@@ -520,6 +516,21 @@ def _beryllium_quick_card_desirability(
             )
             per_match = 2 if title == "Potato Pancakes" else 1
             val += min(match_cnt, 3) * per_match * 0.85
+        elif title == "Würstchen":
+            prior_cnt = sum(
+                1 for other in player.played_today if other is not card
+            ) + sum(
+                1
+                for other in player.hand
+                if other is not card
+                and (
+                    other.definition.cost
+                    if not other.markers
+                    else other.effective_cost
+                )
+                <= 2
+            )
+            val += min(prior_cnt + (1 if days_left >= 1 else 0), 5) * 0.85
         else:
             t_tags = prof.target_tags
             has_cond = _condition_met_in_played(player, card, prof) or any(
@@ -570,7 +581,7 @@ def _beryllium_quick_card_desirability(
     elif prof.conditional_fun_bonus > 0 and not prof.is_multi_scaler:
         val += min(prof.conditional_fun_bonus, 5) * 0.55
 
-    if title in {"Slalom Start", "Wakesurf"} and len(player.hand) >= 5:
+    if title in {"Drop a Ski", "Wakesurf"} and len(player.hand) >= 5:
         if not any(
             other.definition.title
             in {"Paddleboard", "Navy SEALing", "Istanbul", "Scrabble"}
@@ -933,7 +944,7 @@ def _contextual_copy_value(
     if not _allows_energy_gain_today(game, player, source_card):
         imm_e = 0.0
     elif title == "Würstchen":
-        imm_e = float(len(player.hand))
+        imm_e = float(len(prior_cards))
     elif title == "Istanbul":
         e_per = _istanbul_energy_per_discard(option)
         has_e_sink = any(
@@ -1262,7 +1273,7 @@ def _evaluate_istanbul_discards(
     slalom_played = sum(
         _prior_card_mult(pos, c)
         for pos, c in enumerate(orig_played)
-        if _effective_card_title(c) == "Slalom Start"
+        if _effective_card_title(c) == "Drop a Ski"
     )
     paddleboat_played = sum(
         _prior_card_mult(pos, c)
@@ -1338,7 +1349,7 @@ def _evaluate_istanbul_discards(
                     )
                     else future_mult
                 )
-                if title not in {"Wakesurf", "Slalom Start"}:
+                if title not in {"Wakesurf", "Drop a Ski"}:
                     player.hand = []
                 own_fun = sim.card_fun(player_index, c)
                 base_board_fun = float(own_fun + prior_delta)
@@ -1435,7 +1446,7 @@ def _evaluate_istanbul_discards(
         t = titles[idx]
         p = profs[idx]
         if t == "Würstchen":
-            return max(0, rem_cards - 1)
+            return len(orig_played)
         if t == "Butter Tarts":
             return max(0, cur_e - costs[idx])
         if t == "Pudding Chômeur":
@@ -1636,7 +1647,7 @@ def _evaluate_istanbul_discards(
                     proj_sink = 3.0 * cm
                 elif t == "Wakesurf" and (len(unplayed) - 1) == 0:
                     proj_sink = 6.0 * cm
-                elif t == "Slalom Start" and (len(unplayed) - 1) == 1:
+                elif t == "Drop a Ski" and (len(unplayed) - 1) == 1:
                     proj_sink = 5.0 * cm
 
                 # Account for losing 1 point per active Wrestle / Decaf cost
@@ -1667,7 +1678,7 @@ def _evaluate_istanbul_discards(
                     pwtk_w += cm
                 elif t == "Wakesurf":
                     wakesurf_w += cm
-                elif t == "Slalom Start":
+                elif t == "Drop a Ski":
                     slalom_w += cm
 
             # 3. Leftover Energy sinks (drawn Suitcase/Trunk cards, Kayak, Decaf)
@@ -1918,7 +1929,7 @@ class _BerylliumEvalAI(_EvalPlayerAI):
             if not eligible:
                 return False
             if (
-                any(c.title == "Slalom Start" for c in player.played_today)
+                any(c.title == "Drop a Ski" for c in player.played_today)
                 and len(player.hand) == 1
             ):
                 return False
@@ -1937,7 +1948,7 @@ class _BerylliumEvalAI(_EvalPlayerAI):
             if is_doubled:
                 base_thresh *= 1.8
             if any(c.title == "Wakesurf" for c in player.played_today) or (
-                any(c.title == "Slalom Start" for c in player.played_today)
+                any(c.title == "Drop a Ski" for c in player.played_today)
                 and len(player.hand) == 2
             ):
                 base_thresh += 2.5
@@ -3446,13 +3457,13 @@ class BerylliumBrain(ArgonBrain):
                         other_cost > player.energy - cost
                         or any(
                             _effective_card_title(other)
-                            in {"Kayak", "Decaf", "Wakesurf", "Slalom Start"}
+                            in {"Kayak", "Decaf", "Wakesurf", "Drop a Ski"}
                             for other in player.hand
                             if other is not card
                         )
                         or any(
                             _effective_card_title(pc)
-                            in {"Decaf", "Wakesurf", "Slalom Start"}
+                            in {"Decaf", "Wakesurf", "Drop a Ski"}
                             for pc in player.played_today
                         )
                     ):
@@ -4300,7 +4311,12 @@ class BerylliumBrain(ArgonBrain):
                     over_budget = 0
 
                 if c_title == "Würstchen":
-                    imm_e = max(3.0, float(len(hand)))
+                    cheap_cnt = sum(
+                        1
+                        for other in hand
+                        if other is not c and other.definition.cost <= 2
+                    )
+                    imm_e = float(min(5, cheap_cnt + 2))
                 elif c_title == "Istanbul":
                     e_per = _istanbul_energy_per_discard(c)
                     disc_tom = min(2, max(1, len(hand) - 1))

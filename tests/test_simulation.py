@@ -128,6 +128,9 @@ class SimulationTests(unittest.TestCase):
             self.assertLessEqual(card.win_rate_when_picked, 1.0)
             self.assertGreaterEqual(card.win_rate_when_acquired, 0.0)
             self.assertLessEqual(card.win_rate_when_acquired, 1.0)
+            self.assertGreater(card.player_games_first_seen, 0)
+            self.assertGreaterEqual(card.first_seen_win_rate, 0.0)
+            self.assertLessEqual(card.first_seen_win_rate, 1.0)
 
     def test_card_outcomes_use_player_game_exposure_and_fun_difference(self) -> None:
         report = SimulationReport(
@@ -171,6 +174,69 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(biography.win_rate, 1.0)
         self.assertEqual(biography.fun_added, 6.0)
         self.assertEqual(report.cards["Fajitas"].fun_added, -6.0)
+
+    def test_first_seen_win_rate_tracks_first_offered_player_without_double_weighting(
+        self,
+    ) -> None:
+        report = SimulationReport(
+            games=1,
+            cards={"Unseen": CardStatistics()},
+        )
+        outcome = _GameOutcome(
+            free_pick_offers=Counter(),
+            free_picks=Counter(),
+            suitcase_offers=Counter(),
+            suitcase_picks=Counter(),
+            card_acquisitions=Counter(),
+            card_plays=Counter(),
+            card_plays_without_acquisition=Counter(),
+            players=(
+                _PlayerOutcome(
+                    "Player 1",
+                    "Test AI",
+                    8,
+                    0.0,
+                    Counter(),
+                    Counter(),
+                ),
+                _PlayerOutcome(
+                    "Player 2",
+                    "Test AI",
+                    12,
+                    0.5,
+                    Counter(),
+                    Counter(),
+                    Counter({"Sleep In": 2}),
+                ),
+                _PlayerOutcome(
+                    "Player 3",
+                    "Test AI",
+                    6,
+                    0.0,
+                    Counter({"Sleep In": 1}),
+                    Counter({"Sleep In": 1}),
+                ),
+                _PlayerOutcome(
+                    "Player 4",
+                    "Test AI",
+                    12,
+                    0.5,
+                    Counter(),
+                    Counter(),
+                ),
+            ),
+        )
+
+        _merge_outcome(report, outcome)
+
+        sleep_in = report.cards["Sleep In"]
+        self.assertEqual(sleep_in.win_rate, 0.0)
+        self.assertEqual(sleep_in.player_games_with_card, 1)
+        self.assertEqual(sleep_in.player_games_without_card, 3)
+        self.assertEqual(sleep_in.player_games_first_seen, 1)
+        self.assertEqual(sleep_in.win_credit_when_first_seen, 0.5)
+        self.assertEqual(sleep_in.first_seen_win_rate, 0.5)
+        self.assertEqual(report.cards["Unseen"].first_seen_win_rate, 0.0)
 
     def test_matchup_aggregates_named_ai_results(self) -> None:
         report = simulate_greedy_vs_random(1, seed=99)
@@ -414,6 +480,8 @@ class SimulationTests(unittest.TestCase):
                     plays=1,
                     win_credit_when_acquired=0.5,
                     player_games_with_card=2,
+                    win_credit_when_first_seen=0.75,
+                    player_games_first_seen=2,
                     fun_total_with_card=18,
                     player_games_without_card=2,
                     fun_total_without_card=10,
@@ -441,6 +509,7 @@ class SimulationTests(unittest.TestCase):
                 "fun_added",
                 "play_rate",
                 "win_credit_when_acquired",
+                "first_seen_win_rate",
             ],
         )
         self.assertEqual(len(rows), 1)
@@ -451,6 +520,7 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(row["fun_added"], "4.0")
         self.assertEqual(row["play_rate"], "0.5")
         self.assertEqual(row["win_credit_when_acquired"], "0.5")
+        self.assertEqual(row["first_seen_win_rate"], "0.375")
 
 
 if __name__ == "__main__":
