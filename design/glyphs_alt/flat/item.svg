@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Item glyph</title>
+  <path d="M60 20 L98 40 V82 L60 102 L22 82 V40 Z" fill="#5C5852"/>
+  <path d="M22 40 L60 60 L98 40 M60 60 V102" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M37 32 L45 28 L83 48 V64 L75 68 V52 Z" fill="#FFFFFF"/>
+</svg>

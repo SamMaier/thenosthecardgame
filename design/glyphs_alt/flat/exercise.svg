@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Exercise glyph</title>
+  <path d="M16 76 V50 c0-4 4-6 7-3 c5 5 14 6 20 0 l10-12 c3-4 8-4 11 0 l17 20 l15 6 c6 2 10 7 10 13 v2 H16 Z" fill="#B24A60"/>
+  <path d="M14 76 H106 c1 7 -4 12 -12 12 H22 c-5 0 -8 -4 -8 -12 Z" fill="#B24A60"/>
+  <path d="M16 76 H104 c0 4 -3 7 -9 7 H22 c-4 0 -6 -2 -6 -7 Z" fill="#FFFFFF"/>
+  <path d="M35 69 L52 56 L60 62" fill="none" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M56 48 L63 42 M64 57 L71 51" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+</svg>

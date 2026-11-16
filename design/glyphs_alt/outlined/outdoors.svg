@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Outdoors glyph</title>
+  <g stroke="#2B221B" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M51 85 h18 v18 a3 3 0 0 1 -3 3 h-12 a3 3 0 0 1 -3 -3 Z" fill="#4A6B43"/>
+    <path d="M60 14 L83 42 Q76 44 70 43 L92 65 Q84 67 77 66 L100 87 Q60 92 20 87 L43 66 Q36 67 28 65 L50 43 Q44 44 37 42 Z" fill="#4A6B43"/>
+    <path d="M51 36 L60 25 L69 36 M46 58 L60 45 L74 58" fill="none" stroke="#FFFFFF" stroke-width="4.5"/>
+  </g>
+</svg>

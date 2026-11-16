@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Item glyph</title>
+  <path d="M60 20 L98 40 L60 60 L22 40 Z" fill="#5C5852" fill-opacity="0.36"/>
+  <path d="M22 40 L60 60 L98 40 V82 L60 102 L22 82 Z" fill="#5C5852" fill-opacity="0.54"/>
+  <g fill="none" stroke="#2B221B" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M60 20 L98 40 V82 L60 102 L22 82 V40 Z"/>
+    <path d="M22 40 L60 60 L98 40 M60 60 V102"/>
+    <path d="M41 30 L79 50 V66"/>
+  </g>
+</svg>

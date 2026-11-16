@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Fun glyph</title>
+  <path d="M17 103 L44 39 L81 76 Z" fill="#F3B83C" fill-opacity="0.52"/>
+  <circle cx="54" cy="22" r="5" fill="#B24A60" fill-opacity="0.65" stroke="#2B221B" stroke-width="3.8"/>
+  <circle cx="96" cy="39" r="5" fill="#F3B83C" fill-opacity="0.65" stroke="#2B221B" stroke-width="3.8"/>
+  <g fill="none" stroke="#2B221B" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M17 103 L44 39 L81 76 Z"/>
+    <path d="M34 63 L57 86"/>
+    <path d="M64 39 C69 24 80 17 95 18"/>
+    <path d="M79 56 C91 53 99 58 104 68"/>
+  </g>
+</svg>

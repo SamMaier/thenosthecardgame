@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
+  <title id="title">Fun glyph</title>
+  <path d="M17 103 L44 39 L81 76 Z" fill="#D4840E"/>
+  <path d="M31 77 L38 60 L60 82 L43 89 Z" fill="#F8CA45"/>
+  <ellipse cx="62.5" cy="57.5" rx="26" ry="6" transform="rotate(45 62.5 57.5)" fill="#8F5504"/>
+  <path d="M64 38 C69 23 81 16 96 17" fill="none" stroke="#B24A60" stroke-width="7" stroke-linecap="round"/>
+  <path d="M80 55 C92 52 100 57 105 67" fill="none" stroke="#4A6B43" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="53" cy="22" r="6" fill="#B24A60"/>
+  <circle cx="96" cy="38" r="6" fill="#E09B1B"/>
+</svg>
