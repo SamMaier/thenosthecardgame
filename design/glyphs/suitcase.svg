@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
   <title id="title">Suitcase glyph</title>
-  <rect x="20" y="32" width="80" height="70" rx="8" fill="#AEB4B9" stroke="#1F2528" stroke-width="6"/>
-  <path d="M42 31V21c0-4 3-7 7-7h22c4 0 7 3 7 7v10" fill="none" stroke="#1F2528" stroke-width="6" stroke-linecap="round"/>
-  <path d="M60 34v65M22 55h76" fill="none" stroke="#D9DDE1" stroke-width="4"/>
+  <path d="M44 35 V22 a6 6 0 0 1 6-6 h20 a6 6 0 0 1 6 6 v13" fill="none" stroke="#3B312B" stroke-width="7" stroke-linecap="round"/>
+  <rect x="16" y="34" width="88" height="66" rx="10" fill="#AE6E2E"/>
+  <rect x="35" y="34" width="9" height="66" fill="#F5EFE6"/>
+  <rect x="76" y="34" width="9" height="66" fill="#F5EFE6"/>
 </svg>

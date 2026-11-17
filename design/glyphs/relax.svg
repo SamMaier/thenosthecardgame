@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
-  <title id="title">Relax bed glyph</title>
-  <g stroke="#2B221B" stroke-linecap="round" stroke-linejoin="round" stroke-width="5">
-    <path d="M19 46v51M101 46v51" fill="none"/>
-    <path d="M19 58h82v29H19Z" fill="#7A82A6"/>
-    <rect x="28" y="62" width="28" height="14" rx="5" fill="#2B221B" stroke="none"/>
-    <path d="M19 87h82M28 97v7M92 97v7" fill="none"/>
-  </g>
+  <title id="title">Relax glyph</title>
+  <path d="M83 19 A13 13 0 1 0 98 35 A12.5 12.5 0 0 1 83 19 Z" fill="#7E52A0"/>
+  <path d="M20 65 H49 V56 H83 A13 13 0 0 1 96 69 V84 H20 Z" fill="#7E52A0"/>
+  <rect x="24" y="48" width="25" height="16" rx="7" fill="#FFFFFF" stroke="#7E52A0" stroke-width="3"/>
+  <rect x="47" y="56" width="4" height="28" fill="#FFFFFF"/>
+  <rect x="14" y="34" width="9" height="63" rx="4.5" fill="#7E52A0"/>
+  <rect x="96" y="60" width="9" height="37" rx="4.5" fill="#7E52A0"/>
 </svg>

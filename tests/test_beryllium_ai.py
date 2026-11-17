@@ -393,7 +393,7 @@ class BerylliumBrainAITests(unittest.TestCase):
             game_res.ais[0]._evaluate_tomorrow_and_reserve_fast(
                 game_res, 0, [], days_left=1
             ),
-            2.5,
+            2.0,
         )
         game_d6_keep = _beryllium_game()
         game_d6_keep.day = 6

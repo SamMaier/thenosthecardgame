@@ -75,9 +75,9 @@ LINK = "test.csv"
 ; Tag circles use their category color blended 50% toward white.
 [tag_outdoors_bg] = #A5B5A1
 [tag_indoors_bg] = #C6A99C
-[tag_relax_bg] = #BDC1D3
-[tag_board_game_bg] = #969FAA
-[tag_item_bg] = #B7BBBE
+[tag_relax_bg] = #BFA9D0
+[tag_board_game_bg] = #8DB4C2
+[tag_item_bg] = #AEACA9
 [tag_social_bg] = #EDCD9C
 [tag_food_bg] = #E4AD99
 [tag_exercise_bg] = #D9A5B0

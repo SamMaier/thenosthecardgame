@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
-  <title id="title">Minimal sun glyph</title>
-  <path d="M60 13c6 0 8 7 14 8 5 1 9-4 14-1 5 3 2 10 6 14 4 4 11 2 13 8 2 6-5 9-4 15 0 6 7 10 5 16-2 6-9 5-12 10-3 5 1 11-4 15-5 4-10-1-15 1-5 2-7 9-13 9s-8-7-14-8c-5-1-9 5-14 2-5-3-2-10-6-14-4-4-11-1-13-7-2-6 5-9 4-15-1-6-8-10-6-16 2-6 9-5 12-10 3-5-1-11 4-15 5-4 10 1 15-1 5-2 8-9 14-9Z" fill="#FFD34E" stroke="#C58A00" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
-  <circle cx="60" cy="60" r="24" fill="#FFE789" stroke="#C58A00" stroke-width="5"/>
+  <title id="title">Energy glyph</title>
+  <path d="M53.5 19.8 Q60.0 11.0 66.5 19.8 Q73.0 28.6 83.8 27.0 Q94.6 25.4 93.0 36.2 Q91.4 47.0 100.2 53.5 Q109.0 60.0 100.2 66.5 Q91.4 73.0 93.0 83.8 Q94.6 94.6 83.8 93.0 Q73.0 91.4 66.5 100.2 Q60.0 109.0 53.5 100.2 Q47.0 91.4 36.2 93.0 Q25.4 94.6 27.0 83.8 Q28.6 73.0 19.8 66.5 Q11.0 60.0 19.8 53.5 Q28.6 47.0 27.0 36.2 Q25.4 25.4 36.2 27.0 Q47.0 28.6 53.5 19.8 Z" fill="#D68708"/>
+  <circle cx="60" cy="60" r="22" fill="#F8C630"/>
+  <path d="M49 52 A13 13 0 0 1 60 46" fill="none" stroke="#FFF6BD" stroke-width="4" stroke-linecap="round"/>
 </svg>

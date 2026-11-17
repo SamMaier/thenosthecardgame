@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
-  <title id="title">Boardgame glyph</title>
-  <path d="M60 16 C50 16 43 23 43 32 C43 35 44 38 46 40 L20 49 C15 51 15 59 21 61 L38 65 L26 93 C23 99 27 103 33 103 H48 C52 103 54 100 56 95 L60 84 L64 95 C66 100 68 103 72 103 H87 C93 103 97 99 94 93 L82 65 L99 61 C105 59 105 51 100 49 L74 40 C76 38 77 35 77 32 C77 23 70 16 60 16 Z" fill="#1B6984" fill-opacity="0.50"/>
-  <g fill="none" stroke="#2B221B" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M60 16 C50 16 43 23 43 32 C43 35 44 38 46 40 L20 49 C15 51 15 59 21 61 L38 65 L26 93 C23 99 27 103 33 103 H48 C52 103 54 100 56 95 L60 84 L64 95 C66 100 68 103 72 103 H87 C93 103 97 99 94 93 L82 65 L99 61 C105 59 105 51 100 49 L74 40 C76 38 77 35 77 32 C77 23 70 16 60 16 Z"/>
-    <path d="M51 31 A9 9 0 0 1 60 23"/>
-  </g>
-</svg>

@@ -161,7 +161,7 @@ ISTANBUL = CardDefinition(
     title="Istanbul",
     tags=frozenset({"Board Game"}),
     cost=3,
-    base_fun=1,
+    base_fun=0,
     behavior=IstanbulBehavior(),
 )
 QUACKS = CardDefinition(

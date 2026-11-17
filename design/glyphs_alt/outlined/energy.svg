@@ -1,5 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
-  <title id="title">Energy glyph</title>
-  <path d="M53.5 19.8 Q60.0 11.0 66.5 19.8 Q73.0 28.6 83.8 27.0 Q94.6 25.4 93.0 36.2 Q91.4 47.0 100.2 53.5 Q109.0 60.0 100.2 66.5 Q91.4 73.0 93.0 83.8 Q94.6 94.6 83.8 93.0 Q73.0 91.4 66.5 100.2 Q60.0 109.0 53.5 100.2 Q47.0 91.4 36.2 93.0 Q25.4 94.6 27.0 83.8 Q28.6 73.0 19.8 66.5 Q11.0 60.0 19.8 53.5 Q28.6 47.0 27.0 36.2 Q25.4 25.4 36.2 27.0 Q47.0 28.6 53.5 19.8 Z" fill="#F6BE31" stroke="#2B221B" stroke-width="5" stroke-linejoin="round"/>
-  <circle cx="60" cy="60" r="21" fill="#FFF099" stroke="#2B221B" stroke-width="4.5"/>
-</svg>

@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
-  <title id="title">Social glyph</title>
-  <circle cx="79" cy="38" r="13.5" fill="#DA9B38"/>
-  <path d="M68.9 59.7 A19.5 19 0 0 1 100 75 V90 A3 3 0 0 1 97 93 H74.5 V75 A30.5 26.5 0 0 0 68.9 59.7 Z" fill="#DA9B38"/>
-  <circle cx="44" cy="34" r="15.5" fill="#DA9B38"/>
-  <path d="M18 95 V75 A26 22 0 0 1 70 75 V95 A3 3 0 0 1 67 98 H21 A3 3 0 0 1 18 95 Z" fill="#DA9B38"/>
-  <path d="M37 59 L44 66 L51 59 M75.5 61 L81 66.5 L86.5 61" fill="none" stroke="#1A1A1A" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>

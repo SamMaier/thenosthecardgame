@@ -85,7 +85,7 @@ Optionally discard an (ITEM_card) for +(fun)(fun)(fun)(fun)(fun)
 (cubes)",Sponsored by SC Johnson
 EUCHRE,"BOARDGAME, INDOORS",2,"(fun)(fun)
 (SOCIAL_card)(after) score +(fun)","""Lose the lead as fast as you can"" - Gord "
-EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",3,"When playing (FOOD_card)(BOARDGAME_card)(after), pick (suitcase)","""But I say it is the Mount Everest of competition"" - Scott"
+EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",4,"When playing (FOOD_card)(BOARDGAME_card)(after), pick (suitcase)","""But I say it is the Mount Everest of competition"" - Scott"
 EUCHRE TOURNAMENT,"BOARDGAME, INDOORS",6,"(fun)(fun)(fun)(fun)(fun)
 Draw 4 (trunk)
 Discard 4 cards from your hand","""Some say it is the pinnacle of card playing"" - Scott"
@@ -121,8 +121,7 @@ ICE CREAM SANDWICH,FOOD,2,"(fun)
 If you have played a (before)(FOOD_card), (energy)(energy)(energy)",How did we go through a 20 pack by the second day?
 ICE WINE,FOOD,3,"(fun)
 (before)(FOOD_card) score +(fun)(fun)",Basically expensive juice
-ISTANBUL,BOARDGAME,3,"(fun)
-Discard any number of cards. (energy)(energy)(energy) for each card discarded",Gotta dump this load at the Large Market
+ISTANBUL,BOARDGAME,3,Discard any number of cards. (energy)(energy)(energy) for each card discarded,Gotta dump this load at the Large Market
 JOHNNY APPLESEED,SOCIAL,1,"(fun)
 Your next (FOOD_card) scores +(fun)(fun)",Amen Amen Amen
 KAYAK,"EXERCISE, OUTDOORS",2,"(fun)(fun)

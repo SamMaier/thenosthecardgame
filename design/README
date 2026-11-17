@@ -11,11 +11,11 @@ color.
 | Card Backing (Light) | `#ECE3CE` | `#2B221B` | — |
 | OUTDOORS | `#4A6B43` | `#FFFFFF` | `#A5B5A1` |
 | FOOD | `#C85A32` | `#FFFFFF` | `#E4AD99` |
-| RELAX | `#7A82A6` | `#FFFFFF` | `#BDC1D3` |
+| RELAX | `#7E52A0` | `#FFFFFF` | `#BFA9D0` |
 | SOCIAL | `#DA9B38` | `#1A1A1A` | `#EDCD9C` |
 | EXERCISE | `#B24A60` | `#FFFFFF` | `#D9A5B0` |
-| BOARD GAME | `#2C3E55` | `#FFFFFF` | `#969FAA` |
-| ITEM | `#6E777D` | `#FFFFFF` | `#B7BBBE` |
+| BOARD GAME | `#1B6984` | `#FFFFFF` | `#8DB4C2` |
+| ITEM | `#5C5852` | `#FFFFFF` | `#AEACA9` |
 | INDOORS | `#8C5338` | `#FFFFFF` | `#C6A99C` |
 | Card Backing (Dark) | `#3B312B` | `#F5EFE6` | — |
 

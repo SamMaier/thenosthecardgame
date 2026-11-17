@@ -1,5 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-labelledby="title">
-  <title id="title">Item cardboard box glyph</title>
-  <path fill="#6E777D" d="m20 41 40-20 40 20-40 20Z M20 41v42l40 20V61ZM100 41v42l-40 20V61Z"/>
-  <path d="M20 41 60 61l40-20M60 61v42M48 27l12 6 12-6" fill="none" stroke="#2B221B" stroke-linecap="round" stroke-linejoin="round" stroke-width="5"/>
+  <title id="title">Item glyph</title>
+  <path d="M22 40 L24.14 38.87 L60 57.75 L95.86 38.87 L98 40 V42.25 L62 61.2 V100.95 L60 102 L58 100.95 V61.2 L22 42.25 Z" fill="#FFFFFF"/>
+  <path d="M24.14 38.87 L37.3 31.95 L73.16 50.82 L60 57.75 Z" fill="#5C5852"/>
+  <path d="M44.7 28.05 L60 20 L95.86 38.87 L80.56 46.92 Z" fill="#5C5852"/>
+  <path d="M22 42.25 L58 61.2 V100.95 L22 82 Z" fill="#5C5852"/>
+  <path d="M62 61.2 L75.3 54.2 V67.9 L82.7 64 V50.3 L98 42.25 V82 L62 100.95 Z" fill="#5C5852"/>
+  <path d="M37.2 32 L44.8 28 L82.8 48 V64 L75.2 68 V52 Z" fill="#FFFFFF"/>
 </svg>
