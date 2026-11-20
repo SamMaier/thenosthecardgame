@@ -22,6 +22,12 @@ from thenos.ais.hydrogen import (
     HydrogenbrainAI,
 )
 from thenos.ais.interface import PlayerAI
+from thenos.ais.osmium import (
+    Osmium,
+    OsmiumAI,
+    OsmiumBrain,
+    OsmiumbrainAI,
+)
 from thenos.ais.planner import PlannerAI
 from thenos.ais.random_ai import RandomAI
 
@@ -42,6 +48,10 @@ __all__ = [
     "HydrogenAI",
     "HydrogenBrain",
     "HydrogenbrainAI",
+    "Osmium",
+    "OsmiumAI",
+    "OsmiumBrain",
+    "OsmiumbrainAI",
     "PlannerAI",
     "PlayerAI",
     "RandomAI",

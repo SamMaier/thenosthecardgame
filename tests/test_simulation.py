@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, Mock, call, patch
 
 from thenos.cards import CARD_REGISTRY
 from thenos.simulation import (
+    AIStatistics,
     CardStatistics,
     SimulationReport,
     _GameOutcome,
@@ -18,14 +19,20 @@ from thenos.simulation import (
     simulate_four_carbon,
     simulate_four_hydrogen,
     simulate_four_hydrogenbrain,
+    simulate_four_osmium,
+    simulate_four_osmiumbrain,
     simulate_galaxybrain_vs_planner,
     simulate_games,
     simulate_greedy_vs_random,
     simulate_hydrogen_vs_planner,
     simulate_hydrogenbrain_vs_planner,
+    simulate_osmium_vs_planner,
+    simulate_osmiumbrain_vs_planner,
     simulate_planner_vs_greedy,
     simulate_two_hydrogen_two_carbon,
     simulate_two_hydrogenbrain_two_carbonbrain,
+    simulate_two_osmium_two_hydrogen,
+    simulate_two_osmiumbrain_two_hydrogenbrain,
     write_report_csv,
 )
 
@@ -464,6 +471,330 @@ class SimulationTests(unittest.TestCase):
             metadata["competitors"], "Hydrogen,Planner,Planner,Planner"
         )
         self.assertTrue(metadata["rotate_seats"])
+
+    def test_osmium_matchup_and_cli_modes(self) -> None:
+        import io
+        import sys
+        from contextlib import redirect_stderr
+        from thenos.__main__ import main
+
+        self.assertIs(simulate_four_osmiumbrain, simulate_four_osmium)
+        self.assertIs(
+            simulate_two_osmiumbrain_two_hydrogenbrain,
+            simulate_two_osmium_two_hydrogen,
+        )
+        self.assertIs(simulate_osmiumbrain_vs_planner, simulate_osmium_vs_planner)
+
+        report = simulate_osmium_vs_planner(1, seed=108, workers=1)
+        self.assertEqual(report.ais["Osmium"].games, 1)
+        self.assertEqual(report.ais["Planner"].games, 3)
+
+        report_four = simulate_four_osmium(1, seed=109, workers=1)
+        self.assertEqual(report_four.ais["Osmium"].games, 4)
+        self.assertAlmostEqual(report_four.ais["Osmium"].win_credit, 1.0)
+
+        for flag in ("--four-osmium", "--two-osmium-two-hydrogen"):
+            with patch.object(sys, "argv", ["thenos", "4", flag]):
+                with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                    main()
+
+        fake_report = simulate_games(1, seed=110, workers=1)
+        for cli_flag, patch_target, exp_mode, exp_comp in (
+            (
+                "--four-osmiumbrain",
+                "thenos.__main__.simulate_four_osmium",
+                "four-osmium",
+                "Osmium,Osmium,Osmium,Osmium",
+            ),
+            (
+                "--2-osmium-2-hydrogen",
+                "thenos.__main__.simulate_two_osmium_two_hydrogen",
+                "two-osmium-two-hydrogen",
+                "Osmium,Hydrogen,Osmium,Hydrogen",
+            ),
+            (
+                "--osmiumbrain-vs-planner",
+                "thenos.__main__.simulate_osmium_vs_planner",
+                "osmium-vs-planner",
+                "Osmium,Planner,Planner,Planner",
+            ),
+        ):
+            with (
+                patch.object(
+                    sys,
+                    "argv",
+                    ["thenos", "4", cli_flag, "--output", "unused.csv"],
+                ),
+                patch(patch_target, return_value=fake_report) as run_mock,
+                patch("thenos.__main__._code_revision", return_value="test"),
+                patch(
+                    "thenos.__main__.write_report_csv",
+                    return_value=Path("unused.csv"),
+                ) as write_mock,
+                patch("builtins.print"),
+            ):
+                main()
+            run_mock.assert_called_once()
+            metadata = write_mock.call_args.kwargs["metadata"]
+            self.assertEqual(metadata["run_mode"], exp_mode)
+            self.assertEqual(metadata["competitors"], exp_comp)
+            self.assertTrue(metadata["rotate_seats"])
+
+    def test_no_arg_cli_defaults_to_four_osmium_10000_runs_32_workers_and_sequential_date_output(
+        self,
+    ) -> None:
+        from datetime import date
+        import sys
+        from thenos.__main__ import main
+
+        fake_report = simulate_games(1, seed=111, workers=1)
+        fake_report.ais["Osmium"] = AIStatistics(
+            games=4,
+            score_total=120,
+            win_credit=1.0,
+            outright_wins=1,
+        )
+
+        class _FixedDate(date):
+            current = date(2026, 11, 20)
+
+            @classmethod
+            def today(cls) -> date:
+                return cls.current
+
+        with TemporaryDirectory() as directory:
+            results_dir = Path(directory) / "results"
+            with (
+                patch.object(sys, "argv", ["thenos"]),
+                patch("thenos.__main__.DEFAULT_RESULTS_DIR", results_dir),
+                patch("thenos.__main__.date", _FixedDate),
+                patch(
+                    "thenos.__main__.simulate_four_osmium",
+                    return_value=fake_report,
+                ) as run_mock,
+                patch("thenos.__main__._code_revision", return_value="test"),
+                patch(
+                    "thenos.__main__.write_report_csv",
+                    side_effect=lambda _r, out, **_kw: Path(out),
+                ) as write_mock,
+                patch("builtins.print"),
+            ):
+                main()
+            run_mock.assert_called_once_with(
+                10000,
+                20261120,
+                workers=32,
+                daily_conditions=False,
+                characters=False,
+            )
+            self.assertEqual(
+                write_mock.call_args.args[1],
+                results_dir / "four-osmium-1-20261120.csv",
+            )
+            metadata = write_mock.call_args.kwargs["metadata"]
+            self.assertEqual(metadata["seed"], 20261120)
+            self.assertEqual(metadata["run_mode"], "four-osmium")
+            self.assertEqual(metadata["competitors"], "Osmium,Osmium,Osmium,Osmium")
+            self.assertEqual(metadata["workers"], 32)
+            self.assertTrue(metadata["rotate_seats"])
+
+            results_dir.mkdir(parents=True, exist_ok=True)
+            (results_dir / "four-osmium-1-20261120.csv").write_text("", encoding="utf-8")
+
+            # Second run on same date increments both run_number and seed.
+            with (
+                patch.object(sys, "argv", ["thenos"]),
+                patch("thenos.__main__.DEFAULT_RESULTS_DIR", results_dir),
+                patch("thenos.__main__.date", _FixedDate),
+                patch(
+                    "thenos.__main__.simulate_four_osmium",
+                    return_value=fake_report,
+                ) as run_mock,
+                patch("thenos.__main__._code_revision", return_value="test"),
+                patch(
+                    "thenos.__main__.write_report_csv",
+                    side_effect=lambda _r, out, **_kw: Path(out),
+                ) as write_mock,
+                patch("builtins.print"),
+            ):
+                main()
+            run_mock.assert_called_once_with(
+                10000,
+                20261121,
+                workers=32,
+                daily_conditions=False,
+                characters=False,
+            )
+            self.assertEqual(
+                write_mock.call_args.args[1],
+                results_dir / "four-osmium-2-20261121.csv",
+            )
+
+            (results_dir / "four-osmium-2-20261121.csv").write_text("", encoding="utf-8")
+            (results_dir / "four-osmium-10000-seed-20261122.csv").write_text(
+                "", encoding="utf-8"
+            )
+            _FixedDate.current = date(2026, 11, 21)
+
+            # Next day skips already-used seeds (20261121 and legacy 20261122)
+            # without letting legacy 10000-game filename inflate run_number.
+            with (
+                patch.object(sys, "argv", ["thenos"]),
+                patch("thenos.__main__.DEFAULT_RESULTS_DIR", results_dir),
+                patch("thenos.__main__.date", _FixedDate),
+                patch(
+                    "thenos.__main__.simulate_four_osmium",
+                    return_value=fake_report,
+                ) as run_mock,
+                patch("thenos.__main__._code_revision", return_value="test"),
+                patch(
+                    "thenos.__main__.write_report_csv",
+                    side_effect=lambda _r, out, **_kw: Path(out),
+                ) as write_mock,
+                patch("builtins.print"),
+            ):
+                main()
+            run_mock.assert_called_once_with(
+                10000,
+                20261123,
+                workers=32,
+                daily_conditions=False,
+                characters=False,
+            )
+            self.assertEqual(
+                write_mock.call_args.args[1],
+                results_dir / "four-osmium-3-20261123.csv",
+            )
+
+            # Sidecar files and four-osmium-seed-<seed>.csv are also respected via main([]).
+            (results_dir / "four-osmium-3-20261123.characters.csv").write_text(
+                "", encoding="utf-8"
+            )
+            (results_dir / "four-osmium-seed-20261124.csv").write_text(
+                "", encoding="utf-8"
+            )
+            with (
+                patch("thenos.__main__.DEFAULT_RESULTS_DIR", results_dir),
+                patch("thenos.__main__.date", _FixedDate),
+                patch(
+                    "thenos.__main__.simulate_four_osmium",
+                    return_value=fake_report,
+                ) as run_mock,
+                patch("thenos.__main__._code_revision", return_value="test"),
+                patch(
+                    "thenos.__main__.write_report_csv",
+                    side_effect=lambda _r, out, **_kw: Path(out),
+                ) as write_mock,
+                patch("builtins.print"),
+            ):
+                main([])
+            run_mock.assert_called_once_with(
+                10000,
+                20261125,
+                workers=32,
+                daily_conditions=False,
+                characters=False,
+            )
+            self.assertEqual(
+                write_mock.call_args.args[1],
+                results_dir / "four-osmium-4-20261125.csv",
+            )
+
+            file_instead_of_dir = Path(directory) / "not_a_dir"
+            file_instead_of_dir.write_text("x", encoding="utf-8")
+            with (
+                patch("thenos.__main__.DEFAULT_RESULTS_DIR", file_instead_of_dir),
+                self.assertRaises(NotADirectoryError),
+            ):
+                main([])
+
+    def test_cli_default_mode_with_args_and_four_random_flag(self) -> None:
+        import io
+        import sys
+        from contextlib import redirect_stderr
+        from thenos.__main__ import main
+
+        with patch.object(sys, "argv", ["thenos", "4"]):
+            with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                main()
+
+        fake_report = simulate_games(1, seed=112, workers=1)
+        with (
+            patch.object(sys, "argv", ["thenos", "4", "--output", "unused.csv"]),
+            patch(
+                "thenos.__main__.simulate_four_osmium",
+                return_value=fake_report,
+            ) as osmium_mock,
+            patch("thenos.__main__._code_revision", return_value="test"),
+            patch(
+                "thenos.__main__.write_report_csv",
+                return_value=Path("unused.csv"),
+            ) as write_mock,
+            patch("builtins.print"),
+        ):
+            main()
+        osmium_mock.assert_called_once_with(
+            4,
+            None,
+            workers=32,
+            daily_conditions=False,
+            characters=False,
+        )
+        self.assertEqual(write_mock.call_args.kwargs["metadata"]["run_mode"], "four-osmium")
+
+        printed_lines: list[str] = []
+        with (
+            patch(
+                "thenos.__main__.simulate_games",
+                return_value=fake_report,
+            ) as random_no_out_mock,
+            patch("thenos.__main__._code_revision", return_value="test"),
+            patch(
+                "builtins.print",
+                side_effect=lambda *vals, **_kw: printed_lines.append(
+                    " ".join(str(v) for v in vals)
+                ),
+            ),
+        ):
+            main(["4", "--four-random"])
+        random_no_out_mock.assert_called_once_with(
+            4,
+            None,
+            workers=32,
+            daily_conditions=False,
+            characters=False,
+        )
+        self.assertFalse(any(line.startswith("AI ") for line in printed_lines))
+
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["thenos", "4", "--four-random", "--output", "unused.csv"],
+            ),
+            patch(
+                "thenos.__main__.simulate_games",
+                return_value=fake_report,
+            ) as random_mock,
+            patch("thenos.__main__._code_revision", return_value="test"),
+            patch(
+                "thenos.__main__.write_report_csv",
+                return_value=Path("unused.csv"),
+            ) as write_mock,
+            patch("builtins.print"),
+        ):
+            main()
+        random_mock.assert_called_once_with(
+            4,
+            None,
+            workers=32,
+            daily_conditions=False,
+            characters=False,
+        )
+        metadata = write_mock.call_args.kwargs["metadata"]
+        self.assertEqual(metadata["run_mode"], "four-random")
+        self.assertEqual(metadata["competitors"], "Random,Random,Random,Random")
+        self.assertFalse(metadata["rotate_seats"])
 
     def test_worker_count_must_be_positive(self) -> None:
         with self.assertRaisesRegex(ValueError, "workers must be positive"):

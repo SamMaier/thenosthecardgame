@@ -2,7 +2,7 @@
 
 This repository is a headless Python simulator for four AI players. The rules
 engine and card catalog primarily support reproducible card-strength studies.
-Current work should prioritize trustworthy card metrics, long four-Carbon
+Current work should prioritize trustworthy card metrics, long four-Osmium
 batches, reproducible seeds, and clear reporting over adding more policies.
 
 `cards.csv` is the source of truth for card wording, `characters.tsv` is the
@@ -15,9 +15,10 @@ for general rules.
   rotation, card statistics, and `SimulationReport.rows()`.
 - `thenos/game.py` and `thenos/models.py`: rules and the low-level statistics
   hooks for free choices, acquisitions, plays, scores, and wins.
-- `thenos/ais/carbon.py`: the preferred policy for meaningful card-data
+- `thenos/ais/osmium.py`: the preferred policy for meaningful card-data
   runs.
-- `thenos/ais/beryllium.py`, `thenos/ais/argonbrain.py`,
+- `thenos/ais/hydrogen.py`, `thenos/ais/carbon.py`,
+  `thenos/ais/beryllium.py`, `thenos/ais/argonbrain.py`,
   `thenos/ais/galaxybrain.py`, `thenos/ais/megamind.py`, and
   `thenos/ais/genius.py`: older policies retained for comparative simulations.
 - `thenos/ais/random_ai.py`: a plumbing baseline, not a card-ranking policy.
@@ -82,22 +83,30 @@ select cards that fit already-good hands, cards can be acquired together, and
 rare-card estimates can be noisy. Preserve both with-card and without-card
 sample counts and do not rank cards from tiny denominators.
 
-## Standard four-Carbon card-data run
+## Standard four-Osmium card-data run
 
-Use four copies of `CarbonAI` (`CarbonBrain`) for card-strength data.
-The default `python -m thenos` command uses four Random AIs; it is useful for
-fast plumbing checks, but its free pick rates should converge toward 25% and are
-not strategic rankings.
+Use four copies of `OsmiumAI` (`OsmiumBrain`) for card-strength data.
+Four-Osmium is the default CLI mode. Pass `--four-random` for fast four-Random
+plumbing checks, whose free pick rates should converge toward 25% and are not
+strategic rankings; the `simulate_games` Python API still defaults to four
+Random AIs when `competitors` is omitted.
 
 For an actual card-data run, use the module CLI below. Do not create an
 ad-hoc runner or inline `Game.run()` loop: custom formatters are easy to get
-wrong and can lose a long run's results after simulation completes. The
-`--output` option is required for four-Carbon runs and atomically writes
-the complete CSV before the human-readable table is printed.
+wrong and can lose a long run's results after simulation completes. With no
+arguments, `python -m thenos` runs 10,000 four-Osmium games across 32 worker
+processes using a `YYYYMMDD` date-based seed (incremented if already used) and
+atomically writes `results/four-osmium-<run_number>-<seed_used>.csv` before the
+human-readable table is printed:
 
 ```powershell
-wsl.exe python3 -m thenos 10000 --seed 20260901 --workers 16 \
-  --four-carbon --output carbon_10000_seed_20260901.csv
+wsl.exe python3 -m thenos
+```
+
+When CLI arguments are supplied for a four-Osmium run, `--output` is required:
+
+```powershell
+wsl.exe python3 -m thenos 10000 --seed 20260901 --workers 32 --four-osmium --output results/four-osmium-10000-seed-20260901.csv
 ```
 
 The CSV includes run metadata, every registered card, all three primary
@@ -110,7 +119,7 @@ keys returned by `SimulationReport.rows()` (not invented aliases such as
 The equivalent competition-runner API is:
 
 ```python
-from thenos.ais import CarbonAI
+from thenos.ais import OsmiumAI
 from thenos.simulation import (
     Competitor,
     simulate_games,
@@ -121,13 +130,13 @@ report = simulate_games(
     32,
     seed=20260816,
     competitors=tuple(
-        Competitor("Carbon", CarbonAI) for _ in range(4)
+        Competitor("Osmium", OsmiumAI) for _ in range(4)
     ),
     rotate_seats=True,
-    workers=16,
+    workers=32,
 )
 
-write_report_csv(report, "carbon_report.csv")
+write_report_csv(report, "osmium_report.csv")
 print("Card | Free pick rate | Win rate | Fun added")
 for row in report.rows():
     print(
@@ -136,16 +145,17 @@ for row in report.rows():
     )
 ```
 
-`python -m thenos --four-carbon` delegates to
-`simulate_four_carbon`, which supplies the four named Carbon
+`python -m thenos` (and `--four-osmium`) delegates to
+`simulate_four_osmium`, which supplies the four named Osmium
 competitors and seat rotation. `workers` uses independent processes through
-`ProcessPoolExecutor`, not threads. Carbon is stronger than Beryllium,
-Argonbrain, Galaxybrain, Megamind, and Genius, and a many-hundred-game run can
-take significant time, so leave an ample command timeout.
+`ProcessPoolExecutor`, not threads. Osmium is stronger than Hydrogen, Carbon,
+Beryllium, Argonbrain, Galaxybrain, Megamind, and Genius, and a
+many-hundred-game run can take significant time, so leave an ample command
+timeout.
 
 ### Batch sizes and seeds
 
-- Use 8 games for a quick four-Carbon wiring smoke test.
+- Use 8 games for a quick four-Osmium wiring smoke test.
 - Use 32 games only as a preliminary metric check; do not call it stable.
 - Use many hundreds of games for a serious card ranking.
 - Keep game counts divisible by four and enable seat rotation.
@@ -164,8 +174,8 @@ primary metrics. For analysis, also retain these denominators and diagnostics:
 - total acquisitions and plays;
 - average final score and fractional win rate for each named policy.
 
-Repeated competitor names are aggregated. With four Carbon entries, the
-`Carbon` result contains four player appearances per game and should have
+Repeated competitor names are aggregated. With four Osmium entries, the
+`Osmium` result contains four player appearances per game and should have
 about a 25% per-appearance win rate. Tied winners must split one win rather
 than each receiving a full win.
 
@@ -207,13 +217,13 @@ persistent WSL Python so results are reproducible across Codex chats:
 
 ```powershell
 wsl.exe python3 -m unittest discover -v
-wsl.exe python3 -m thenos 32 --seed 20260815 --workers 16
-wsl.exe python3 -c "from thenos.ais import CarbonAI; from thenos.simulation import Competitor, simulate_games; r=simulate_games(8, seed=20260816, competitors=tuple(Competitor('Carbon', CarbonAI) for _ in range(4)), rotate_seats=True, workers=16); print(len(r.cards), r.ais['Carbon'])"
+wsl.exe python3 -m thenos 32 --seed 20260815 --four-random --workers 16
+wsl.exe python3 -c "from thenos.ais import OsmiumAI; from thenos.simulation import Competitor, simulate_games; r=simulate_games(8, seed=20260816, competitors=tuple(Competitor('Osmium', OsmiumAI) for _ in range(4)), rotate_seats=True, workers=32); print(len(r.cards), r.ais['Osmium'])"
 ```
 
 Do not use Python 3.8; the engine relies on Python 3.11 features such as slotted
 dataclasses. For statistics changes, complete the full tests, a seeded Random
-plumbing batch, and a seeded four-Carbon smoke batch before considering the
+plumbing batch, and a seeded four-Osmium smoke batch before considering the
 work finished.
 
 ## Policy and engine constraints

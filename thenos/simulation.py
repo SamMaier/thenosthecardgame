@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import gc
 import os
 import random
 from collections import Counter
@@ -19,6 +20,7 @@ from thenos.ais import (
     GalaxybrainAI,
     GreedyAI,
     HydrogenAI,
+    OsmiumAI,
     PlannerAI,
     PlayerAI,
     RandomAI,
@@ -324,8 +326,16 @@ class _GameOutcome:
     condition_fun: Counter[str] = field(default_factory=Counter)
 
 
+_WORKER_GAMES_RUN = 0
+
+
 def _run_game(job: _GameJob) -> _GameOutcome:
     """Run one self-contained game; safe to call in a worker process."""
+    global _WORKER_GAMES_RUN
+    from thenos.ais.hydrogen import _HYDROGEN_ISTANBUL_CACHE
+
+    if _HYDROGEN_ISTANBUL_CACHE:
+        _HYDROGEN_ISTANBUL_CACHE.clear()
     game_rng = random.Random(job.seed)
     ais = [
         competitor.factory(random.Random(game_rng.getrandbits(64)))
@@ -338,8 +348,15 @@ def _run_game(job: _GameJob) -> _GameOutcome:
         daily_conditions=job.daily_conditions,
         characters=job.characters,
     )
-    result = game.run()
-    return _GameOutcome(
+    was_gc = gc.isenabled()
+    if was_gc:
+        gc.disable()
+    try:
+        result = game.run()
+    finally:
+        if was_gc:
+            gc.enable()
+    outcome = _GameOutcome(
         condition_days=game.stats.condition_days,
         condition_fun=game.stats.condition_fun,
         free_pick_offers=game.stats.free_pick_offers,
@@ -373,6 +390,14 @@ def _run_game(job: _GameJob) -> _GameOutcome:
             )
         ),
     )
+    del game, ais, result
+    _WORKER_GAMES_RUN += 1
+    if (_WORKER_GAMES_RUN & 63) == 0:
+        if (_WORKER_GAMES_RUN & 511) == 0:
+            gc.collect()
+        else:
+            gc.collect(1)
+    return outcome
 
 
 def _merge_outcome(report: SimulationReport, outcome: _GameOutcome) -> None:
@@ -514,6 +539,24 @@ def simulate_games(
             if completed_games % progress_interval == 0:
                 print(f"Run {completed_games} complete", flush=True)
     else:
+        if any(
+            isinstance(c.factory, type) and issubclass(c.factory, OsmiumAI)
+            for c in competitors
+        ):
+            from thenos.ais.osmium import _ensure_osmium_caches
+
+            _ensure_osmium_caches()
+        elif any(
+            isinstance(c.factory, type) and issubclass(c.factory, HydrogenAI)
+            for c in competitors
+        ):
+            from thenos.ais.hydrogen import (
+                _ensure_hydrogen_caches,
+                _get_hydrogen_sim_game_cls,
+            )
+
+            _ensure_hydrogen_caches()
+            _get_hydrogen_sim_game_cls()
         with ProcessPoolExecutor(max_workers=workers) as executor:
             future_indices = {
                 executor.submit(_run_game, job): index
@@ -572,7 +615,7 @@ def simulate_four_carbon(
     daily_conditions: bool = False,
     characters: bool = False,
 ) -> SimulationReport:
-    """Run the standard seat-rotated four-Carbon card-data batch."""
+    """Run a seat-rotated four-Carbon card-data batch."""
     return simulate_games(
         games,
         seed,
@@ -642,6 +685,60 @@ def simulate_two_hydrogen_two_carbon(
 
 
 simulate_two_hydrogenbrain_two_carbonbrain = simulate_two_hydrogen_two_carbon
+
+
+def simulate_four_osmium(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 32,
+    daily_conditions: bool = False,
+    characters: bool = False,
+) -> SimulationReport:
+    """Run the standard seat-rotated four-Osmium card-data batch."""
+    return simulate_games(
+        games,
+        seed,
+        tuple(
+            Competitor("Osmium", OsmiumAI)
+            for _ in range(PLAYER_COUNT)
+        ),
+        rotate_seats=True,
+        workers=workers,
+        daily_conditions=daily_conditions,
+        characters=characters,
+    )
+
+
+simulate_four_osmiumbrain = simulate_four_osmium
+
+
+def simulate_two_osmium_two_hydrogen(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 16,
+    daily_conditions: bool = False,
+    characters: bool = False,
+) -> SimulationReport:
+    """Run a seat-rotated two-Osmium, two-Hydrogen card-data batch."""
+    return simulate_games(
+        games,
+        seed,
+        (
+            Competitor("Osmium", OsmiumAI),
+            Competitor("Hydrogen", HydrogenAI),
+            Competitor("Osmium", OsmiumAI),
+            Competitor("Hydrogen", HydrogenAI),
+        ),
+        rotate_seats=True,
+        workers=workers,
+        daily_conditions=daily_conditions,
+        characters=characters,
+    )
+
+
+simulate_two_osmiumbrain_two_hydrogenbrain = simulate_two_osmium_two_hydrogen
 
 
 def simulate_four_beryllium(
@@ -795,6 +892,34 @@ def simulate_hydrogen_vs_planner(
 
 
 simulate_hydrogenbrain_vs_planner = simulate_hydrogen_vs_planner
+
+
+def simulate_osmium_vs_planner(
+    games: int,
+    seed: int | None = None,
+    *,
+    workers: int = 16,
+    daily_conditions: bool = False,
+    characters: bool = False,
+) -> SimulationReport:
+    """Run a seat-balanced match of one Osmium against three Planners."""
+    return simulate_games(
+        games,
+        seed,
+        (
+            Competitor("Osmium", OsmiumAI),
+            Competitor("Planner", PlannerAI),
+            Competitor("Planner", PlannerAI),
+            Competitor("Planner", PlannerAI),
+        ),
+        rotate_seats=True,
+        workers=workers,
+        daily_conditions=daily_conditions,
+        characters=characters,
+    )
+
+
+simulate_osmiumbrain_vs_planner = simulate_osmium_vs_planner
 
 
 def simulate_beryllium_vs_planner(

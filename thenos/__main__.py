@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
+from datetime import date
+import re
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -18,12 +22,15 @@ from thenos.simulation import (
     simulate_four_carbon,
     simulate_four_galaxybrain,
     simulate_four_hydrogen,
+    simulate_four_osmium,
     simulate_galaxybrain_vs_planner,
     simulate_games,
     simulate_greedy_vs_random,
     simulate_hydrogen_vs_planner,
+    simulate_osmium_vs_planner,
     simulate_planner_vs_greedy,
     simulate_two_hydrogen_two_carbon,
+    simulate_two_osmium_two_hydrogen,
     write_report_csv,
 )
 
@@ -52,15 +59,71 @@ def _code_revision() -> str:
     return f"{revision}+dirty" if dirty else revision
 
 
-def main() -> None:
+DEFAULT_RESULTS_DIR = Path("results")
+_FOUR_OSMIUM_RUN_RE = re.compile(
+    r"^four-osmium-(\d+)-(-?\d+)(?:\.(?:daily_conditions|characters))?\.csv$"
+)
+_FOUR_OSMIUM_LEGACY_SEED_RE = re.compile(
+    r"^four-osmium-(?:.*-)?seed-(-?\d+)(?:\.(?:daily_conditions|characters))?\.csv$"
+)
+
+
+def _next_default_osmium_run(
+    results_dir: Path | None = None,
+    today: date | None = None,
+) -> tuple[int, Path]:
+    directory = DEFAULT_RESULTS_DIR if results_dir is None else results_dir
+    if directory.exists() and not directory.is_dir():
+        raise NotADirectoryError(
+            f"output directory is not a directory: {directory}"
+        )
+    current_date = date.today() if today is None else today
+    base_seed = int(current_date.strftime("%Y%m%d"))
+
+    max_run_number = 0
+    used_seeds: set[int] = set()
+    if directory.is_dir():
+        for entry in directory.iterdir():
+            if not entry.is_file():
+                continue
+            match = _FOUR_OSMIUM_RUN_RE.match(entry.name)
+            if match is not None:
+                max_run_number = max(max_run_number, int(match.group(1)))
+                used_seeds.add(int(match.group(2)))
+                continue
+            legacy_match = _FOUR_OSMIUM_LEGACY_SEED_RE.match(entry.name)
+            if legacy_match is not None:
+                used_seeds.add(int(legacy_match.group(1)))
+
+    run_number = max_run_number + 1
+    seed = base_seed
+    while (
+        seed in used_seeds
+        or (directory / f"four-osmium-{run_number}-{seed}.csv").exists()
+    ):
+        seed += 1
+    return seed, directory / f"four-osmium-{run_number}-{seed}.csv"
+
+
+def main(argv: Sequence[str] | None = None) -> None:
+    raw_args = list(sys.argv[1:] if argv is None else argv)
+    no_args = len(raw_args) == 0
+
     parser = argparse.ArgumentParser(description="Simulate games of The Nos")
-    parser.add_argument("games", type=int, nargs="?", default=1000)
+    parser.add_argument("games", type=int, nargs="?", default=10000)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument(
         "--workers",
         type=int,
-        default=16,
-        help="worker processes to use (default: 16)",
+        default=32,
+        help="worker processes to use (default: 32)",
+    )
+    parser.add_argument(
+        "--four-random",
+        "--4-random",
+        dest="four_random",
+        action="store_true",
+        help="run an unrotated four-Random plumbing batch",
     )
     parser.add_argument(
         "--greedy-vs-random",
@@ -84,7 +147,7 @@ def main() -> None:
         "--four-carbonbrain",
         dest="four_carbon",
         action="store_true",
-        help="run the standard seat-rotated four-Carbon card-data batch",
+        help="run a seat-rotated four-Carbon card-data batch",
     )
     parser.add_argument(
         "--hydrogen-vs-planner",
@@ -108,6 +171,29 @@ def main() -> None:
         dest="two_hydrogen_two_carbon",
         action="store_true",
         help="run a seat-rotated two-Hydrogen, two-Carbon card-data batch",
+    )
+    parser.add_argument(
+        "--osmium-vs-planner",
+        "--osmiumbrain-vs-planner",
+        dest="osmium_vs_planner",
+        action="store_true",
+        help="seat-balance one Osmium AI against three Planner AIs",
+    )
+    parser.add_argument(
+        "--four-osmium",
+        "--four-osmiumbrain",
+        "--4-osmium",
+        dest="four_osmium",
+        action="store_true",
+        help="run the standard seat-rotated four-Osmium card-data batch (default)",
+    )
+    parser.add_argument(
+        "--two-osmium-two-hydrogen",
+        "--two-osmiumbrain-two-hydrogenbrain",
+        "--2-osmium-2-hydrogen",
+        dest="two_osmium_two_hydrogen",
+        action="store_true",
+        help="run a seat-rotated two-Osmium, two-Hydrogen card-data batch",
     )
     parser.add_argument(
         "--beryllium-vs-planner",
@@ -155,10 +241,11 @@ def main() -> None:
         action="store_true",
         help="randomly assign each player a persistent character bonus",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(raw_args)
 
     matchup_modes = sum(
         (
+            args.four_random,
             args.greedy_vs_random,
             args.planner_vs_greedy,
             args.carbon_vs_planner,
@@ -166,6 +253,9 @@ def main() -> None:
             args.hydrogen_vs_planner,
             args.four_hydrogen,
             args.two_hydrogen_two_carbon,
+            args.osmium_vs_planner,
+            args.four_osmium,
+            args.two_osmium_two_hydrogen,
             args.beryllium_vs_planner,
             args.four_beryllium,
             args.argonbrain_vs_planner,
@@ -176,6 +266,10 @@ def main() -> None:
     )
     if matchup_modes > 1:
         parser.error("choose only one matchup mode")
+    if matchup_modes == 0:
+        args.four_osmium = True
+    if no_args:
+        args.seed, args.output = _next_default_osmium_run()
     if args.four_carbon and args.output is None:
         parser.error(
             "--four-carbon requires --output so card stats are preserved"
@@ -187,6 +281,14 @@ def main() -> None:
     if args.two_hydrogen_two_carbon and args.output is None:
         parser.error(
             "--two-hydrogen-two-carbon requires --output so card stats are preserved"
+        )
+    if args.four_osmium and args.output is None:
+        parser.error(
+            "--four-osmium requires --output so card stats are preserved"
+        )
+    if args.two_osmium_two_hydrogen and args.output is None:
+        parser.error(
+            "--two-osmium-two-hydrogen requires --output so card stats are preserved"
         )
     if args.four_beryllium and args.output is None:
         parser.error(
@@ -257,6 +359,39 @@ def main() -> None:
         )
         run_mode = "hydrogen-vs-planner"
         competitors = "Hydrogen,Planner,Planner,Planner"
+        rotate_seats = True
+    elif args.four_osmium:
+        report = simulate_four_osmium(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
+        run_mode = "four-osmium"
+        competitors = "Osmium,Osmium,Osmium,Osmium"
+        rotate_seats = True
+    elif args.two_osmium_two_hydrogen:
+        report = simulate_two_osmium_two_hydrogen(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
+        run_mode = "two-osmium-two-hydrogen"
+        competitors = "Osmium,Hydrogen,Osmium,Hydrogen"
+        rotate_seats = True
+    elif args.osmium_vs_planner:
+        report = simulate_osmium_vs_planner(
+            args.games,
+            args.seed,
+            workers=args.workers,
+            daily_conditions=args.daily_conditions,
+            characters=args.characters,
+        )
+        run_mode = "osmium-vs-planner"
+        competitors = "Osmium,Planner,Planner,Planner"
         rotate_seats = True
     elif args.four_beryllium:
         report = simulate_four_beryllium(
@@ -384,7 +519,7 @@ def main() -> None:
     print(f"Games: {report.games}")
     print(f"Daily conditions: {args.daily_conditions}")
     print(f"Characters: {args.characters}")
-    if matchup_modes:
+    if run_mode != "four-random":
         print("AI          Games  Avg score  Win rate")
         for name, stats in report.ais.items():
             print(

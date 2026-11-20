@@ -167,7 +167,14 @@ class DailyConditionTests(unittest.TestCase):
     def test_cli_flag_reaches_every_mode_and_defaults_off(self):
         from thenos.__main__ import main
         import sys
-        modes = {"": "simulate_games", "--four-carbon": "simulate_four_carbon",
+        modes = {"": "simulate_four_osmium", "--four-random": "simulate_games",
+                 "--four-osmium": "simulate_four_osmium",
+                 "--osmium-vs-planner": "simulate_osmium_vs_planner",
+                 "--two-osmium-two-hydrogen": "simulate_two_osmium_two_hydrogen",
+                 "--four-hydrogen": "simulate_four_hydrogen",
+                 "--hydrogen-vs-planner": "simulate_hydrogen_vs_planner",
+                 "--two-hydrogen-two-carbon": "simulate_two_hydrogen_two_carbon",
+                 "--four-carbon": "simulate_four_carbon",
                  "--carbon-vs-planner": "simulate_carbon_vs_planner",
                  "--four-beryllium": "simulate_four_beryllium",
                  "--beryllium-vs-planner": "simulate_beryllium_vs_planner",

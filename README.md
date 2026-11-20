@@ -9,27 +9,34 @@ Run the tests:
 python -m unittest discover -v
 ```
 
-Run a reproducible batch simulation:
+Run the default 10,000-game four-Osmium card evaluation (32 workers,
+date-based seed, written to `results/four-osmium-<run_number>-<seed_used>.csv`):
 
 ```console
-python -m thenos 1000 --seed 1 --output results/random-1000-seed-1.csv
+python -m thenos
 ```
 
-Run the standard four-Carbon card-data simulation. Four-Carbon mode
-requires an output path so a long run cannot finish without persisting its
-report:
+Or specify game count, seed, and output path explicitly (four-Osmium is the
+default CLI mode and requires `--output` when arguments are supplied so a long
+run cannot finish without persisting its report):
 
 ```console
-python -m thenos 4096 --seed 20260817 --four-carbon --workers 16 --output results/four-carbon-4096-seed-20260817.csv
+python -m thenos 4096 --seed 20260817 --workers 32 --output results/four-osmium-4096-seed-20260817.csv
+```
+
+Run a reproducible four-Random plumbing simulation:
+
+```console
+python -m thenos 1000 --seed 1 --four-random --output results/random-1000-seed-1.csv
 ```
 
 Run the standard seat-balanced AI benchmark:
 
 ```console
-python -m thenos 1000 --seed 1 --greedy-vs-random --workers 16
+python -m thenos 1000 --seed 1 --greedy-vs-random --workers 32
 ```
 
-`CarbonAI` (`CarbonBrain`) is the preferred competitive built-in
+`OsmiumAI` (`OsmiumBrain`) is the preferred competitive built-in
 policy and is available from `thenos.ais`. To compare `GalaxybrainAI` with
 deprecated Megamind, run the fixed speed and two-versus-two acceptance
 benchmark with:
@@ -39,7 +46,7 @@ python -m scripts.benchmark_galaxybrain --workers 16
 ```
 
 Games are distributed across worker processes so CPU-bound AI lookahead can use
-all sixteen cores. Seeded output is identical for one or multiple workers.
+all available cores. Seeded output is identical for one or multiple workers.
 
 The older `MegamindAI` and `GeniusAI` policies are deprecated and are not used
 by standard simulation modes. They remain available for explicit comparisons
@@ -60,7 +67,7 @@ Daily Conditions are disabled by default. Add `--daily-conditions` to any
 simulation mode to enable them, for example:
 
 ```powershell
-wsl.exe python3 -m thenos 8 --seed 20260904 --workers 16 --four-carbon --daily-conditions --output results/daily-conditions-smoke.csv
+wsl.exe python3 -m thenos 8 --seed 20260904 --workers 32 --four-osmium --daily-conditions --output results/daily-conditions-smoke.csv
 ```
 
 The separate eight-card deck is shuffled once per game. One condition is revealed
@@ -102,7 +109,7 @@ Characters are disabled by default. Add `--characters` to any simulation mode
 to assign four distinct characters at random before each game, for example:
 
 ```powershell
-wsl.exe python3 -m thenos 8 --seed 20260908 --workers 16 --four-carbon --characters --output results/characters-smoke.csv
+wsl.exe python3 -m thenos 8 --seed 20260908 --workers 32 --four-osmium --characters --output results/characters-smoke.csv
 ```
 
 Each character is public and remains with its player for all six days. Foodie,

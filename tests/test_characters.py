@@ -225,7 +225,14 @@ class CharacterTests(unittest.TestCase):
         import sys
 
         modes = {
-            "": "simulate_games",
+            "": "simulate_four_osmium",
+            "--four-random": "simulate_games",
+            "--four-osmium": "simulate_four_osmium",
+            "--osmium-vs-planner": "simulate_osmium_vs_planner",
+            "--two-osmium-two-hydrogen": "simulate_two_osmium_two_hydrogen",
+            "--four-hydrogen": "simulate_four_hydrogen",
+            "--hydrogen-vs-planner": "simulate_hydrogen_vs_planner",
+            "--two-hydrogen-two-carbon": "simulate_two_hydrogen_two_carbon",
             "--four-carbon": "simulate_four_carbon",
             "--carbon-vs-planner": "simulate_carbon_vs_planner",
             "--four-beryllium": "simulate_four_beryllium",
