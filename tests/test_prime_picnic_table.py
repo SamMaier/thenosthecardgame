@@ -18,7 +18,7 @@ class PrimePicnicTableTests(unittest.TestCase):
         self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.tags, frozenset({"Item", "Outdoors"}))
         self.assertEqual(player.energy, 3)
-        self.assertEqual(game.card_fun(0, outdoors), 2)
+        self.assertEqual(game.card_fun(0, outdoors), 3)
 
 
 if __name__ == "__main__":

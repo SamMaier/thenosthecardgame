@@ -98,6 +98,24 @@ class PaddleboatTests(unittest.TestCase):
         self.assertNotIn("energy_cubes", paddleboat.markers)
         self.assertEqual(game.card_fun(0, paddleboat), 0)
 
+    def test_bougie_coffee_machine_drawn_food_and_non_food_both_count(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 10
+        paddleboat = make_card("paddleboat")
+        player.hand.extend([paddleboat, make_card("bougie-coffee-machine")])
+        game.trunk = [
+            make_card("fajitas"),
+            make_card("biography"),
+            make_card("cheap-white"),
+        ]
+
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+
+        self.assertEqual(paddleboat.markers["energy_cubes"], 3)
+        self.assertEqual(game.card_fun(0, paddleboat), 6)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -79,7 +79,7 @@ class BohnanzaBehavior(CardBehavior):
 
 
 class IstanbulBehavior(CardBehavior):
-    """Discard any number of hand cards and gain three Energy per discard."""
+    """Discard any number of hand cards and gain two Energy per discard."""
 
     def on_play(self, game: Game, player: PlayerState, card: CardInstance) -> None:
         player_index = game.players.index(player)
@@ -94,7 +94,7 @@ class IstanbulBehavior(CardBehavior):
             else ()
         )
         discarded = game.discard_cards_from_hand(player_index, choices)
-        game.gain_energy(player, 3 * len(discarded), card)
+        game.gain_energy(player, 2 * len(discarded), card)
 
 
 class QuacksBehavior(CardBehavior):
@@ -161,7 +161,7 @@ ISTANBUL = CardDefinition(
     title="Istanbul",
     tags=frozenset({"Board Game"}),
     cost=3,
-    base_fun=0,
+    base_fun=1,
     behavior=IstanbulBehavior(),
 )
 QUACKS = CardDefinition(

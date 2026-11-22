@@ -153,24 +153,29 @@ SlalomStartBehavior = DropASkiBehavior
 class SkiOnCousinsShouldersBehavior(CardBehavior):
     """Score a bonus when this player's total is below at least half of opponents."""
 
+    def on_play(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        opponents = [opponent for opponent in game.players if opponent is not player]
+        opponents_with_higher_scores = sum(
+            player.fun < opponent.fun for opponent in opponents
+        )
+        if opponents_with_higher_scores * 2 >= len(opponents):
+            card.markers["energy_cube"] = True
+            card.markers["_ski_on_shoulders_energy_cube"] = True
+
     def fun_value(
         self,
         game: Game,
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        player_fun = game.fun_at_start_of_scoring(player)
-        opponents_with_higher_scores = sum(
-            player_fun < game.fun_at_start_of_scoring(opponent)
-            for opponent in game.players
-            if opponent is not player
+        return card.effective_base_fun + (
+            5 if card.markers.get("_ski_on_shoulders_energy_cube") else 0
         )
-        bonus = (
-            5
-            if opponents_with_higher_scores * 2 >= len(game.players) - 1
-            else 0
-        )
-        return card.effective_base_fun + bonus
 
 
 class ThrowABaseballBehavior(CardBehavior):
@@ -198,8 +203,9 @@ class ChuckAFrisbeeBehavior(CardBehavior):
         # A copier that became Chuck must revert to its printed card before it
         # can be played again from hand. Ordinary discard cleanup does this for
         # copied cards, but Chuck bypasses the discard pile.
+        card.is_tomorrow = False
         card.markers.clear()
-        game.give_card(game.players.index(player), card)
+        player.hand.append(card)
 
 
 class PaddleboatBehavior(CardBehavior):

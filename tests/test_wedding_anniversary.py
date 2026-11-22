@@ -174,6 +174,58 @@ class WeddingAnniversaryTests(unittest.TestCase):
         self.assertEqual(player.energy, 12)
         self.assertTrue(food.markers["energy_cube"])
 
+    def test_copying_resolved_leftovers_runs_leftovers_instead_of_nested_target(self) -> None:
+        game = empty_game()
+        game.ais[0] = TargetCopyAI("Leftovers", game.rng)
+        game.ais[1] = TargetCopyAI("Charcuterie", game.rng)
+        p0 = game.players[0]
+        p1 = game.players[1]
+        p0.energy = 10
+        p1.energy = 10
+
+        opp_food = make_card("charcuterie")
+        opp_leftovers = make_card("leftovers")
+        p1.hand.extend([opp_food, opp_leftovers])
+        game.play_card(1, 0)
+        game.play_card(1, 0)
+
+        # Player 0 has Cheap White earlier; copying Opponent's resolved Leftovers
+        # executes LeftoversBehavior (picking Player 0's Cheap White) rather than
+        # copying Opponent's Charcuterie directly.
+        own_food = make_card("cheap-white")
+        p0.played_today.append(own_food)
+        p0.hand.append(make_card("wedding-anniversary"))
+
+        wedding = game.play_card(0, 0)
+
+        self.assertIs(wedding.effective_behavior, own_food.definition.behavior)
+        self.assertEqual(wedding.effective_cost, 2)
+        self.assertEqual(p0.energy, 8)
+        self.assertEqual(game.card_fun(0, wedding), 3)
+        self.assertTrue(own_food.markers["energy_cube"])
+
+    def test_contextual_copy_value_values_resolved_copier_as_printed_card(self) -> None:
+        from thenos.ais.beryllium import _contextual_copy_value
+
+        game = empty_game()
+        p0 = game.players[0]
+        p1 = game.players[1]
+        p0.energy = 15
+        p1.energy = 15
+        adv = make_card("adventure-race")
+        game.players[2].played_today.append(adv)
+        p1.hand.append(make_card("wedding-anniversary"))
+        opp_wedding = game.play_card(1, 0)
+        # Ensure opponent's Wedding Anniversary actually copied Adventure Race
+        self.assertEqual(opp_wedding.effective_base_fun, 18)
+
+        own_wedding = make_card("wedding-anniversary")
+        p0.hand.append(own_wedding)
+
+        # Valued by printed Wedding Anniversary (0 Fun, no-op), NOT 18-Fun Adventure Race
+        val = _contextual_copy_value(game, 0, opp_wedding, own_wedding, pay_cost=True)
+        self.assertEqual(val, 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()

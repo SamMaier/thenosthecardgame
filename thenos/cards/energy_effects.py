@@ -8,6 +8,7 @@ from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.cards.fun_effects import (
     _is_after_for_cost,
     _is_next_card,
+    _is_next_matching,
     _today_position,
 )
 
@@ -106,6 +107,23 @@ class SetEnergyForNextTagBehavior(CardBehavior):
         self.energy_cost = energy_cost
 
     def modify_energy_cost(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_cost: int,
+    ) -> int:
+        if _is_next_matching_for_cost(
+            player,
+            source,
+            target,
+            lambda card: self.tag in card.tags,
+        ):
+            return self.energy_cost
+        return current_cost
+
+    def finalize_energy_cost(
         self,
         game: Game,
         player: PlayerState,
@@ -260,7 +278,7 @@ class AfterDinnerEntertainmentBehavior(EnergyForNextTagBehavior):
         target: CardInstance,
         current_fun: int,
     ) -> int:
-        if _is_next_matching_for_cost(
+        if _is_next_matching(
             player, source, target, lambda candidate: "Social" in candidate.tags
         ):
             return current_fun + 2
@@ -280,7 +298,7 @@ BOAT_RIDE = CardDefinition(
     title="Boat Ride",
     tags=frozenset({"Relax", "Outdoors"}),
     cost=2,
-    base_fun=1,
+    base_fun=2,
     behavior=SetEnergyForNextTagBehavior("Item", 0),
 )
 
@@ -305,7 +323,7 @@ ROULADEN = CardDefinition(
     slug="rouladen",
     title="Rouladen",
     tags=frozenset({"Food"}),
-    cost=3,
+    cost=4,
     behavior=EnergyForAllCardsAfterBehavior(-1),
 )
 

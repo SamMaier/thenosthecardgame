@@ -149,6 +149,89 @@ class ScoutTheOtherCottagesTests(unittest.TestCase):
         self.assertEqual(hand_size_player.fun, 6)
         self.assertEqual(len(scout_player.hand), 4)
 
+    def test_shared_marked_cards_follow_player_order_not_hardcoded_seat_order(self) -> None:
+        game = empty_game()
+        game.starting_player = 2
+        p2 = game.players[2]
+        p0 = game.players[0]
+        p2.energy = 7
+        p0.energy = 7
+        p2.hand.append(make_card("scout-other-cottages"))
+        p0.hand.append(make_card("wedding-anniversary"))
+
+        originals = [
+            make_card("biography"),
+            make_card("fajitas"),
+            make_card("waterski"),
+            make_card("nap"),
+        ]
+        game.suitcase = list(originals)
+        game.trunk = [make_card("solo") for _ in range(8)]
+
+        game.play_card(2, 0)
+        game.play_card(0, 0)
+
+        game.end_day()
+
+        self.assertEqual(p2.hand, originals)
+        self.assertEqual(p0.hand, [])
+
+    def test_suitcase_markers_clear_on_pick_acquire_and_end_day(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 7
+        player.hand.append(make_card("scout-other-cottages"))
+        first = make_card("biography")
+        second = make_card("fajitas")
+        third = make_card("waterski")
+        fourth = make_card("nap")
+        game.suitcase = [first, second, third, fourth]
+        game.trunk = [make_card("solo") for _ in range(5)]
+
+        game.play_card(0, 0)
+        game.pick_suitcase_cards(0, (first,))
+        self.assertEqual(first.markers, {})
+
+        game.end_day()
+        for card in (second, third, fourth):
+            self.assertEqual(card.markers, {})
+
+    def test_surviving_suitcase_markers_clear_at_end_day(self) -> None:
+        game = empty_game()
+        marked = make_card("biography")
+        marked.markers["energy_cube"] = True
+        marked.markers["_puerto_rico_target_99"] = True
+        game.suitcase = [marked, make_card("nap"), make_card("solo"), make_card("azul")]
+
+        game.end_day()
+
+        self.assertEqual(marked.markers, {})
+
+    def test_day_six_post_game_adds_do_not_count_as_acquisitions(self) -> None:
+        game = empty_game()
+        game.day = 6
+        player = game.players[0]
+        player.energy = 7
+        player.hand.extend([make_card("paddleboat"), make_card("scout-other-cottages")])
+        originals = [
+            make_card("biography"),
+            make_card("fajitas"),
+            make_card("waterski"),
+            make_card("nap"),
+        ]
+        game.suitcase = list(originals)
+        game.trunk = [make_card("solo") for _ in range(4)]
+
+        paddleboat = game.play_card(0, 0)
+        game.play_card(0, 0)
+        game.end_day()
+
+        self.assertEqual(player.hand, originals)
+        self.assertEqual(player.fun, -1)
+        self.assertEqual(sum(player.acquired_cards.values()), 0)
+        self.assertEqual(sum(game.stats.card_acquisitions.values()), 0)
+        self.assertNotIn("energy_cubes", paddleboat.markers)
+
 
 if __name__ == "__main__":
     unittest.main()

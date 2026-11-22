@@ -20,6 +20,14 @@ class CardBehavior:
     tomorrow_all_tags = False
     after_all_tags = False
 
+    def granted_after_tags(
+        self,
+        player: PlayerState,
+        source: CardInstance,
+    ) -> frozenset[str]:
+        """Return tags granted to cards played after ``source`` today."""
+        return frozenset()
+
     def can_play(
         self,
         game: Game,
@@ -58,6 +66,17 @@ class CardBehavior:
         current_cost: int,
     ) -> int:
         """Modify this card's own cost before visible sources are applied."""
+        return current_cost
+
+    def finalize_energy_cost(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_cost: int,
+    ) -> int:
+        """Apply absolute cost overrides after all ordinary cost modifiers."""
         return current_cost
 
     def on_play(
@@ -270,20 +289,20 @@ class CardInstance:
     @property
     def tags(self) -> frozenset[str]:
         """The tags currently used by rules, preserving printed copy tags."""
-        if (
-            self.markers
-            and "_all_tags" in self.markers
-            and self.markers["_all_tags"]
-        ):
-            global _ALL_CARD_TAGS
-            if _ALL_CARD_TAGS is None:
-                # Import lazily to avoid the catalog/base module cycle.
-                from thenos.cards.catalog import CARD_REGISTRY
+        if self.markers:
+            if self.markers.get("_all_tags"):
+                global _ALL_CARD_TAGS
+                if _ALL_CARD_TAGS is None:
+                    # Import lazily to avoid the catalog/base module cycle.
+                    from thenos.cards.catalog import CARD_REGISTRY
 
-                _ALL_CARD_TAGS = frozenset(
-                    tag
-                    for definition in CARD_REGISTRY.values()
-                    for tag in definition.tags
-                )
-            return _ALL_CARD_TAGS
+                    _ALL_CARD_TAGS = frozenset(
+                        tag
+                        for definition in CARD_REGISTRY.values()
+                        for tag in definition.tags
+                    )
+                return _ALL_CARD_TAGS
+            extra_tags = self.markers.get("_extra_tags")
+            if extra_tags:
+                return self.definition.tags | extra_tags
         return self.definition.tags

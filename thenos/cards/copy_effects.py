@@ -32,7 +32,7 @@ class WeddingAnniversaryBehavior(CardBehavior):
             if opponent_index != player_index
             for candidate in opponent.played_today
             if candidate.definition.cost <= player.energy
-            and candidate.effective_behavior.can_play(game, player, card)
+            and candidate.definition.behavior.can_play(game, player, card)
         ]
         if not eligible_cards:
             return
@@ -117,6 +117,7 @@ class LastYearsShirtBehavior(CardBehavior):
                         f"AI returned invalid Suitcase index: {chosen_index}"
                     )
                 picked = game.suitcase.pop(chosen_index)
+                picked.markers.clear()
                 slot_index = next(
                     index
                     for index, candidate in enumerate(original_suitcase)
@@ -138,7 +139,7 @@ LAST_YEARS_SHIRT = CardDefinition(
     slug="last-years-shirt",
     title="Last Year's Shirt",
     tags=frozenset({"Item"}),
-    cost=1,
+    cost=0,
     base_fun=0,
     behavior=LastYearsShirtBehavior(),
 )

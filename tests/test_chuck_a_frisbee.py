@@ -48,6 +48,23 @@ class ChuckAFrisbeeTests(unittest.TestCase):
 
                 self.assertEqual(game.players[fit_player_index].fun, 0)
 
+    def test_returning_to_hand_does_not_count_as_acquisition_or_trigger_paddleboat(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 10
+        paddleboat = make_card("paddleboat")
+        chuck = make_card("chuck-a-frisbee")
+        player.hand.extend([paddleboat, chuck])
+
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+        game.end_day()
+
+        self.assertIn(chuck, player.hand)
+        self.assertEqual(player.acquired_cards["Chuck a Frisbee"], 0)
+        self.assertEqual(game.stats.card_acquisitions["Chuck a Frisbee"], 0)
+        self.assertEqual(player.fun, 3)
+
 
 if __name__ == "__main__":
     unittest.main()

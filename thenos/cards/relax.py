@@ -72,10 +72,10 @@ class CheesyPhoneGameBehavior(CardBehavior):
 
 
 class FancyCraftBehavior(FunForNextTagWrittenCostBehavior):
-    """Give the next Item card bonus Fun equal to twice its printed cost."""
+    """Give the next Item card bonus Fun equal to triple its printed cost."""
 
     def __init__(self) -> None:
-        super().__init__("Item", multiplier=2)
+        super().__init__("Item", multiplier=3)
 
 
 class ClassicBookBehavior(CardBehavior):
@@ -225,9 +225,7 @@ class FloatingBehavior(CardBehavior):
 
 
 class ColouringBehavior(CardBehavior):
-    """Make cards played after this card today count as having all tags."""
-
-    after_all_tags = True
+    """Mark one earlier card today so cards played after this gain its tags."""
 
     def on_play(
         self,
@@ -235,7 +233,40 @@ class ColouringBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
+        previous_cards = tuple(game.cards_played_before(player, card))
+        if not previous_cards:
+            return
+        player_index = game.players.index(player)
+        target = game.choose_card_target(player_index, previous_cards)
+        target.markers["energy_cube"] = True
+        card.markers["target_card"] = target
         game._sync_played_today_tags(player)
+
+    def granted_after_tags(
+        self,
+        player: PlayerState,
+        source: CardInstance,
+    ) -> frozenset[str]:
+        marked = source.markers.get("target_card")
+        if not isinstance(marked, CardInstance) or not marked.markers.get(
+            "energy_cube"
+        ):
+            return frozenset()
+        source_position = next(
+            (i for i, c in enumerate(player.played_today) if c is source),
+            None,
+        )
+        marked_position = next(
+            (i for i, c in enumerate(player.played_today) if c is marked),
+            None,
+        )
+        if (
+            source_position is not None
+            and marked_position is not None
+            and marked_position < source_position
+        ):
+            return marked.tags
+        return frozenset()
 
 
 class PaintBehavior(CardBehavior):

@@ -11,22 +11,27 @@ from thenos.ai import (
     OsmiumbrainAI as OsmiumbrainAIFromAIModule,
 )
 from thenos.ais import (
-    BerylliumBrain,
     HydrogenAI,
     Osmium,
     OsmiumAI,
     OsmiumBrain,
     OsmiumbrainAI,
+    RandomAI,
 )
 from thenos.ais.hydrogen import _HYDROGEN_RESERVE_EVAL_CACHE, _hydrogen_copy_game
 from thenos.ais.osmium import (
     _OSMIUM_RESERVE_CACHE_MAX,
     _OSMIUM_RESERVE_EVAL_CACHE,
+    _OSMIUM_SPEC_BY_SLUG,
+    _ensure_osmium_caches,
+    _osmium_reserve_score,
+    _osmium_reserve_score_plain_specs,
 )
 from thenos.cards import make_card
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.cards.catalog import create_default_deck
 from thenos.characters import CHARACTERS
+from thenos.daily_conditions import DAILY_CONDITIONS
 from thenos.game import Game
 from thenos.simulation import Competitor, simulate_games
 
@@ -168,6 +173,19 @@ class OsmiumAITests(unittest.TestCase):
         player.played_today.append(make_card("cities-and-knights"))
         _ = ai.choose_optional_action(game, 0, "discard one card for Cities and Knights")
         player.played_today.pop()
+        prior_charcuterie = make_card("charcuterie")
+        prior_chair = make_card("zero-gravity-chair")
+        colouring_card = make_card("colouring")
+        player.played_today.extend([prior_charcuterie, prior_chair, colouring_card])
+        _ = ai.choose_card_target(game, 0, (prior_charcuterie, prior_chair))
+        del player.played_today[-3:]
+        food_opt1 = make_card("doritos")
+        food_opt2 = make_card("fajitas")
+        game.suitcase[:2] = [food_opt1, food_opt2]
+        atf_card = make_card("address-the-food")
+        player.played_today.append(atf_card)
+        _ = ai.choose_card_target(game, 0, (food_opt1, food_opt2))
+        player.played_today.pop()
 
         self.assertEqual(game.rng.getstate(), rng_before)
         for c in player.hand:
@@ -176,6 +194,10 @@ class OsmiumAITests(unittest.TestCase):
             self.assertEqual(c.markers, {})
         for c in game.trunk:
             self.assertEqual(c.markers, {})
+        self.assertEqual(prior_charcuterie.markers, {})
+        self.assertEqual(prior_chair.markers, {})
+        self.assertEqual(colouring_card.markers, {})
+        self.assertEqual(atf_card.markers, {})
 
     def test_custom_unknown_cards_do_not_crash(self):
         game = _osmium_game(seed=55)
@@ -276,16 +298,38 @@ class OsmiumAITests(unittest.TestCase):
         self.assertAlmostEqual(roul_val, 0.0)
         self.assertGreater(ski_val, roul_val)
 
-        # Child must not receive Colouring's after_all_tags scaler synergy bonus.
+        # Child must not receive an after_all_tags scaler synergy bonus.
+        class _AfterAllTags(CardBehavior):
+            after_all_tags = True
+
+        after_all = CardInstance(
+            9900,
+            CardDefinition(
+                slug="after-all",
+                title="After All",
+                tags=frozenset({"Relax"}),
+                cost=3,
+                base_fun=0,
+                behavior=_AfterAllTags(),
+            ),
+        )
         p.hand = [make_card("carcassonne"), make_card("movie")]
-        without_colouring = ai._evaluate_tomorrow_and_reserve_fast(
+        without_after_all = ai._evaluate_tomorrow_and_reserve_fast(
             game, 0, [], days_left=1
         )
-        p.hand = [make_card("carcassonne"), make_card("movie"), make_card("colouring")]
-        with_colouring = ai._evaluate_tomorrow_and_reserve_fast(
+        p.hand = [make_card("carcassonne"), make_card("movie"), after_all]
+        with_after_all = ai._evaluate_tomorrow_and_reserve_fast(
             game, 0, [], days_left=1
         )
-        self.assertLessEqual(with_colouring, without_colouring)
+        self.assertLessEqual(with_after_all, without_after_all)
+
+        # Under Child, Colouring chooses a non-Food card when one is available.
+        food_card = make_card("fajitas")
+        relax_card = make_card("movie")
+        colouring = make_card("colouring")
+        p.played_today = [food_card, relax_card, colouring]
+        chosen_idx = ai.choose_card_target(game, 0, (food_card, relax_card))
+        self.assertEqual(chosen_idx, 1)
 
         # A tomorrow card granting all tags zeroes all tomorrow cards under Child.
         class _TomAllTags(CardBehavior):
@@ -370,9 +414,9 @@ class OsmiumAITests(unittest.TestCase):
             create_default_deck(daily_conditions=True),
             [
                 _FastOsmiumAI(random.Random(300)),
-                BerylliumBrain(random.Random(301)),
-                BerylliumBrain(random.Random(302)),
-                BerylliumBrain(random.Random(303)),
+                RandomAI(random.Random(301)),
+                RandomAI(random.Random(302)),
+                RandomAI(random.Random(303)),
             ],
             random.Random(909),
             characters=True,
@@ -385,9 +429,9 @@ class OsmiumAITests(unittest.TestCase):
     def test_serial_and_parallel_simulation_parity(self):
         competitors = (
             Competitor("Osmium", _FastOsmiumAI),
-            Competitor("Beryllium", BerylliumBrain),
+            Competitor("Random", RandomAI),
             Competitor("Osmium", _FastOsmiumAI),
-            Competitor("Beryllium", BerylliumBrain),
+            Competitor("Random", RandomAI),
         )
         serial = simulate_games(
             2,
@@ -409,7 +453,184 @@ class OsmiumAITests(unittest.TestCase):
         )
         self.assertEqual(serial.rows(), parallel.rows())
         self.assertEqual(serial.ais["Osmium"], parallel.ais["Osmium"])
-        self.assertEqual(serial.ais["Beryllium"], parallel.ais["Beryllium"])
+        self.assertEqual(serial.ais["Random"], parallel.ais["Random"])
+
+    def test_colouring_target_selection_uses_search_and_respects_conditions_and_unlocks(self):
+        # 1. Marks Item target when hand holds Fancy Craft + 7 Wonders (gains 3x6 = +18 Fun).
+        game = _osmium_game(seed=101)
+        game.day = 6
+        p = game.players[0]
+        p.energy = 8
+        c_food = make_card("charcuterie")
+        c_item = make_card("zero-gravity-chair")
+        p.played_today = [c_food, c_item, make_card("colouring")]
+        p.hand = [make_card("fancy-craft"), make_card("7-wonders")]
+        game.suitcase = [make_card("movie"), make_card("nap"), make_card("zumba"), make_card("doritos")]
+        game.trunk = [_dummy_card(300 + i, f"Trunk {i}", 2, 1) for i in range(12)]
+        game._is_setup = True
+        self.assertEqual(game.ais[0].choose_card_target(game, 0, (c_food, c_item)), 1)
+
+        # 2. At energy=0 with Boat Ride active, marking Item unlocks 7 Wonders for free.
+        g_boat = _osmium_game(seed=102)
+        g_boat.day = 6
+        pb = g_boat.players[0]
+        pb.energy = 0
+        b_ride = make_card("boat-ride")
+        b_food = make_card("charcuterie")
+        b_item = make_card("zero-gravity-chair")
+        pb.played_today = [b_ride, b_food, b_item, make_card("colouring")]
+        pb.hand = [make_card("7-wonders")]
+        g_boat.suitcase = [make_card("movie"), make_card("nap"), make_card("zumba"), make_card("doritos")]
+        g_boat.trunk = [_dummy_card(400 + i, f"Trunk {i}", 2, 1) for i in range(12)]
+        g_boat._is_setup = True
+        self.assertEqual(g_boat.ais[0].choose_card_target(g_boat, 0, (b_ride, b_food, b_item)), 2)
+
+        # 3. Works cleanly under Brutally Hot Day daily condition.
+        g_hot = _osmium_game(seed=103)
+        g_hot.day = 6
+        g_hot.daily_conditions = True
+        g_hot.daily_condition = next(c for c in DAILY_CONDITIONS if c.hot_day)
+        ph = g_hot.players[0]
+        ph.energy = 3
+        sw = make_card("swimming")
+        ca = make_card("carcassonne")
+        ph.played_today = [sw, ca, make_card("colouring")]
+        ph.hand = [make_card("rouladen")]
+        g_hot.suitcase = [make_card("movie"), make_card("nap"), make_card("zumba"), make_card("doritos")]
+        g_hot.trunk = [_dummy_card(500 + i, f"Trunk {i}", 2, 1) for i in range(12)]
+        g_hot._is_setup = True
+        idx = g_hot.ais[0].choose_card_target(g_hot, 0, (sw, ca))
+        self.assertIn(idx, (0, 1))
+
+        # 4. Within an identical tag set, picks higher-value card (resilient against Bohnanza).
+        g_boh = _osmium_game(seed=110)
+        g_boh.day = 6
+        p_boh = g_boh.players[0]
+        wcf = make_card("weird-chip-flavour")
+        roul = make_card("rouladen")
+        p_boh.played_today = [wcf, roul, make_card("colouring")]
+        p_boh.hand = [make_card("bohnanza")]
+        self.assertEqual(g_boh.ais[0].choose_card_target(g_boh, 0, (wcf, roul)), 1)
+
+    def test_colouring_search_branching_in_simulate_play_branches(self):
+        game = _osmium_game(seed=104)
+        game.day = 6
+        game.daily_conditions = True
+        game.daily_condition = next(c for c in DAILY_CONDITIONS if c.hot_day)
+        p = game.players[0]
+        p.energy = 11
+        p.played_today = [make_card("charcuterie"), make_card("zero-gravity-chair")]
+        p.hand = [make_card("colouring"), make_card("fancy-craft"), make_card("7-wonders")]
+        game.suitcase = [make_card("movie"), make_card("nap"), make_card("zumba"), make_card("doritos")]
+        game.trunk = [_dummy_card(600 + i, f"Trunk {i}", 2, 1) for i in range(12)]
+        game._is_setup = True
+
+        branches = game.ais[0]._simulate_play_branches(game, 0, 0)
+        self.assertEqual(len(branches), 2)
+        marked_titles = {
+            b.players[0].played_today[-1].markers["target_card"].definition.title
+            for b in branches
+        }
+        self.assertEqual(marked_titles, {"Charcuterie", "Zero Gravity Chair"})
+
+    def test_address_the_food_search_targeting_and_ordering_off_by_one(self):
+        game = _osmium_game(seed=105)
+        game.day = 6
+        p = game.players[0]
+        p.energy = 2
+        p.played_today = [make_card("address-the-food")]
+        p.hand = [make_card("leftovers")]
+        d_opt = make_card("doritos")
+        f_opt = make_card("fajitas")
+        game.suitcase = [d_opt, f_opt, make_card("movie"), make_card("zumba")]
+        game.trunk = [_dummy_card(700 + i, f"Trunk {i}", 1, 1) for i in range(12)]
+        game._is_setup = True
+
+        chosen = game.ais[0].choose_card_target(game, 0, (d_opt, f_opt))
+        self.assertEqual(chosen, 1)
+
+        # Off-by-one check in candidate ordering:
+        # 1) played_today=[] and only Morning Coffee in Suitcase -> Address the Food cannot target it.
+        g_order = _osmium_game(seed=106)
+        g_order.day = 3
+        po = g_order.players[0]
+        po.energy = 4
+        po.played_today = []
+        po.hand = [make_card("address-the-food"), make_card("zumba")]
+        g_order.suitcase = [make_card("morning-coffee"), make_card("movie"), make_card("nap"), make_card("solo")]
+        g_order.trunk = [_dummy_card(800 + i, f"Trunk {i}", 1, 1) for i in range(12)]
+        g_order._is_setup = True
+        cand_no_elig = g_order.ais[0]._ordered_candidate_indices_with_costs(g_order, 0, 4)
+        self.assertNotEqual(cand_no_elig[0][0], 0)
+
+        # 2) len(played_today)==1 and Afternoon Coffee in Suitcase -> playing Address the Food makes Afternoon Coffee 3rd card (legal!).
+        po.played_today = [make_card("movie")]
+        g_order.suitcase[0] = make_card("afternoon-coffee")
+        po.hand = [make_card("address-the-food"), make_card("waterski")]
+        cand_elig = g_order.ais[0]._ordered_candidate_indices_with_costs(g_order, 0, 4)
+        self.assertEqual(cand_elig[0][0], 0)
+
+    def test_reserve_score_fast_and_slow_parity_on_changed_cards(self):
+        _ensure_osmium_caches()
+        self.assertEqual(_OSMIUM_SPEC_BY_SLUG["istanbul"].net_e_pos, 2.0)
+        changed_slugs = [
+            "istanbul",
+            "colouring",
+            "nos-book",
+            "fancy-craft",
+            "assorted-cutlery",
+            "last-years-shirt",
+            "couch-tube",
+            "rouladen",
+            "boat-ride",
+            "ski-on-shoulders",
+            "paddleboat",
+            "bougie-coffee-machine",
+        ]
+        game = _osmium_game(seed=107)
+        for dl in (1, 3):
+            for split in (4, 8, 12):
+                hand = [make_card(s) for s in changed_slugs[:split]]
+                tom = [make_card("photo-shoot"), make_card("zumba")] if dl > 1 else [make_card("wildlife-spotting")]
+                game.players[0].hand = hand
+                sorted_specs = sorted(
+                    (_OSMIUM_SPEC_BY_SLUG[c.definition.slug] for c in hand),
+                    key=lambda sp: sp.slug_rank,
+                )
+                tom_specs = [_OSMIUM_SPEC_BY_SLUG[c.definition.slug] for c in tom]
+                slow_v = _osmium_reserve_score(game, 0, tom, dl)
+                fast_v = _osmium_reserve_score_plain_specs(sorted_specs, tom_specs, dl)
+                self.assertAlmostEqual(slow_v, fast_v, places=11)
+
+    def test_state_signature_distinguishes_optional_discard_markers(self):
+        ai = OsmiumAI(random.Random(108))
+        # Canonical cards test OsmiumAI's fast signature path; dummy cards test fallback path.
+        for canon in (True, False):
+            g1 = _osmium_game(seed=109)
+            g1.day = 3
+            g1.players[0].hand = [make_card("carcassonne"), make_card("movie")]
+            g1.players[0].played_today = [make_card("cities-and-knights")]
+            if canon:
+                g1.suitcase = [make_card("movie"), make_card("zumba"), make_card("nap"), make_card("solo")]
+                g1.trunk = [make_card("calzones") for _ in range(12)]
+            else:
+                g1.suitcase = [_dummy_card(10 + i, f"S{i}", 2, 1) for i in range(4)]
+                g1.trunk = [_dummy_card(50 + i, f"T{i}", 2, 1) for i in range(12)]
+            g1._is_setup = True
+
+            s1 = ai._prepare_observable_game(g1, 0)
+            self.assertEqual(bool(s1._all_canonical_defs), canon)
+            s2 = _hydrogen_copy_game(s1)
+            s2.players[0].played_today[0].markers["discarded_card"] = True
+            s2._recompute_player_flags(0)
+            self.assertNotEqual(ai._state_signature(s1, 0), ai._state_signature(s2, 0))
+
+            g1.players[0].played_today = [make_card("epic-prank")]
+            ep1 = ai._prepare_observable_game(g1, 0)
+            ep2 = _hydrogen_copy_game(ep1)
+            ep2.players[0].played_today[0].markers["discarded_item"] = make_card("boat-ride")
+            ep2._recompute_player_flags(0)
+            self.assertNotEqual(ai._state_signature(ep1, 0), ai._state_signature(ep2, 0))
 
 
 if __name__ == "__main__":

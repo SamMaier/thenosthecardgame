@@ -117,7 +117,13 @@ class ScoutTheOtherCottagesBehavior(FunForAllCardsBeforeBehavior):
             if suitcase_card.markers.get(owner_marker)
         )
         if targets:
-            game.acquire_suitcase_cards(game.players.index(player), targets)
+            from thenos.game import DAYS_PER_GAME
+
+            game.acquire_suitcase_cards(
+                game.players.index(player),
+                targets,
+                track_acquisition=game.day < DAYS_PER_GAME,
+            )
 
 
 class EveningChatBehavior(CardBehavior):

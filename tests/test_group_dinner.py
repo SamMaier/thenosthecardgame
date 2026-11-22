@@ -45,6 +45,40 @@ class GroupDinnerTests(unittest.TestCase):
         self.assertEqual(len(game.players[0].hand), 1)
         self.assertFalse(game.players[0].played_today)
 
+    def test_blocked_owner_does_not_mark_gave_energy_when_opponents_gain_energy(self) -> None:
+        from thenos.ai import RandomAI
+
+        class TrashSleepInAI(RandomAI):
+            def choose_cards_to_discard(self, game, player_index, options):
+                return [
+                    idx
+                    for idx, card in enumerate(options)
+                    if card.title == "Sleep In"
+                ]
+
+        game = empty_game()
+        game.ais[0] = TrashSleepInAI(game.rng)
+        p0 = game.players[0]
+        p0.energy = 7
+        p0.hand.extend(
+            [
+                make_card("sleep-in"),
+                make_card("group-dinner"),
+                make_card("bohnanza"),
+                make_card("bubly"),
+            ]
+        )
+
+        game.play_card(0, 0)  # Sleep In (+2 -> 9)
+        group_dinner = game.play_card(0, 0)  # cost 3 -> 6; Sleep In blocks +1 for p0
+        game.play_card(0, 0)  # Bohnanza trashes Sleep In (cost 2 -> 4)
+        bubly = game.play_card(0, 0)  # cost 0
+
+        self.assertEqual(p0.energy, 4)
+        self.assertEqual([p.energy for p in game.players[1:]], [1, 1, 1])
+        self.assertNotIn("_gave_energy", group_dinner.markers)
+        self.assertEqual(game.card_fun(0, bubly), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

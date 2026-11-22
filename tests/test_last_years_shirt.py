@@ -23,7 +23,7 @@ class LastYearsShirtTests(unittest.TestCase):
         card = make_card("last-years-shirt")
 
         self.assertEqual(card.title, "Last Year's Shirt")
-        self.assertEqual(card.definition.cost, 1)
+        self.assertEqual(card.definition.cost, 0)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
 
@@ -48,7 +48,7 @@ class LastYearsShirtTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 6)
+        self.assertEqual(player.energy, 7)
         self.assertEqual(player.hand, [keep_card, slot1, slot2])
         self.assertEqual(game.suitcase, [slot0, give_one, give_two, slot3])
         self.assertEqual(game.trunk, [trunk_card])
@@ -75,7 +75,7 @@ class LastYearsShirtTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 6)
+        self.assertEqual(player.energy, 7)
         self.assertEqual(player.hand, [keep_card])
         self.assertEqual(game.suitcase, suitcase_cards)
         self.assertEqual(sum(game.stats.suitcase_picks.values()), 0)
@@ -95,35 +95,31 @@ class LastYearsShirtTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 6)
+        self.assertEqual(player.energy, 7)
         self.assertEqual(player.hand, [])
         self.assertEqual(game.suitcase, suitcase_cards)
 
-    def test_galaxybrain_evaluates_remaining_suitcase_cards_across_multiple_picks(self) -> None:
-        from thenos.ais import GalaxybrainAI
-
+    def test_picking_marked_suitcase_card_clears_suitcase_markers(self) -> None:
         game = empty_game()
-        game.ais[0] = GalaxybrainAI(game.rng)
+        game.ais[0] = ShirtChoiceAI((0,), [0], game.rng)
         player = game.players[0]
-        player.energy = 15
-        shirt = make_card("last-years-shirt")
-        low_one = make_card("m-ms")
-        low_two = make_card("bubly")
-        player.hand.extend([shirt, low_one, low_two])
-
-        slot0 = make_card("waterski")
-        slot1 = make_card("m-ms")
-        slot2 = make_card("bubly")
-        slot3 = make_card("adventure-race")
-        game.suitcase = [slot0, slot1, slot2, slot3]
-        game.trunk = [make_card("non-fiction-book")]
+        player.energy = 7
+        give_one = make_card("fajitas")
+        player.hand.extend([make_card("last-years-shirt"), give_one])
+        marked = make_card("solo")
+        marked.markers["energy_cube"] = True
+        marked.markers["_scout_energy_cube_99"] = True
+        game.suitcase = [
+            marked,
+            make_card("wingspan"),
+            make_card("azul"),
+            make_card("splendor"),
+        ]
 
         game.play_card(0, 0)
 
-        self.assertIn(slot0, player.hand)
-        self.assertIn(slot3, player.hand)
-        self.assertEqual(game.suitcase[1], slot1)
-        self.assertEqual(game.suitcase[2], slot2)
+        self.assertEqual(player.hand, [marked])
+        self.assertEqual(marked.markers, {})
 
 
 if __name__ == "__main__":

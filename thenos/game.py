@@ -328,8 +328,11 @@ class Game:
             if player.character is not None:
                 player.fun += player.character.daily_fun_delta
             player.asleep = False
+            player.skipped_turns = 0
             for card in player.tomorrow_cards:
                 card.effective_behavior.on_start_day(self, player, card)
+            if player.energy < 0:
+                player.energy = 0
 
     def known_daily_conditions(self, player_index: int) -> tuple[DailyCondition | None, ...]:
         """Return only this player's privately known upcoming positions."""
@@ -482,6 +485,7 @@ class Game:
         for target in cards:
             choice = self.suitcase.index(target)
             card = self.suitcase.pop(choice)
+            card.markers.clear()
             player = self.players[player_index]
             self.give_card(player_index, card)
             self.record_card_pick_or_draw(player_index, card)
@@ -496,6 +500,8 @@ class Game:
         self,
         player_index: int,
         cards: Sequence[CardInstance],
+        *,
+        track_acquisition: bool = True,
     ) -> list[CardInstance]:
         """Move specified Suitcase cards to a hand without counting picks."""
         if len({id(card) for card in cards}) != len(cards):
@@ -509,7 +515,11 @@ class Game:
         for target in cards:
             choice = self.suitcase.index(target)
             card = self.suitcase.pop(choice)
-            self.give_card(player_index, card)
+            card.markers.clear()
+            if track_acquisition:
+                self.give_card(player_index, card)
+            else:
+                self.players[player_index].hand.append(card)
             self.suitcase.insert(choice, self._draw_from_trunk())
             acquired_cards.append(card)
         return acquired_cards
@@ -549,6 +559,11 @@ class Game:
         self.stats.seen_suitcase_ids.add(card.instance_id)
         player.acquired_cards[card.title] += 1
         self.stats.card_acquisitions[card.title] += 1
+        self.notify_card_acquire(player_index, card)
+
+    def notify_card_acquire(self, player_index: int, card: CardInstance) -> None:
+        """Notify visible cards that their owner acquired ``card``."""
+        player = self.players[player_index]
         for source in player.played_today:
             source.effective_behavior.on_card_acquire(
                 self, player, source, card
@@ -704,27 +719,57 @@ class Game:
         )
         if temporary_all_tags:
             card.markers["_all_tags"] = True
+        temporary_extra_tags = False
+        if not card.markers.get("_all_tags") and "_extra_tags" not in card.markers:
+            extra_tags = self._granted_extra_tags(player, card)
+            if extra_tags:
+                card.markers["_extra_tags"] = extra_tags
+                temporary_extra_tags = True
         try:
-            cost = card.effective_cost
+            cost = max(0, card.effective_cost)
             if self.daily_condition:
-                cost = self.daily_condition.modify_energy_cost(card.tags, cost)
+                cost = max(
+                    0,
+                    self.daily_condition.modify_energy_cost(card.tags, cost),
+                )
             if player.character:
-                cost = player.character.modify_energy_cost(card.tags, cost)
-            cost = card.effective_behavior.modify_own_energy_cost(
-                self, player, card, cost
+                cost = max(
+                    0,
+                    player.character.modify_energy_cost(card.tags, cost),
+                )
+            cost = max(
+                0,
+                card.effective_behavior.modify_own_energy_cost(
+                    self, player, card, cost
+                ),
             )
             for source in player.tomorrow_cards:
-                cost = source.effective_behavior.modify_tomorrow_energy_cost(
-                    self, player, source, card, cost
+                cost = max(
+                    0,
+                    source.effective_behavior.modify_tomorrow_energy_cost(
+                        self, player, source, card, cost
+                    ),
                 )
             for source in player.played_today:
-                cost = source.effective_behavior.modify_energy_cost(
-                    self, player, source, card, cost
+                cost = max(
+                    0,
+                    source.effective_behavior.modify_energy_cost(
+                        self, player, source, card, cost
+                    ),
                 )
-            return max(0, cost)
+            for source in player.played_today:
+                cost = max(
+                    0,
+                    source.effective_behavior.finalize_energy_cost(
+                        self, player, source, card, cost
+                    ),
+                )
+            return cost
         finally:
             if temporary_all_tags:
                 card.markers.pop("_all_tags", None)
+            if temporary_extra_tags:
+                card.markers.pop("_extra_tags", None)
 
     @staticmethod
     def _tomorrow_grants_all_tags(player: PlayerState) -> bool:
@@ -745,16 +790,44 @@ class Game:
         return False
 
     @staticmethod
+    def _granted_extra_tags(
+        player: PlayerState,
+        card: CardInstance,
+    ) -> frozenset[str]:
+        extra_tags: set[str] = set()
+        for source in player.played_today:
+            if source is card:
+                break
+            granted = source.effective_behavior.granted_after_tags(
+                player, source
+            )
+            if granted:
+                extra_tags.update(granted)
+        return frozenset(extra_tags)
+
+    @staticmethod
     def _sync_played_today_tags(player: PlayerState) -> None:
         tomorrow_all = Game._tomorrow_grants_all_tags(player)
         seen_after_all = False
+        accumulated_extra_tags: set[str] = set()
         for played_card in player.played_today:
             if tomorrow_all or seen_after_all:
                 played_card.markers["_all_tags"] = True
             elif "_all_tags" in played_card.markers:
                 played_card.markers.pop("_all_tags", None)
+            if accumulated_extra_tags:
+                played_card.markers["_extra_tags"] = frozenset(
+                    accumulated_extra_tags
+                )
+            elif "_extra_tags" in played_card.markers:
+                played_card.markers.pop("_extra_tags", None)
             if getattr(played_card.effective_behavior, "after_all_tags", False):
                 seen_after_all = True
+            granted = played_card.effective_behavior.granted_after_tags(
+                player, played_card
+            )
+            if granted:
+                accumulated_extra_tags.update(granted)
 
     @staticmethod
     def _apply_tomorrow_tag_effects(
@@ -763,6 +836,9 @@ class Game:
     ) -> None:
         if Game._grants_all_tags(player, card):
             card.markers["_all_tags"] = True
+        extra_tags = Game._granted_extra_tags(player, card)
+        if extra_tags:
+            card.markers["_extra_tags"] = extra_tags
 
     def playable_hand_indices(self, player_index: int) -> list[int]:
         player = self.players[player_index]
@@ -901,8 +977,8 @@ class Game:
             title=destination.definition.title,
             tags=destination.definition.tags,
             cost=copied_cost,
-            base_fun=source.effective_base_fun,
-            behavior=source.effective_behavior,
+            base_fun=source.definition.base_fun,
+            behavior=source.definition.behavior,
         )
         destination.markers["_copied_definition"] = copied_definition
         destination.markers["_copying_effect"] = True
@@ -910,7 +986,7 @@ class Game:
         if not isinstance(previous_chain, tuple):
             previous_chain = ()
         destination.markers["_copy_chain"] = (*previous_chain, source.instance_id)
-        source.effective_behavior.on_play(self, player, destination)
+        source.definition.behavior.on_play(self, player, destination)
 
     def playing_phase(self) -> None:
         first_to_bed: int | None = None
@@ -1021,17 +1097,23 @@ class Game:
                 card.effective_behavior.on_score(self, player, card)
         self._fun_at_start_of_scoring = None
 
-        for player in self.players:
+        for player_index in self.player_order():
+            player = self.players[player_index]
             # Ordinary end-of-day effects likewise belong only to cards
             # played today, never to cards resolving Tomorrow text.
             for card in tuple(player.played_today):
                 card.effective_behavior.on_end_day(self, player, card)
 
-        for player in self.players:
+        for player_index in self.player_order():
+            player = self.players[player_index]
             for card in tuple(player.played_today):
                 card.effective_behavior.on_after_end_day(self, player, card)
 
+        for suitcase_card in self.suitcase:
+            suitcase_card.markers.clear()
+
         for player in self.players:
+            player.skipped_turns = 0
             previous_tomorrow = player.tomorrow_cards
             player.tomorrow_cards = []
             for card in previous_tomorrow:

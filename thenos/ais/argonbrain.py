@@ -574,16 +574,16 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
         energy_delta = -2
     elif "HalfEnergyForNextTag" in cls_name or "SetEnergyForNextTag" in cls_name:
         energy_delta = -2
-    elif "WaterTrampoline" in cls_name or "FancyCraft" in cls_name:
+    elif "WaterTrampoline" in cls_name:
         fun_bonus = 3
+    elif "FancyCraft" in cls_name:
+        fun_bonus = 5
     elif "Canoe" in cls_name or (
         "WrittenCost" in cls_name and "Next" in cls_name
     ):
         fun_bonus = 1
     elif "FancyFloatie" in cls_name:
         fun_bonus = 1
-    elif "NosBookBehavior" in cls_name:
-        fun_bonus = 3
     elif "Tanning" in cls_name:
         fun_bonus = -1
     elif "MedicalAdvice" in cls_name:
@@ -655,7 +655,7 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
         immediate_cards_gained = 1
     elif "BougieCoffeeMachine" in cls_name:
         immediate_cards_gained = 2
-    elif "Leftovers" in cls_name or "NosBookBehavior" in cls_name:
+    elif "Leftovers" in cls_name:
         conditional_fun_bonus = 3
     elif "QuacksBehavior" in cls_name:
         conditional_fun_bonus = 2
@@ -842,9 +842,9 @@ def _remaining_played_card_value(
     prof = _build_profile(card)
     val = float(game.card_fun(player_index, card))
     if card.title == "Nos Book":
-        target = card.markers.get("target_card")
-        if target in game.players[player_index].played_today:
-            val += 3.0
+        played = game.players[player_index].played_today
+        if card in played:
+            val += float(played.index(card))
     if prof.is_multi_scaler or prof.is_global_after_scaler:
         val += max(0.0, prof.signed_match_benefit * 2.0)
     if prof.goes_to_tomorrow and game.day < DAY_COUNT:
@@ -887,7 +887,7 @@ def _free_play_card_value(
             sum(c.definition.cost for c in player.played_today) + 3
         )
     elif title == "Nos Book":
-        direct_fun += 3.0
+        direct_fun += float(len(player.played_today))
     elif prof.conditional_fun_bonus > 0 and not prof.is_multi_scaler:
         direct_fun += min(prof.conditional_fun_bonus, 5) * 0.65
 
@@ -1014,7 +1014,10 @@ class _EvalPlayerAI(RandomAI):
                 game, player_index, card, wanted_tags
             )
             bucket = prof.play_order_bucket
-            if card.title == "Nos Book" and not player.played_today:
+            if (
+                card.title in {"Nos Book", "Colouring"}
+                and not player.played_today
+            ):
                 bucket = 6
                 est -= 6.0
             key = (bucket, -est)
@@ -1278,19 +1281,19 @@ class _EvalPlayerAI(RandomAI):
                     1 for c in player.hand if c.tags & options[i].tags
                 ),
             )
-        if last_played == "Nos Book":
+        if last_played == "Colouring":
             zero_tag = (
                 player.character.zero_fun_tag
                 if player.character is not None
                 else None
             )
+            wanted_tags = _wanted_tags_for_player(player)
             return max(
                 range(len(options)),
                 key=lambda i: (
-                    0
-                    if (zero_tag and zero_tag in options[i].tags)
-                    else 1,
-                    game.card_fun(player_index, options[i]),
+                    0 if (zero_tag and zero_tag in options[i].tags) else 1,
+                    sum(wanted_tags.get(t, 0.0) for t in sorted(options[i].tags)),
+                    len(options[i].tags),
                 ),
             )
         if last_played == "Address the Food":
@@ -1850,14 +1853,7 @@ def _quick_card_desirability(
             )
             val += prof.conditional_energy_gain * (0.95 if has_cond else 0.35)
 
-    if card.title == "Nos Book":
-        if (
-            player.played_today
-            or len(player.hand) >= 2
-            or game.day < DAY_COUNT
-        ):
-            val += 3.0
-    elif card.title == "Assorted Cutlery":
+    if card.title == "Assorted Cutlery":
         has_combo = any(
             other is not card
             and (
@@ -1955,7 +1951,7 @@ def _quick_card_desirability(
             1 for c in player.hand if c is not card and c.effective_cost == 0
         )
         val += zero_cards * 1.45
-    elif card.title == "Evening on the Dock":
+    elif card.title in {"Evening on the Dock", "Nos Book"}:
         val += 3.5
     elif card.title == "Couch Tube":
         val += 2.6
@@ -3099,7 +3095,7 @@ class ArgonBrain(GreedyAI):
                             active_after_tags.get(t, 0.0)
                             + h_prof.signed_match_benefit * 0.70
                         )
-                elif hc.title == "Evening on the Dock":
+                elif hc.title in {"Evening on the Dock", "Nos Book"}:
                     pending_before_bonus += len(player.played_today) * 0.90
                 elif hc.title == "Couch Tube":
                     pending_before_bonus += (
@@ -3328,8 +3324,6 @@ class ArgonBrain(GreedyAI):
             if char is not None:
                 cost = max(0, char.modify_energy_cost(c.tags, cost))
             base_f = float(c.effective_base_fun + c_prof.immediate_fun_gain)
-            if c.title == "Nos Book":
-                base_f += 3.0
             if char is not None:
                 base_f = float(
                     char.finalize_fun(

@@ -87,6 +87,36 @@ class GroceryStoreRunTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "every Trunk-order index"):
             game.play_card(0, 0)
 
+    def test_does_not_fire_pick_or_draw_for_non_food_revealed_cards(self) -> None:
+        from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
+
+        observed_titles: list[str] = []
+
+        class SpyPickBehavior(CardBehavior):
+            def on_card_pick_or_draw(self, game, player, source, acquired_card):
+                observed_titles.append(acquired_card.title)
+
+        spy = CardInstance(
+            9999,
+            CardDefinition("spy", "Spy", frozenset(), 0, behavior=SpyPickBehavior()),
+        )
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 7
+        player.played_today.append(spy)
+        player.hand.append(make_card("grocery-store-run"))
+        game.trunk = [
+            make_card("biography"),
+            make_card("fajitas"),
+            make_card("waterski"),
+            make_card("thriller-book"),
+            make_card("solo"),
+        ]
+
+        game.play_card(0, 0)
+
+        self.assertEqual(observed_titles, [])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -52,6 +52,7 @@ class BougieCoffeeMachineBehavior(CardBehavior):
         player_index = game.players.index(player)
         for drawn_card in game.draw_from_trunk(player_index, 3):
             if "Food" in drawn_card.tags:
+                game.notify_card_acquire(player_index, drawn_card)
                 game.play_card_for_effect(
                     player_index,
                     drawn_card,
@@ -72,7 +73,7 @@ class FishingBoatBehavior(CardBehavior):
     ) -> None:
         player_index = game.players.index(player)
         revealed: list[CardInstance] = []
-        while True:
+        while game.trunk or game.discard:
             revealed_card = game.reveal_from_trunk(1)[0]
             if "Outdoors" in revealed_card.tags:
                 game.give_card(player_index, revealed_card)
@@ -93,7 +94,7 @@ class SkiBoatBehavior(CardBehavior):
     ) -> None:
         player_index = game.players.index(player)
         revealed: list[CardInstance] = []
-        while True:
+        while game.trunk or game.discard:
             revealed_card = game.reveal_from_trunk(1)[0]
             if "Exercise" in revealed_card.tags:
                 game.give_card(player_index, revealed_card)
@@ -151,7 +152,7 @@ ASSORTED_CUTLERY = CardDefinition(
     slug="assorted-cutlery",
     title="Assorted Cutlery",
     tags=frozenset({"Item"}),
-    cost=2,
+    cost=1,
     behavior=AssortedCutleryBehavior(),
 )
 

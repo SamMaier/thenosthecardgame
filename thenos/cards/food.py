@@ -217,7 +217,7 @@ class LeftoversBehavior(CardBehavior):
             for candidate in player.played_today[:card_position]
             if "Food" in candidate.tags
             and candidate.instance_id not in copy_chain
-            and candidate.effective_behavior.can_play(game, player, card)
+            and candidate.definition.behavior.can_play(game, player, card)
         ]
         if not eligible_cards:
             return
@@ -490,7 +490,7 @@ class GroupDinnerBehavior(CardBehavior):
         card: CardInstance,
     ) -> None:
         for recipient in game.players:
-            game.gain_energy(recipient, 1, card)
+            game.gain_energy(recipient, 1, card if recipient is player else None)
 
 
 GROUP_DINNER = CardDefinition(
@@ -547,6 +547,7 @@ class AddressTheFoodBehavior(CardBehavior):
             suitcase_card
             for suitcase_card in game.suitcase
             if "Food" in suitcase_card.tags
+            and suitcase_card.effective_behavior.can_play(game, player, suitcase_card)
         )
         if not eligible_cards:
             return
@@ -580,7 +581,7 @@ class GroceryStoreRunBehavior(CardBehavior):
         card: CardInstance,
     ) -> None:
         player_index = game.players.index(player)
-        revealed = game.draw_from_trunk(player_index, 5)
+        revealed = game.reveal_from_trunk(5)
         food_cards = [
             revealed_card
             for revealed_card in revealed

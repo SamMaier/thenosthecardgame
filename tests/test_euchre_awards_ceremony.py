@@ -9,6 +9,9 @@ class FirstSuitcaseAI(RandomAI):
     def choose_suitcase_card(self, game, player_index, suitcase):
         return 0
 
+    def choose_card_target(self, game, player_index, eligible_cards):
+        return 0
+
 
 class EuchreAwardsCeremonyTests(unittest.TestCase):
     def test_printed_values_and_base_fun(self) -> None:
@@ -73,14 +76,16 @@ class EuchreAwardsCeremonyTests(unittest.TestCase):
         player.energy = 9
         player.hand.extend(
             [
+                make_card("m-ms"),
                 make_card("euchre-awards-ceremony"),
                 make_card("colouring"),
-                make_card("nap"),
+                make_card("tres-fute"),
             ]
         )
         game.suitcase = [make_card("solo") for _ in range(4)]
         game.trunk = [make_card("wingspan") for _ in range(4)]
 
+        game.play_card(0, 0)
         game.play_card(0, 0)
         game.play_card(0, 0)
         self.assertEqual(sum(player.picked_cards.values()), 0)

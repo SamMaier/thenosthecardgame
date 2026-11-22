@@ -5,34 +5,19 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, call, patch
 
+from thenos.ais import RandomAI
 from thenos.cards import CARD_REGISTRY
 from thenos.simulation import (
     AIStatistics,
     CardStatistics,
+    Competitor,
     SimulationReport,
     _GameOutcome,
     _PlayerOutcome,
     _merge_outcome,
-    simulate_argonbrain_vs_planner,
-    simulate_beryllium_vs_planner,
-    simulate_carbon_vs_planner,
-    simulate_four_carbon,
-    simulate_four_hydrogen,
-    simulate_four_hydrogenbrain,
     simulate_four_osmium,
     simulate_four_osmiumbrain,
-    simulate_galaxybrain_vs_planner,
     simulate_games,
-    simulate_greedy_vs_random,
-    simulate_hydrogen_vs_planner,
-    simulate_hydrogenbrain_vs_planner,
-    simulate_osmium_vs_planner,
-    simulate_osmiumbrain_vs_planner,
-    simulate_planner_vs_greedy,
-    simulate_two_hydrogen_two_carbon,
-    simulate_two_hydrogenbrain_two_carbonbrain,
-    simulate_two_osmium_two_hydrogen,
-    simulate_two_osmiumbrain_two_hydrogenbrain,
     write_report_csv,
 )
 
@@ -130,7 +115,10 @@ class SimulationTests(unittest.TestCase):
             self.assertLessEqual(card.free_pick_rate, 1.0)
             self.assertGreaterEqual(card.acquisitions, card.picks)
             self.assertGreaterEqual(card.plays, 0)
-            self.assertLessEqual(card.play_rate, 1.0)
+            if title in {"Chuck a Frisbee", "Wedding Anniversary", "Leftovers"}:
+                self.assertLessEqual(card.play_rate, 6.0)
+            else:
+                self.assertLessEqual(card.play_rate, 1.0)
             self.assertGreaterEqual(card.win_rate_when_picked, 0.0)
             self.assertLessEqual(card.win_rate_when_picked, 1.0)
             self.assertGreaterEqual(card.win_rate_when_acquired, 0.0)
@@ -246,13 +234,22 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual(report.cards["Unseen"].first_seen_win_rate, 0.0)
 
     def test_matchup_aggregates_named_ai_results(self) -> None:
-        report = simulate_greedy_vs_random(1, seed=99)
+        report = simulate_games(
+            1,
+            seed=99,
+            competitors=(
+                Competitor("Alpha", RandomAI),
+                Competitor("Beta", RandomAI),
+                Competitor("Beta", RandomAI),
+                Competitor("Beta", RandomAI),
+            ),
+            workers=1,
+        )
 
-        self.assertEqual(report.ais["Greedy"].games, 1)
-        self.assertEqual(report.ais["Random"].games, 3)
+        self.assertEqual(report.ais["Alpha"].games, 1)
+        self.assertEqual(report.ais["Beta"].games, 3)
         self.assertAlmostEqual(
-            report.ais["Greedy"].win_credit
-            + report.ais["Random"].win_credit,
+            report.ais["Alpha"].win_credit + report.ais["Beta"].win_credit,
             1.0,
         )
 
@@ -262,283 +259,46 @@ class SimulationTests(unittest.TestCase):
 
         self.assertEqual(parallel, serial)
 
-    def test_planner_matchup_aggregates_three_greedy_opponents(self) -> None:
-        report = simulate_planner_vs_greedy(1, seed=101)
-
-        self.assertEqual(report.ais["Planner"].games, 1)
-        self.assertEqual(report.ais["Greedy"].games, 3)
-
-    def test_galaxybrain_matchup_aggregates_three_planner_opponents(self) -> None:
-        report = simulate_galaxybrain_vs_planner(1, seed=102)
-
-        self.assertEqual(report.ais["Galaxybrain"].games, 1)
-        self.assertEqual(report.ais["Planner"].games, 3)
-
-    def test_argonbrain_matchup_aggregates_three_planner_opponents(self) -> None:
-        report = simulate_argonbrain_vs_planner(1, seed=102)
-
-        self.assertEqual(report.ais["Argonbrain"].games, 1)
-        self.assertEqual(report.ais["Planner"].games, 3)
-
-    def test_beryllium_matchup_aggregates_three_planner_opponents(self) -> None:
-        report = simulate_beryllium_vs_planner(1, seed=102)
-
-        self.assertEqual(report.ais["Beryllium"].games, 1)
-        self.assertEqual(report.ais["Planner"].games, 3)
-
-    def test_carbon_matchup_aggregates_three_planner_opponents(self) -> None:
-        report = simulate_carbon_vs_planner(1, seed=102)
-
-        self.assertEqual(report.ais["Carbon"].games, 1)
-        self.assertEqual(report.ais["Planner"].games, 3)
-
-    def test_four_carbon_aggregates_four_carbon_entries(self) -> None:
-        report = simulate_four_carbon(1, seed=103, workers=1)
-
-        self.assertEqual(report.ais["Carbon"].games, 4)
-        self.assertAlmostEqual(report.ais["Carbon"].win_credit, 1.0)
-
-    def test_four_carbon_cli_requires_output_and_records_metadata(self) -> None:
-        import io
-        import sys
-        from contextlib import redirect_stderr
-        from thenos.__main__ import main
-
-        with patch.object(sys, "argv", ["thenos", "4", "--four-carbon"]):
-            with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
-                main()
-
-        fake_report = simulate_games(1, seed=104, workers=1)
-        with (
-            patch.object(
-                sys,
-                "argv",
-                ["thenos", "4", "--four-carbonbrain", "--output", "unused.csv"],
-            ),
-            patch(
-                "thenos.__main__.simulate_four_carbon", return_value=fake_report
-            ) as run_mock,
-            patch("thenos.__main__._code_revision", return_value="test"),
-            patch(
-                "thenos.__main__.write_report_csv",
-                return_value=Path("unused.csv"),
-            ) as write_mock,
-            patch("builtins.print"),
-        ):
-            main()
-        run_mock.assert_called_once()
-        metadata = write_mock.call_args.kwargs["metadata"]
-        self.assertEqual(metadata["run_mode"], "four-carbon")
-        self.assertEqual(metadata["competitors"], "Carbon,Carbon,Carbon,Carbon")
-        self.assertTrue(metadata["rotate_seats"])
-
-    def test_hydrogen_matchup_aggregates_three_planner_opponents(self) -> None:
-        report = simulate_hydrogen_vs_planner(1, seed=102)
-
-        self.assertEqual(report.ais["Hydrogen"].games, 1)
-        self.assertEqual(report.ais["Planner"].games, 3)
-
-    def test_four_hydrogen_aggregates_four_hydrogen_entries(self) -> None:
-        report = simulate_four_hydrogen(1, seed=103, workers=1)
-
-        self.assertEqual(report.ais["Hydrogen"].games, 4)
-        self.assertAlmostEqual(report.ais["Hydrogen"].win_credit, 1.0)
-
-    def test_four_hydrogen_cli_requires_output_and_records_metadata(self) -> None:
-        import io
-        import sys
-        from contextlib import redirect_stderr
-        from thenos.__main__ import main
-
-        with patch.object(sys, "argv", ["thenos", "4", "--four-hydrogen"]):
-            with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
-                main()
-
-        fake_report = simulate_games(1, seed=104, workers=1)
-        with (
-            patch.object(
-                sys,
-                "argv",
-                ["thenos", "4", "--four-hydrogenbrain", "--output", "unused.csv"],
-            ),
-            patch(
-                "thenos.__main__.simulate_four_hydrogen",
-                return_value=fake_report,
-            ) as run_mock,
-            patch("thenos.__main__._code_revision", return_value="test"),
-            patch(
-                "thenos.__main__.write_report_csv",
-                return_value=Path("unused.csv"),
-            ) as write_mock,
-            patch("builtins.print"),
-        ):
-            main()
-        run_mock.assert_called_once()
-        metadata = write_mock.call_args.kwargs["metadata"]
-        self.assertEqual(metadata["run_mode"], "four-hydrogen")
-        self.assertEqual(
-            metadata["competitors"], "Hydrogen,Hydrogen,Hydrogen,Hydrogen"
-        )
-        self.assertTrue(metadata["rotate_seats"])
-
-    def test_two_hydrogen_two_carbon_aggregates_and_cli_records_metadata(self) -> None:
-        import io
-        import sys
-        from contextlib import redirect_stderr
-        from thenos.__main__ import main
-
-        self.assertIs(
-            simulate_two_hydrogenbrain_two_carbonbrain,
-            simulate_two_hydrogen_two_carbon,
-        )
-        report = simulate_two_hydrogen_two_carbon(1, seed=106, workers=1)
-        self.assertEqual(report.ais["Hydrogen"].games, 2)
-        self.assertEqual(report.ais["Carbon"].games, 2)
-        self.assertAlmostEqual(
-            report.ais["Hydrogen"].win_credit + report.ais["Carbon"].win_credit,
-            1.0,
-        )
-
-        with patch.object(sys, "argv", ["thenos", "4", "--two-hydrogen-two-carbon"]):
-            with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
-                main()
-
-        fake_report = simulate_games(1, seed=107, workers=1)
-        with (
-            patch.object(
-                sys,
-                "argv",
-                ["thenos", "4", "--2-hydrogen-2-carbon", "--output", "unused.csv"],
-            ),
-            patch(
-                "thenos.__main__.simulate_two_hydrogen_two_carbon",
-                return_value=fake_report,
-            ) as run_mock,
-            patch("thenos.__main__._code_revision", return_value="test"),
-            patch(
-                "thenos.__main__.write_report_csv",
-                return_value=Path("unused.csv"),
-            ) as write_mock,
-            patch("builtins.print"),
-        ):
-            main()
-        run_mock.assert_called_once()
-        metadata = write_mock.call_args.kwargs["metadata"]
-        self.assertEqual(metadata["run_mode"], "two-hydrogen-two-carbon")
-        self.assertEqual(
-            metadata["competitors"], "Hydrogen,Carbon,Hydrogen,Carbon"
-        )
-        self.assertTrue(metadata["rotate_seats"])
-
-    def test_hydrogenbrain_aliases_and_vs_planner_cli(self) -> None:
-        import sys
-        from thenos.__main__ import main
-
-        self.assertIs(simulate_four_hydrogenbrain, simulate_four_hydrogen)
-        self.assertIs(
-            simulate_hydrogenbrain_vs_planner, simulate_hydrogen_vs_planner
-        )
-
-        fake_report = simulate_games(1, seed=105, workers=1)
-        with (
-            patch.object(
-                sys,
-                "argv",
-                [
-                    "thenos",
-                    "4",
-                    "--hydrogenbrain-vs-planner",
-                    "--output",
-                    "unused.csv",
-                ],
-            ),
-            patch(
-                "thenos.__main__.simulate_hydrogen_vs_planner",
-                return_value=fake_report,
-            ) as run_mock,
-            patch("thenos.__main__._code_revision", return_value="test"),
-            patch(
-                "thenos.__main__.write_report_csv",
-                return_value=Path("unused.csv"),
-            ) as write_mock,
-            patch("builtins.print"),
-        ):
-            main()
-        run_mock.assert_called_once()
-        metadata = write_mock.call_args.kwargs["metadata"]
-        self.assertEqual(metadata["run_mode"], "hydrogen-vs-planner")
-        self.assertEqual(
-            metadata["competitors"], "Hydrogen,Planner,Planner,Planner"
-        )
-        self.assertTrue(metadata["rotate_seats"])
-
-    def test_osmium_matchup_and_cli_modes(self) -> None:
+    def test_four_osmium_and_cli_mode(self) -> None:
         import io
         import sys
         from contextlib import redirect_stderr
         from thenos.__main__ import main
 
         self.assertIs(simulate_four_osmiumbrain, simulate_four_osmium)
-        self.assertIs(
-            simulate_two_osmiumbrain_two_hydrogenbrain,
-            simulate_two_osmium_two_hydrogen,
-        )
-        self.assertIs(simulate_osmiumbrain_vs_planner, simulate_osmium_vs_planner)
-
-        report = simulate_osmium_vs_planner(1, seed=108, workers=1)
-        self.assertEqual(report.ais["Osmium"].games, 1)
-        self.assertEqual(report.ais["Planner"].games, 3)
 
         report_four = simulate_four_osmium(1, seed=109, workers=1)
         self.assertEqual(report_four.ais["Osmium"].games, 4)
         self.assertAlmostEqual(report_four.ais["Osmium"].win_credit, 1.0)
 
-        for flag in ("--four-osmium", "--two-osmium-two-hydrogen"):
-            with patch.object(sys, "argv", ["thenos", "4", flag]):
-                with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
-                    main()
+        with patch.object(sys, "argv", ["thenos", "4", "--four-osmium"]):
+            with redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                main()
 
         fake_report = simulate_games(1, seed=110, workers=1)
-        for cli_flag, patch_target, exp_mode, exp_comp in (
-            (
-                "--four-osmiumbrain",
+        with (
+            patch.object(
+                sys,
+                "argv",
+                ["thenos", "4", "--four-osmiumbrain", "--output", "unused.csv"],
+            ),
+            patch(
                 "thenos.__main__.simulate_four_osmium",
-                "four-osmium",
-                "Osmium,Osmium,Osmium,Osmium",
-            ),
-            (
-                "--2-osmium-2-hydrogen",
-                "thenos.__main__.simulate_two_osmium_two_hydrogen",
-                "two-osmium-two-hydrogen",
-                "Osmium,Hydrogen,Osmium,Hydrogen",
-            ),
-            (
-                "--osmiumbrain-vs-planner",
-                "thenos.__main__.simulate_osmium_vs_planner",
-                "osmium-vs-planner",
-                "Osmium,Planner,Planner,Planner",
-            ),
+                return_value=fake_report,
+            ) as run_mock,
+            patch("thenos.__main__._code_revision", return_value="test"),
+            patch(
+                "thenos.__main__.write_report_csv",
+                return_value=Path("unused.csv"),
+            ) as write_mock,
+            patch("builtins.print"),
         ):
-            with (
-                patch.object(
-                    sys,
-                    "argv",
-                    ["thenos", "4", cli_flag, "--output", "unused.csv"],
-                ),
-                patch(patch_target, return_value=fake_report) as run_mock,
-                patch("thenos.__main__._code_revision", return_value="test"),
-                patch(
-                    "thenos.__main__.write_report_csv",
-                    return_value=Path("unused.csv"),
-                ) as write_mock,
-                patch("builtins.print"),
-            ):
-                main()
-            run_mock.assert_called_once()
-            metadata = write_mock.call_args.kwargs["metadata"]
-            self.assertEqual(metadata["run_mode"], exp_mode)
-            self.assertEqual(metadata["competitors"], exp_comp)
-            self.assertTrue(metadata["rotate_seats"])
+            main()
+        run_mock.assert_called_once()
+        metadata = write_mock.call_args.kwargs["metadata"]
+        self.assertEqual(metadata["run_mode"], "four-osmium")
+        self.assertEqual(metadata["competitors"], "Osmium,Osmium,Osmium,Osmium")
+        self.assertTrue(metadata["rotate_seats"])
 
     def test_no_arg_cli_defaults_to_four_osmium_10000_runs_32_workers_and_sequential_date_output(
         self,

@@ -9,7 +9,7 @@ class AssortedCutleryTests(unittest.TestCase):
         card = make_card("assorted-cutlery")
 
         self.assertEqual(card.title, "Assorted Cutlery")
-        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.cost, 1)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
 
@@ -23,7 +23,7 @@ class AssortedCutleryTests(unittest.TestCase):
 
         assorted_cutlery = game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 4)
+        self.assertEqual(player.energy, 5)
         self.assertEqual(player.played_today, [assorted_cutlery, played_card])
         self.assertEqual(game.trunk, [])
         self.assertEqual(game.stats.card_plays[played_card.title], 1)
@@ -39,7 +39,7 @@ class AssortedCutleryTests(unittest.TestCase):
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.energy, 3)
+        self.assertEqual(player.energy, 4)
         self.assertEqual(
             [card.title for card in player.played_today],
             ["Assorted Cutlery", "Morning Coffee"],

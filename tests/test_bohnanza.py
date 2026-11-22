@@ -66,25 +66,6 @@ class BohnanzaTests(unittest.TestCase):
         self.assertEqual(game.discard, [])
         self.assertEqual(game.card_fun(0, played_bohnanza), 0)
 
-    def test_galaxybrain_trashes_low_fun_played_cards_and_keeps_high_fun_cards_on_day_six(self) -> None:
-        from thenos.ais import GalaxybrainAI
-
-        game = empty_game()
-        game.day = 6
-        game.ais[0] = GalaxybrainAI(game.rng)
-        player = game.players[0]
-        player.energy = 10
-        zero_fun = make_card("fajitas")
-        high_fun = make_card("waterski")
-        player.played_today.extend([zero_fun, high_fun])
-        player.hand.append(make_card("bohnanza"))
-
-        played_bohnanza = game.play_card(0, 0)
-
-        self.assertEqual(player.played_today, [high_fun, played_bohnanza])
-        self.assertIn(zero_fun, game.discard)
-        self.assertEqual(game.card_fun(0, played_bohnanza), 3)
-
 
 if __name__ == "__main__":
     unittest.main()

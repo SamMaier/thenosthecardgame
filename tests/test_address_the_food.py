@@ -64,7 +64,7 @@ class AddressTheFoodTests(unittest.TestCase):
         self.assertEqual(player.picked_cards[food.title], 1)
         self.assertIs(game.suitcase[1], refill)
 
-    def test_keeps_food_in_hand_when_the_target_is_illegal(self) -> None:
+    def test_excludes_illegal_food_targets_from_selection(self) -> None:
         game = empty_game()
         game.ais[0] = FirstSuitcaseTargetAI(game.rng)
         player = game.players[0]
@@ -72,17 +72,39 @@ class AddressTheFoodTests(unittest.TestCase):
         player.hand.append(make_card("address-the-food"))
 
         restricted_food = make_card("morning-coffee")
+        legal_food = make_card("fajitas")
         refill = make_card("thriller-book")
-        game.suitcase = [restricted_food, make_card("biography"), make_card("nap"), make_card("solo")]
+        game.suitcase = [restricted_food, make_card("biography"), legal_food, make_card("solo")]
         game.trunk = [refill]
+
+        game.play_card(0, 0)
+
+        self.assertEqual(player.energy, 9)
+        self.assertEqual(
+            [c.title for c in player.played_today],
+            ["Address the Food", "Fajitas"],
+        )
+        self.assertIn(restricted_food, game.suitcase)
+        self.assertIs(game.suitcase[2], refill)
+
+    def test_does_nothing_when_only_illegal_food_is_visible(self) -> None:
+        game = empty_game()
+        game.ais[0] = FirstSuitcaseTargetAI(game.rng)
+        player = game.players[0]
+        player.energy = 7
+        player.hand.append(make_card("address-the-food"))
+
+        restricted_food = make_card("morning-coffee")
+        game.suitcase = [restricted_food, make_card("biography"), make_card("nap"), make_card("solo")]
 
         game.play_card(0, 0)
 
         self.assertEqual(player.energy, 5)
         self.assertEqual(player.played_today[0].title, "Address the Food")
-        self.assertEqual(player.hand, [restricted_food])
+        self.assertEqual(player.hand, [])
         self.assertEqual(game.stats.card_plays[restricted_food.title], 0)
-        self.assertIs(game.suitcase[0], refill)
+        self.assertIn(restricted_food, game.suitcase)
+        self.assertEqual(sum(player.picked_cards.values()), 0)
 
     def test_does_nothing_when_no_food_is_visible(self) -> None:
         game = empty_game()
@@ -96,6 +118,28 @@ class AddressTheFoodTests(unittest.TestCase):
         self.assertEqual(player.hand, [])
         self.assertEqual(player.energy, 5)
         self.assertEqual(sum(player.picked_cards.values()), 0)
+
+    def test_afternoon_coffee_becomes_legal_when_address_the_food_is_second_card(self) -> None:
+        game = empty_game()
+        game.ais[0] = FirstSuitcaseTargetAI(game.rng)
+        player = game.players[0]
+        player.energy = 7
+        player.hand.extend([make_card("nap"), make_card("address-the-food")])
+
+        afternoon = make_card("afternoon-coffee")
+        refill = make_card("biography")
+        game.suitcase = [make_card("solo"), afternoon, make_card("azul"), make_card("risk")]
+        game.trunk = [refill]
+
+        game.play_card(0, 0)  # Nap (1st card, +1 energy -> 8)
+        game.play_card(0, 0)  # Address the Food (2nd card, cost 2 -> 6), plays Afternoon Coffee (3rd card, +3 -> 9)
+
+        self.assertEqual(player.energy, 9)
+        self.assertEqual(
+            [c.title for c in player.played_today],
+            ["Nap", "Address the Food", "Afternoon Coffee"],
+        )
+        self.assertIs(game.suitcase[1], refill)
 
 
 if __name__ == "__main__":

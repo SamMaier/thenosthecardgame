@@ -349,6 +349,24 @@ class WakeboardBehavior(FunFromOtherCardsWrittenCostBehavior):
         super().__init__(multiplier=-1)
 
 
+class CouchTubeBehavior(CardBehavior):
+    """Score a bonus when you finish today with only one other card down."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        bonus = (
+            4
+            if len(player.played_today) == 2
+            and any(played is card for played in player.played_today)
+            else 0
+        )
+        return card.effective_base_fun + bonus
+
+
 class FunForNextTagBehavior(CardBehavior):
     """Add Fun to the next matching card played after this card today."""
 
@@ -756,42 +774,12 @@ PRIME_PICNIC_TABLE = CardDefinition(
     behavior=FunAndEnergyForTagAfterBehavior("Outdoors", -1, 1),
 )
 
-class NosBookBehavior(CardBehavior):
-    """Choose a previously played card today to score +3 Fun."""
-
-    def on_play(
-        self,
-        game: Game,
-        player: PlayerState,
-        card: CardInstance,
-    ) -> None:
-        previous_cards = tuple(game.cards_played_before(player, card))
-        if not previous_cards:
-            return
-        player_index = game.players.index(player)
-        target = game.choose_card_target(player_index, previous_cards)
-        target.markers["energy_cube"] = True
-        card.markers["target_card"] = target
-
-    def modify_fun(
-        self,
-        game: Game,
-        player: PlayerState,
-        source: CardInstance,
-        target: CardInstance,
-        current_fun: int,
-    ) -> int:
-        if _is_before(player, source, target) and source.markers.get("target_card") is target:
-            return current_fun + 3
-        return current_fun
-
-
 NOS_BOOK = CardDefinition(
     slug="nos-book",
     title="Nos Book",
     tags=frozenset({"Item"}),
-    cost=2,
-    behavior=NosBookBehavior(),
+    cost=4,
+    behavior=FunForAllCardsBeforeBehavior(1),
 )
 
 SWEET_LAWN_CHAIR = CardDefinition(
@@ -918,8 +906,9 @@ COUCH_TUBE = CardDefinition(
     slug="couch-tube",
     title="Couch Tube",
     tags=frozenset({"Exercise", "Outdoors"}),
-    cost=5,
-    behavior=FunFromOtherCardsWrittenCostBehavior(),
+    cost=3,
+    base_fun=2,
+    behavior=CouchTubeBehavior(),
 )
 
 WAKEBOARD = CardDefinition(

@@ -40,6 +40,17 @@ class AfterDinnerEntertainmentTests(unittest.TestCase):
         game.end_day()
         self.assertNotIn(card, player.tomorrow_cards)
 
+    def test_unplayed_social_card_in_hand_does_not_get_fun_bonus(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 7
+        unplayed_social = make_card("johnny-appleseed")
+        player.hand.extend([make_card("after-dinner-entertainment"), unplayed_social])
+
+        game.play_card(0, 0)
+
+        self.assertEqual(game.card_fun(0, unplayed_social), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

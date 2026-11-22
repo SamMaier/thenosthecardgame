@@ -42,15 +42,15 @@ class HoldTheBabyTests(unittest.TestCase):
     ) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 5
+        player.energy = 4
         player.hand.extend(
             [make_card("hold-the-baby"), make_card("assorted-cutlery")]
         )
         trunk_card = make_card("waterski")
         game.trunk = [trunk_card]
 
-        game.play_card(0, 0)  # Hold the Baby (cost 2 -> energy 3)
-        cutlery = game.play_card(0, 0)  # Assorted Cutlery (cost 2 + 1 = 3 -> energy 0)
+        game.play_card(0, 0)  # Hold the Baby (cost 2 -> energy 2)
+        cutlery = game.play_card(0, 0)  # Assorted Cutlery (cost 1 + 1 = 2 -> energy 0)
 
         self.assertEqual(player.energy, 0)
         self.assertEqual(game.card_fun(0, cutlery), 3)

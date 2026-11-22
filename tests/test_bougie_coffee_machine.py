@@ -63,6 +63,28 @@ class BougieCoffeeMachineTests(unittest.TestCase):
         self.assertEqual(game.stats.card_plays["Morning Coffee"], 1)
         self.assertEqual(game.stats.card_acquisitions["Morning Coffee"], 0)
 
+    def test_drawn_and_played_food_triggers_paddleboat_without_acquisition_stat(self) -> None:
+        game = empty_game()
+        player = game.players[0]
+        player.energy = 10
+        paddleboat = make_card("paddleboat")
+        machine = make_card("bougie-coffee-machine")
+        player.hand.extend([paddleboat, machine])
+        game.trunk = [
+            make_card("cheap-white"),
+            make_card("biography"),
+            make_card("fajitas"),
+        ]
+
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+
+        self.assertEqual(paddleboat.markers["energy_cubes"], 3)
+        self.assertEqual(game.card_fun(0, paddleboat), 6)
+        self.assertEqual(game.stats.card_acquisitions["Fajitas"], 0)
+        self.assertEqual(game.stats.card_acquisitions["Cheap White"], 0)
+        self.assertEqual(game.stats.card_acquisitions["Non-Fiction Book"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

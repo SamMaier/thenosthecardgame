@@ -62,6 +62,25 @@ class FishingBoatTests(unittest.TestCase):
         self.assertEqual(player.hand, [outdoors])
         self.assertEqual(game.trunk, [])
 
+    def test_returns_all_revealed_cards_without_error_when_no_outdoors_remains(self) -> None:
+        game = empty_game()
+        game.ais[0] = FixedTrunkOrderAI((1, 0))
+        player = game.players[0]
+        player.energy = 7
+        player.hand.append(make_card("fishing-boat"))
+        trunk_card = make_card("biography")
+        discard_card = make_card("thriller-book")
+        game.trunk = [trunk_card]
+        game.discard = [discard_card]
+
+        game.play_card(0, 0)
+
+        self.assertEqual(player.hand, [])
+        self.assertEqual(game.discard, [])
+        self.assertEqual(game.trunk, [trunk_card, discard_card])
+        self.assertIs(game._draw_from_trunk(), discard_card)
+        self.assertIs(game._draw_from_trunk(), trunk_card)
+
 
 if __name__ == "__main__":
     unittest.main()

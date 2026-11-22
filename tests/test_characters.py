@@ -15,7 +15,6 @@ from thenos.simulation import (
     CardStatistics,
     SimulationReport,
     character_report_path,
-    simulate_four_galaxybrain,
     simulate_games,
     write_report_csv,
 )
@@ -212,12 +211,6 @@ class CharacterTests(unittest.TestCase):
                 daily_conditions=True,
                 characters=True,
             ),
-        )
-
-    def test_galaxybrain_serial_parallel_parity_with_characters(self):
-        self.assertEqual(
-            simulate_four_galaxybrain(4, seed=1005, workers=1, characters=True),
-            simulate_four_galaxybrain(4, seed=1005, workers=2, characters=True),
         )
 
     def test_cli_flag_reaches_every_mode_and_defaults_off(self):

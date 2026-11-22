@@ -241,6 +241,9 @@ def _select_istanbul_discards_fast(
                     oc.definition.slug,
                     _effective_card_title(oc),
                     bool(oc.markers.get("_all_tags")),
+                    tuple(sorted(oc.markers["_extra_tags"]))
+                    if oc.markers.get("_extra_tags")
+                    else (),
                 )
                 if oc.markers
                 else oc.definition.slug
@@ -549,7 +552,7 @@ def _carbon_free_play_value(
             elif w < 0.0 and t != zero_tag:
                 val += w * 0.50
     title = _effective_card_title(card)
-    if zero_tag and title == "Colouring":
+    if zero_tag and getattr(card.effective_behavior, "after_all_tags", False):
         return -8.0
     if title == "Group Dinner":
         val -= 1.35
@@ -571,7 +574,6 @@ def _carbon_free_play_value(
 
 _QUICK_BRANCH_TITLES: frozenset[str] = frozenset(
     {
-        "Nos Book",
         "Group Dinner",
         "Tell a Story",
         "Assorted Cutlery",
@@ -835,10 +837,7 @@ def _carbon_quick_card_desirability(
 
     # Calibrated card-specific adjustments (grounded in 20k-game mechanics)
     if title in _QUICK_BRANCH_TITLES:
-        if title == "Nos Book":
-            if player.played_today or len(player.hand) >= 2 or game.day < DAY_COUNT:
-                val += 2.45
-        elif title == "Group Dinner":
+        if title == "Group Dinner":
             val -= 1.85
         elif title == "Tell a Story":
             has_same_turn_combo = (
@@ -1042,7 +1041,7 @@ def _carbon_quick_card_desirability(
         val += prof.signed_match_benefit * 1.35
 
     if prof.is_global_after_scaler:
-        if zero_tag and title == "Colouring":
+        if zero_tag and getattr(card.effective_behavior, "after_all_tags", False):
             val -= 8.0
         else:
             cheap_cards = 0
@@ -1073,7 +1072,7 @@ def _carbon_quick_card_desirability(
             ):
                 zero_or_sink += 1
         val += zero_or_sink * 1.65
-    elif title == "Evening on the Dock":
+    elif title in {"Evening on the Dock", "Nos Book"}:
         val += 3.5
     elif title == "Couch Tube":
         val += 3.1
@@ -1212,7 +1211,10 @@ class _CarbonEvalAI:
                 game, player_index, card, wanted_tags, prof=prof
             )
             bucket = prof.play_order_bucket
-            if card.definition.title == "Nos Book" and not player.played_today:
+            if (
+                card.definition.title in {"Nos Book", "Colouring"}
+                and not player.played_today
+            ):
                 bucket = 6
                 est -= 6.0
             key = (bucket, -est)
@@ -1508,7 +1510,7 @@ class _CarbonEvalAI:
             v = _contextual_copy_value(
                 game, player_index, opt, source_card, pay_cost=pay_cost
             )
-            if _effective_card_title(opt) == "Group Dinner":
+            if opt.definition.title == "Group Dinner":
                 v -= 1.35
             return v
 
@@ -1544,29 +1546,39 @@ class _CarbonEvalAI:
                     0.45 for sc in game.suitcase if sc.tags & options[i].tags
                 ),
             )
-        if last_played == "Nos Book":
+        if last_played == "Colouring":
             zero_tag = (
                 player.character.zero_fun_tag
                 if player.character is not None
                 else None
             )
-            has_bohnanza = any(
-                _effective_card_title(c) == "Bohnanza" for c in player.hand
-            )
-            return max(
-                range(len(options)),
-                key=lambda i: (
-                    0 if (zero_tag and zero_tag in options[i].tags) else 1,
-                    0
-                    if (
-                        has_bohnanza
-                        and game.card_fun(player_index, options[i]) <= 1
-                        and not _beryllium_build_profile(options[i]).goes_to_tomorrow
-                    )
-                    else 1,
-                    game.card_fun(player_index, options[i]),
-                ),
-            )
+            wanted_tags = _wanted_tags_for_player(player)
+            cond = game.daily_condition
+            char = player.character
+
+            def colouring_target_key(i: int) -> tuple[int, float, int]:
+                tags = options[i].tags
+                score = sum(wanted_tags.get(t, 0.0) for t in sorted(tags))
+                if cond is not None:
+                    if cond.fun_tag and cond.fun_tag in tags:
+                        score += cond.fun_delta * 1.5
+                    if cond.hot_day:
+                        if "Indoors" in tags:
+                            score += 1.0
+                        if "Outdoors" in tags:
+                            score -= 1.0
+                if char is not None:
+                    if char.fun_tag and char.fun_tag in tags:
+                        score += char.fun_delta * 1.5
+                    if char.energy_tag and char.energy_tag in tags:
+                        score -= char.energy_delta * 1.2
+                return (
+                    0 if (zero_tag and zero_tag in tags) else 1,
+                    score,
+                    len(tags),
+                )
+
+            return max(range(len(options)), key=colouring_target_key)
         if last_played == "Address the Food":
             wanted_tags = _wanted_tags_for_player(player)
             own_markers = _carbon_own_suitcase_markers(player)
@@ -2302,12 +2314,17 @@ def _get_carbon_sim_game_cls() -> type:
                 if s_beh.tomorrow_all_tags:
                     seen_after_all = True
                     break
+            accumulated_extra_tags: set[str] = set()
             for played_card in player.played_today:
                 m = played_card.markers
                 if seen_after_all:
                     m["_all_tags"] = True
                 elif m and "_all_tags" in m:
                     m.pop("_all_tags", None)
+                if accumulated_extra_tags:
+                    m["_extra_tags"] = frozenset(accumulated_extra_tags)
+                elif m and "_extra_tags" in m:
+                    m.pop("_extra_tags", None)
                 s_beh = (
                     played_card.definition.behavior
                     if (not m or "_copied_definition" not in m)
@@ -2315,12 +2332,25 @@ def _get_carbon_sim_game_cls() -> type:
                 )
                 if s_beh.after_all_tags:
                     seen_after_all = True
+                if (
+                    type(s_beh).granted_after_tags
+                    is not CardBehavior.granted_after_tags
+                ):
+                    granted = s_beh.granted_after_tags(player, played_card)
+                    if granted:
+                        accumulated_extra_tags.update(granted)
 
         def give_card(self, player_index: int, card: CardInstance) -> None:
             if card.markers or card.is_tomorrow:
                 self._has_marked_hand = True
             player = self.players[player_index]
             player.hand.append(card)
+            self.notify_card_acquire(player_index, card)
+
+        def notify_card_acquire(
+            self, player_index: int, card: CardInstance
+        ) -> None:
+            player = self.players[player_index]
             for source in player.played_today:
                 sm = source.markers
                 s_beh = (
@@ -2506,6 +2536,16 @@ def _get_carbon_sim_game_cls() -> type:
             )
             if temporary_all_tags:
                 m["_all_tags"] = True
+            temporary_extra_tags = False
+            if (
+                has_sources
+                and not (m and m.get("_all_tags"))
+                and (not m or "_extra_tags" not in m)
+            ):
+                extra_tags = self._granted_extra_tags(player, card)
+                if extra_tags:
+                    m["_extra_tags"] = extra_tags
+                    temporary_extra_tags = True
             try:
                 c_defn = (
                     card.definition
@@ -2513,15 +2553,25 @@ def _get_carbon_sim_game_cls() -> type:
                     else card.effective_definition
                 )
                 cost = c_defn.cost
+                if cost < 0:
+                    cost = 0
                 c_tags = (
                     card.tags
-                    if (temporary_all_tags or (m and "_all_tags" in m))
+                    if (
+                        temporary_all_tags
+                        or temporary_extra_tags
+                        or (m and ("_all_tags" in m or "_extra_tags" in m))
+                    )
                     else c_defn.tags
                 )
                 if self.daily_condition is not None:
                     cost = self.daily_condition.modify_energy_cost(c_tags, cost)
+                    if cost < 0:
+                        cost = 0
                 if player.character is not None:
                     cost = player.character.modify_energy_cost(c_tags, cost)
+                    if cost < 0:
+                        cost = 0
                 c_beh = c_defn.behavior
                 if (
                     type(c_beh).modify_own_energy_cost
@@ -2530,6 +2580,8 @@ def _get_carbon_sim_game_cls() -> type:
                     cost = c_beh.modify_own_energy_cost(
                         self, player, card, cost
                     )
+                    if cost < 0:
+                        cost = 0
                 if has_sources:
                     for source in player.tomorrow_cards:
                         sm = source.markers
@@ -2545,6 +2597,8 @@ def _get_carbon_sim_game_cls() -> type:
                             cost = s_beh.modify_tomorrow_energy_cost(
                                 self, player, source, card, cost
                             )
+                            if cost < 0:
+                                cost = 0
                     for source in player.played_today:
                         sm = source.markers
                         s_beh = (
@@ -2559,10 +2613,30 @@ def _get_carbon_sim_game_cls() -> type:
                             cost = s_beh.modify_energy_cost(
                                 self, player, source, card, cost
                             )
-                return cost if cost >= 0 else 0
+                            if cost < 0:
+                                cost = 0
+                    for source in player.played_today:
+                        sm = source.markers
+                        s_beh = (
+                            source.definition.behavior
+                            if (not sm or "_copied_definition" not in sm)
+                            else source.effective_behavior
+                        )
+                        if (
+                            type(s_beh).finalize_energy_cost
+                            is not CardBehavior.finalize_energy_cost
+                        ):
+                            cost = s_beh.finalize_energy_cost(
+                                self, player, source, card, cost
+                            )
+                            if cost < 0:
+                                cost = 0
+                return cost
             finally:
                 if temporary_all_tags:
                     m.pop("_all_tags", None)
+                if temporary_extra_tags:
+                    m.pop("_extra_tags", None)
 
         def hand_playable_with_costs(
             self, player_index: int
@@ -2591,6 +2665,8 @@ def _get_carbon_sim_game_cls() -> type:
                 ):
                     tom_mods.append((source, s_beh))
             today_mods: list[tuple[CardInstance, CardBehavior]] = []
+            today_finalize_mods: list[tuple[CardInstance, CardBehavior]] = []
+            granted_extra_set: set[str] = set()
             for source in player.played_today:
                 sm = source.markers
                 s_beh = (
@@ -2601,16 +2677,31 @@ def _get_carbon_sim_game_cls() -> type:
                 if s_beh.after_all_tags:
                     grants_all = True
                 if (
+                    type(s_beh).granted_after_tags
+                    is not CardBehavior.granted_after_tags
+                ):
+                    granted = s_beh.granted_after_tags(player, source)
+                    if granted:
+                        granted_extra_set.update(granted)
+                if (
                     type(s_beh).modify_energy_cost
                     is not CardBehavior.modify_energy_cost
                 ):
                     today_mods.append((source, s_beh))
+                if (
+                    type(s_beh).finalize_energy_cost
+                    is not CardBehavior.finalize_energy_cost
+                ):
+                    today_finalize_mods.append((source, s_beh))
+            granted_extra = frozenset(granted_extra_set)
 
             out: list[tuple[int, int]] = []
             plain_fast = (
                 not grants_all
+                and not granted_extra
                 and not tom_mods
                 and not today_mods
+                and not today_finalize_mods
                 and cond is None
                 and char is None
             )
@@ -2639,17 +2730,34 @@ def _get_carbon_sim_game_cls() -> type:
                     temp_all = grants_all and (not m or "_all_tags" not in m)
                     if temp_all:
                         m["_all_tags"] = True
+                    temp_extra = (
+                        bool(granted_extra)
+                        and not (m and m.get("_all_tags"))
+                        and (not m or "_extra_tags" not in m)
+                    )
+                    if temp_extra:
+                        m["_extra_tags"] = granted_extra
                     try:
                         cost = c_defn.cost
+                        if cost < 0:
+                            cost = 0
                         c_tags = (
                             card.tags
-                            if (temp_all or (m and "_all_tags" in m))
+                            if (
+                                temp_all
+                                or temp_extra
+                                or (m and ("_all_tags" in m or "_extra_tags" in m))
+                            )
                             else c_defn.tags
                         )
                         if cond is not None:
                             cost = cond.modify_energy_cost(c_tags, cost)
+                            if cost < 0:
+                                cost = 0
                         if char is not None:
                             cost = char.modify_energy_cost(c_tags, cost)
+                            if cost < 0:
+                                cost = 0
                         if (
                             type(c_beh).modify_own_energy_cost
                             is not CardBehavior.modify_own_energy_cost
@@ -2657,19 +2765,31 @@ def _get_carbon_sim_game_cls() -> type:
                             cost = c_beh.modify_own_energy_cost(
                                 self, player, card, cost
                             )
+                            if cost < 0:
+                                cost = 0
                         for source, s_beh in tom_mods:
                             cost = s_beh.modify_tomorrow_energy_cost(
                                 self, player, source, card, cost
                             )
+                            if cost < 0:
+                                cost = 0
                         for source, s_beh in today_mods:
                             cost = s_beh.modify_energy_cost(
                                 self, player, source, card, cost
                             )
-                        if cost < 0:
-                            cost = 0
+                            if cost < 0:
+                                cost = 0
+                        for source, s_beh in today_finalize_mods:
+                            cost = s_beh.finalize_energy_cost(
+                                self, player, source, card, cost
+                            )
+                            if cost < 0:
+                                cost = 0
                     finally:
                         if temp_all:
                             m.pop("_all_tags", None)
+                        if temp_extra:
+                            m.pop("_extra_tags", None)
                 if cost <= p_energy:
                     out.append((index, cost))
             return out
@@ -2701,12 +2821,17 @@ def _get_carbon_sim_game_cls() -> type:
                     tom_mods.append((source, s_beh))
             today_mods: list[tuple[CardInstance, CardBehavior]] = []
             next_tomorrow_cards: list[CardInstance] = []
+            accumulated_extra_tags: set[str] = set()
             for source in played:
                 sm = source.markers
                 if seen_after_all:
                     sm["_all_tags"] = True
                 elif sm and "_all_tags" in sm:
                     sm.pop("_all_tags", None)
+                if accumulated_extra_tags:
+                    sm["_extra_tags"] = frozenset(accumulated_extra_tags)
+                elif sm and "_extra_tags" in sm:
+                    sm.pop("_extra_tags", None)
                 s_beh = (
                     source.definition.behavior
                     if (not sm or "_copied_definition" not in sm)
@@ -2714,6 +2839,13 @@ def _get_carbon_sim_game_cls() -> type:
                 )
                 if s_beh.after_all_tags:
                     seen_after_all = True
+                if (
+                    type(s_beh).granted_after_tags
+                    is not CardBehavior.granted_after_tags
+                ):
+                    granted = s_beh.granted_after_tags(player, source)
+                    if granted:
+                        accumulated_extra_tags.update(granted)
                 if type(s_beh).modify_fun is not CardBehavior.modify_fun:
                     today_mods.append((source, s_beh))
                 if s_beh.has_tomorrow_action:
@@ -2733,7 +2865,9 @@ def _get_carbon_sim_game_cls() -> type:
                     else:
                         value = t_beh.fun_value(self, player, target)
                     t_tags = (
-                        target.tags if (m and "_all_tags" in m) else t_defn.tags
+                        target.tags
+                        if (m and ("_all_tags" in m or "_extra_tags" in m))
+                        else t_defn.tags
                     )
                     if cond is not None:
                         value = cond.modify_fun(t_tags, value)
@@ -2817,7 +2951,9 @@ def _get_carbon_sim_game_cls() -> type:
                             card.effective_behavior.on_score(self, player, card)
             self._fun_at_start_of_scoring = None
 
-            for player in players:
+            order = self.player_order()
+            for p_idx in order:
+                player = players[p_idx]
                 if player.played_today:
                     for card in tuple(player.played_today):
                         m = card.markers
@@ -2829,7 +2965,8 @@ def _get_carbon_sim_game_cls() -> type:
                         if type(c_beh).on_end_day is not CardBehavior.on_end_day:
                             c_beh.on_end_day(self, player, card)
 
-            for player in players:
+            for p_idx in order:
+                player = players[p_idx]
                 if player.played_today:
                     for card in tuple(player.played_today):
                         m = card.markers
@@ -2844,7 +2981,12 @@ def _get_carbon_sim_game_cls() -> type:
                         ):
                             c_beh.on_after_end_day(self, player, card)
 
+            for suitcase_card in self.suitcase:
+                if suitcase_card.markers:
+                    suitcase_card.markers.clear()
+
             for player in players:
+                player.skipped_turns = 0
                 previous_tomorrow = player.tomorrow_cards
                 player.tomorrow_cards = []
                 for card in previous_tomorrow:
@@ -4113,6 +4255,7 @@ class CarbonAI(BerylliumBrain):
                         or (
                             "_copied_definition" not in c.markers
                             and not c.markers.get("energy_cubes")
+                            and not c.markers.get("_ski_on_shoulders_energy_cube")
                             and c.markers.get("target_card") is None
                             and c.markers.get("target_player_index") is None
                         )
@@ -4125,6 +4268,7 @@ class CarbonAI(BerylliumBrain):
                             c.markers.get("target_card"), "instance_id", None
                         ),
                         c.markers.get("target_player_index"),
+                        bool(c.markers.get("_ski_on_shoulders_energy_cube")),
                     )
                     for c in p.played_today
                 ]
@@ -4282,12 +4426,26 @@ class CarbonAI(BerylliumBrain):
                     bucket = 4
 
             if (
-                title == "Colouring"
+                getattr(card.effective_behavior, "after_all_tags", False)
                 and player.character is not None
                 and player.character.zero_fun_tag
             ):
                 bucket = 6
                 desirability -= 8.0
+            elif title == "Colouring":
+                if not player.played_today:
+                    bucket = 6
+                    desirability -= 6.0
+                elif (
+                    player.character is not None
+                    and player.character.zero_fun_tag
+                    and all(
+                        player.character.zero_fun_tag in c.tags
+                        for c in player.played_today
+                    )
+                ):
+                    bucket = 6
+                    desirability -= 8.0
             elif title == "Nos Book":
                 if not player.played_today:
                     bucket = 6
@@ -4326,7 +4484,7 @@ class CarbonAI(BerylliumBrain):
                     if idx != player_index
                     for oc in opp.played_today
                     if oc.definition.cost <= rem_after_play
-                    and oc.effective_behavior.can_play(sim, player, card)
+                    and oc.definition.behavior.can_play(sim, player, card)
                 ]
                 if eligible_opp:
                     best_cv = max(
@@ -5053,7 +5211,7 @@ class CarbonAI(BerylliumBrain):
                             if t in active_after_tags
                             else b_delta
                         )
-                elif hc.definition.title == "Evening on the Dock":
+                elif hc.definition.title in {"Evening on the Dock", "Nos Book"}:
                     pending_before_bonus += len(played_today) * 0.90
                 elif hc.definition.title == "Couch Tube":
                     cost_sum = 0
@@ -5585,8 +5743,6 @@ class CarbonAI(BerylliumBrain):
                 if char is not None:
                     cost = max(0, char.modify_energy_cost(c_tags, cost))
                 base_f = float(c_defn.base_fun + c_prof.immediate_fun_gain)
-                if c_title == "Nos Book":
-                    base_f += 3.0
                 if char is not None:
                     base_f = float(
                         char.finalize_fun(
@@ -5762,7 +5918,9 @@ class CarbonAI(BerylliumBrain):
                     if (
                         char is not None
                         and char.zero_fun_tag
-                        and c_title == "Colouring"
+                        and getattr(
+                            c.effective_behavior, "after_all_tags", False
+                        )
                     ):
                         raw_val -= 8.0
                     else:
@@ -6224,7 +6382,7 @@ class CarbonAI(BerylliumBrain):
                 live_source_card,
                 pay_cost=pay_cost,
             )
-            - (1.35 if _effective_card_title(options[i]) == "Group Dinner" else 0.0),
+            - (1.35 if options[i].definition.title == "Group Dinner" else 0.0),
             reverse=True,
         )[:5]
         best_idx = ranked_indices[0]

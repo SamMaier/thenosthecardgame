@@ -75,415 +75,415 @@ _CLUSTER_TAG_TO_IDX: dict[str, int] = {
 
 # Fitted on-policy Huber-IRLS Ridge weights (DAgger-R4, soft-capped Fun utility).
 _OSMIUM_BASE_WEIGHTS: tuple[float, ...] = (
-    5.009405,
-    14.442897,
-    25.416254,
-    38.813231,
-    51.693283,
-    1.004922,
-    -0.228326,
-    0.996190,
+    2.541002,
+    10.060937,
+    21.698141,
+    35.873598,
+    49.681343,
+    1.106752,
+    -0.308655,
+    0.677362,
     0.000000,
-    9.018928,
-    1.249425,
-    0.102563,
-    0.343562,
-    -0.027977,
-    -0.027658,
-    0.212935,
-    0.802367,
-    -0.720821,
-    -1.222757,
-    1.255475,
-    0.772029,
-    0.413345,
-    0.424109,
-    -2.386511,
-    2.092927,
-    0.103400,
-    -0.269525,
-    -3.434027,
-    6.616347,
-    0.446865,
-    -0.872756,
-    -0.125072,
-    0.380406,
-    2.424181,
-    2.448386,
-    4.318170,
-    -0.859145,
-    0.595980,
-    -0.079704,
-    -0.545775,
-    0.894631,
-    0.314812,
+    8.787086,
+    1.196287,
+    0.224964,
+    0.534371,
+    0.176963,
+    -0.684015,
+    0.490292,
+    1.346276,
+    -0.625493,
+    -1.005359,
+    1.046788,
+    0.942057,
+    -0.141541,
+    0.042194,
+    -2.863289,
+    2.746686,
+    -0.067539,
+    -0.303192,
+    -3.306632,
+    6.765583,
+    0.759789,
+    -0.724101,
+    -0.200200,
+    0.524159,
+    2.320231,
+    2.532745,
+    4.575963,
+    -0.041580,
+    0.988738,
+    -0.093725,
+    -0.211342,
+    -0.342867,
+    0.671528,
     0.000000,
-    0.098643,
-    0.438987,
-    0.369283,
-    0.541081,
-    -0.168983,
-    0.359743,
-    0.683150,
-    1.069611,
-    -0.330931,
-    -0.317180,
+    0.348217,
+    -0.402139,
+    0.227379,
+    0.703678,
+    -0.151605,
+    -0.324852,
+    0.351208,
+    0.970183,
+    0.439383,
+    -0.139217,
     0.000000,
     0.000000,
-    0.418334,
-    -0.183402,
-    0.560495,
-    1.067133,
-    -0.112176,
-    -0.148928,
-    0.411552,
-    0.329918,
-    -0.546152,
-    2.539861,
-    0.039842,
-    0.792437,
-    -0.633596,
-    0.061246,
-    0.287228,
-    5.327418,
-    1.709590,
-    2.028942,
-    -1.900145,
-    0.954162,
-    0.915349,
-    2.311707,
-    0.136732,
-    -1.944504,
-    -0.164755,
-    0.069917,
+    0.405083,
+    -0.558768,
+    0.293247,
+    0.965426,
+    0.405920,
+    -0.586797,
+    0.547032,
+    0.214187,
+    0.013300,
+    1.279720,
+    -0.004457,
+    0.553639,
+    0.529742,
+    0.105549,
+    0.905928,
+    3.256662,
+    0.777767,
+    2.483128,
+    -0.338754,
+    0.717891,
+    0.443562,
+    2.044074,
+    0.023697,
+    -1.302493,
+    -0.081781,
+    0.116720,
 )
 
 _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
-    "7-wonders": -0.249232,
-    "address-the-food": 0.749092,
-    "adventure-race": 0.180383,
-    "after-dinner-entertainment": -0.801397,
-    "afternoon-coffee": -0.597080,
-    "agricola": 0.920301,
-    "assorted-cutlery": -0.007873,
-    "aunterview": 0.191695,
-    "azul": -0.118505,
-    "beach-conversation": 0.563501,
-    "beach-volleyball": 0.004065,
-    "beaver-burgers": 0.701412,
-    "bend-the-rules": 0.904678,
-    "boat-ride": 0.798697,
-    "bohnanza": 2.395775,
-    "booby-prize": 0.190401,
-    "bougie-coffee-machine": 0.398545,
-    "bracelet-making": -1.519700,
-    "bring-a-friend": 0.627884,
-    "bubly": -0.020829,
-    "bug-spray": -0.159468,
-    "butter-tarts": -0.811284,
-    "calzones": -0.127451,
-    "camp-crossroads-dessert": 0.050709,
-    "campfire": -0.181304,
-    "canoe": 0.395701,
-    "carcassonne": -1.112674,
-    "chalk-art": 0.630714,
-    "charcuterie": -0.290746,
-    "cheap-red": -0.821774,
-    "cheap-white": -0.449895,
-    "cheesy-phone-game": 0.200719,
-    "christmas-name-draw": -0.124222,
-    "chuck-a-frisbee": 0.628422,
-    "cities-and-knights": -0.314599,
-    "civilization-the-boardgame": 0.208415,
-    "classic-book": -0.020313,
-    "cliff-climbing": -0.504120,
-    "colouring": -0.482549,
-    "couch-tube": 2.474749,
-    "dates-first-nos": 0.414792,
-    "decaf": 0.996435,
-    "dishwashing": -0.250072,
-    "dock-fishing": 0.384600,
-    "dominion": 0.237905,
-    "doritos": 0.082627,
-    "doxology": -0.355718,
-    "drop-a-ski": -0.234355,
-    "dumbed-down-settlers": -0.257480,
-    "early-bedtime": 0.010621,
-    "epic-duels": -0.082544,
-    "epic-playlist": -0.654015,
-    "epic-prank": -0.684103,
-    "euchre": -0.622512,
-    "euchre-awards-ceremony": -0.371329,
-    "euchre-tournament": -1.524342,
-    "evening-chat": -0.240878,
-    "evening-on-the-dock": 0.170939,
-    "fajitas": -0.441164,
-    "family-baseball-game": 1.346509,
-    "fancy-craft": 0.570157,
-    "fancy-floatie": -0.520718,
-    "fishing-boat": 0.557251,
-    "fishing-evening": -0.206907,
-    "fishing-morning": 0.146201,
-    "fit-to-print": -0.401882,
-    "floating": 0.268144,
-    "forced-family-fun": -1.005834,
-    "grocery-store-run": -0.135627,
-    "group-dinner": 0.063512,
-    "high-end-red": -0.703917,
-    "high-end-white": -0.970229,
-    "hold-the-baby": 1.064884,
-    "ice-cream-sandwich": -0.350166,
-    "ice-wine": 0.874073,
-    "istanbul": 3.863247,
-    "johnny-appleseed": -0.421386,
-    "kayak": -0.015113,
-    "keeper": 1.006835,
-    "kneeboard": 0.050058,
-    "last-years-shirt": 0.131912,
-    "leftovers": 0.077553,
-    "long-distance-visitors": -0.367014,
-    "m-ms": -0.393255,
-    "make-plans": 0.526572,
-    "medical-advice": -0.316423,
-    "morning-bike": 0.226203,
-    "morning-coffee": 0.021699,
-    "morning-run": -0.301520,
-    "morning-walk": 0.461773,
-    "movie": 0.392984,
-    "nap": -0.253657,
-    "navy-sealing": 1.291076,
-    "new-nos-book-entry": 0.442438,
-    "newfangled-tres-fute": 0.485769,
-    "non-fiction-book": 0.019322,
-    "nos-book": -0.069131,
-    "nos-shirt": 0.577609,
-    "outdoor-movie": 0.776269,
-    "paddleboard": -0.081204,
-    "paddleboat": -0.550982,
-    "paint": -0.185632,
-    "paint-rocks": 0.101007,
-    "photo-shoot": 0.150698,
-    "play-with-the-kids": -0.520222,
-    "poker": -0.418430,
-    "ponyback": -0.284106,
-    "potato-pancakes": -0.707825,
-    "prime-picnic-table": 0.110705,
-    "pudding-chomeur": 0.355576,
-    "puerto-rico": 0.357577,
-    "quacks": -0.314282,
-    "read-the-radar": -0.024200,
-    "risk": -0.144826,
-    "rouladen": 1.396714,
-    "san-juan": -0.178205,
-    "schwank": -0.233161,
-    "scout-other-cottages": -0.539580,
-    "scrabble": -0.299766,
-    "screamer-battle": -0.260887,
-    "shady-spot": -1.164755,
-    "sing-song": 0.375503,
-    "ski-boat": 0.436949,
-    "ski-on-shoulders": -0.854650,
-    "sleep-in": -0.610471,
-    "solo": 0.134510,
-    "spa-day": -0.361846,
-    "spikeball": -0.413543,
-    "splendor": 0.560176,
-    "stay-up-late": -0.199374,
-    "steak": -0.068730,
-    "stretch": -0.589616,
-    "sunrise": -0.320100,
-    "sunscreen": 0.398276,
-    "sweet-lawn-chair": 0.559178,
-    "swimming": -0.160533,
-    "tanning": 0.023784,
-    "teach-kid-to-ski": -1.158161,
-    "tell-a-story": -0.348328,
-    "terra-mystica": -0.931043,
-    "the-crew": -0.444423,
-    "thriller-book": -0.224653,
-    "throw-a-baseball": -0.720839,
-    "treat-cereal": -0.351815,
-    "treat-store-run": 0.124369,
-    "trekking-through-history": -0.782382,
-    "tres-fute": -0.307133,
-    "wakeboard": -0.431755,
-    "wakesurf": -0.893358,
-    "water-trampoline": -0.389671,
-    "water-volleyball": 0.274624,
-    "waterski": -0.371302,
-    "wedding-anniversary": 1.024334,
-    "weird-chip-flavour": -1.120773,
-    "wildlife-spotting": -0.092102,
-    "wingspan": 0.262056,
-    "work-call": 0.945166,
-    "wrestle-the-kids": 0.442610,
-    "wurstchen": 0.753201,
-    "zero-gravity-chair": -0.449093,
-    "zumba": 0.286761,
+    "7-wonders": 0.305407,
+    "address-the-food": -1.035186,
+    "adventure-race": 0.465357,
+    "after-dinner-entertainment": 0.734647,
+    "afternoon-coffee": -0.265428,
+    "agricola": -0.395413,
+    "assorted-cutlery": -0.866406,
+    "aunterview": 0.190504,
+    "azul": 0.471858,
+    "beach-conversation": -0.102730,
+    "beach-volleyball": -0.024997,
+    "beaver-burgers": 0.675907,
+    "bend-the-rules": 1.348707,
+    "boat-ride": 0.185435,
+    "bohnanza": 2.321775,
+    "booby-prize": 0.359240,
+    "bougie-coffee-machine": -1.051905,
+    "bracelet-making": -1.414079,
+    "bring-a-friend": 2.352499,
+    "bubly": -0.014524,
+    "bug-spray": -0.773428,
+    "butter-tarts": -1.116795,
+    "calzones": 0.381994,
+    "camp-crossroads-dessert": -0.742079,
+    "campfire": -0.134794,
+    "canoe": 0.561685,
+    "carcassonne": -0.604247,
+    "chalk-art": 0.555938,
+    "charcuterie": 0.459509,
+    "cheap-red": -1.674853,
+    "cheap-white": -0.402200,
+    "cheesy-phone-game": 0.889732,
+    "christmas-name-draw": 0.202683,
+    "chuck-a-frisbee": 1.161063,
+    "cities-and-knights": 0.409093,
+    "civilization-the-boardgame": 0.873473,
+    "classic-book": 0.215115,
+    "cliff-climbing": -0.828539,
+    "colouring": 4.279967,
+    "couch-tube": 2.521061,
+    "dates-first-nos": 1.700527,
+    "decaf": 0.389490,
+    "dishwashing": -0.664983,
+    "dock-fishing": 0.316217,
+    "dominion": -0.090719,
+    "doritos": 1.299810,
+    "doxology": -0.992291,
+    "drop-a-ski": -0.648155,
+    "dumbed-down-settlers": -0.302026,
+    "early-bedtime": 1.503427,
+    "epic-duels": -0.004370,
+    "epic-playlist": -1.618146,
+    "epic-prank": -0.005243,
+    "euchre": -1.040411,
+    "euchre-awards-ceremony": -1.476773,
+    "euchre-tournament": -2.315201,
+    "evening-chat": 0.901286,
+    "evening-on-the-dock": 0.734487,
+    "fajitas": -0.559177,
+    "family-baseball-game": 0.779877,
+    "fancy-craft": 2.234590,
+    "fancy-floatie": -0.236519,
+    "fishing-boat": 0.216247,
+    "fishing-evening": -0.565163,
+    "fishing-morning": -0.386606,
+    "fit-to-print": -0.768210,
+    "floating": 0.403721,
+    "forced-family-fun": -1.053715,
+    "grocery-store-run": -1.115974,
+    "group-dinner": -0.270222,
+    "high-end-red": -0.169239,
+    "high-end-white": -1.054279,
+    "hold-the-baby": 1.224265,
+    "ice-cream-sandwich": 0.192919,
+    "ice-wine": 0.698685,
+    "istanbul": 3.871684,
+    "johnny-appleseed": -0.721993,
+    "kayak": 0.365404,
+    "keeper": 0.376220,
+    "kneeboard": -0.576329,
+    "last-years-shirt": -0.511820,
+    "leftovers": -0.202424,
+    "long-distance-visitors": -0.371222,
+    "m-ms": -0.680769,
+    "make-plans": 0.712748,
+    "medical-advice": -0.199819,
+    "morning-bike": 0.632107,
+    "morning-coffee": -0.277148,
+    "morning-run": 0.531876,
+    "morning-walk": 0.180278,
+    "movie": 0.563263,
+    "nap": -1.386491,
+    "navy-sealing": 0.994307,
+    "new-nos-book-entry": 0.705850,
+    "newfangled-tres-fute": 0.489753,
+    "non-fiction-book": -0.577863,
+    "nos-book": 0.877031,
+    "nos-shirt": 1.210483,
+    "outdoor-movie": 1.058520,
+    "paddleboard": -0.391463,
+    "paddleboat": 0.654633,
+    "paint": -0.006023,
+    "paint-rocks": 0.041167,
+    "photo-shoot": 0.639717,
+    "play-with-the-kids": -1.014027,
+    "poker": -0.779202,
+    "ponyback": -0.123043,
+    "potato-pancakes": -0.736249,
+    "prime-picnic-table": 0.850664,
+    "pudding-chomeur": 0.810791,
+    "puerto-rico": 0.487236,
+    "quacks": -0.156225,
+    "read-the-radar": -0.652858,
+    "risk": -0.228392,
+    "rouladen": 2.960619,
+    "san-juan": -0.066760,
+    "schwank": -1.036712,
+    "scout-other-cottages": 0.032884,
+    "scrabble": -0.288709,
+    "screamer-battle": -0.616176,
+    "shady-spot": -2.290423,
+    "sing-song": 0.035976,
+    "ski-boat": -0.225525,
+    "ski-on-shoulders": -0.134483,
+    "sleep-in": -0.651480,
+    "solo": 0.235076,
+    "spa-day": 0.273807,
+    "spikeball": -0.231654,
+    "splendor": -0.793402,
+    "stay-up-late": 0.063644,
+    "steak": -0.084136,
+    "stretch": -0.019005,
+    "sunrise": -0.348479,
+    "sunscreen": 1.160225,
+    "sweet-lawn-chair": -0.052277,
+    "swimming": 0.208704,
+    "tanning": 0.190058,
+    "teach-kid-to-ski": -0.566749,
+    "tell-a-story": -0.443683,
+    "terra-mystica": -0.850489,
+    "the-crew": -0.657453,
+    "thriller-book": -1.421688,
+    "throw-a-baseball": -0.628485,
+    "treat-cereal": 0.209585,
+    "treat-store-run": 0.185536,
+    "trekking-through-history": -1.215113,
+    "tres-fute": -0.868853,
+    "wakeboard": -0.564222,
+    "wakesurf": -1.182049,
+    "water-trampoline": -1.228901,
+    "water-volleyball": 0.087744,
+    "waterski": -1.093430,
+    "wedding-anniversary": 2.928889,
+    "weird-chip-flavour": 0.059818,
+    "wildlife-spotting": -0.742717,
+    "wingspan": -0.951864,
+    "work-call": 1.578914,
+    "wrestle-the-kids": 0.800413,
+    "wurstchen": 1.315645,
+    "zero-gravity-chair": 0.826657,
+    "zumba": 0.434499,
 }
 
 _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
-    "7-wonders": -0.047800,
-    "address-the-food": -0.489525,
-    "adventure-race": 0.752069,
-    "after-dinner-entertainment": 0.082552,
-    "afternoon-coffee": 0.168412,
-    "agricola": -0.524666,
-    "assorted-cutlery": 0.287857,
-    "aunterview": -0.553680,
-    "azul": 0.004960,
-    "beach-conversation": -0.127418,
-    "beach-volleyball": 0.070732,
-    "beaver-burgers": -0.033381,
-    "bend-the-rules": 0.304617,
-    "boat-ride": -0.127633,
-    "bohnanza": 0.460157,
-    "booby-prize": 0.043456,
-    "bougie-coffee-machine": -0.207252,
-    "bracelet-making": -0.164743,
-    "bring-a-friend": 0.114350,
-    "bubly": -0.178155,
-    "bug-spray": -0.105211,
-    "butter-tarts": -0.274926,
-    "calzones": 0.467141,
-    "camp-crossroads-dessert": -0.182923,
-    "campfire": 0.171549,
-    "canoe": 0.430486,
-    "carcassonne": 0.104087,
-    "chalk-art": 0.074060,
-    "charcuterie": 0.027530,
-    "cheap-red": -0.301459,
-    "cheap-white": -0.127349,
-    "cheesy-phone-game": 0.223940,
-    "christmas-name-draw": 0.328022,
-    "chuck-a-frisbee": -0.478139,
-    "cities-and-knights": -0.141567,
-    "civilization-the-boardgame": -0.060361,
-    "classic-book": 0.354516,
-    "cliff-climbing": 0.000791,
-    "colouring": -1.158700,
-    "couch-tube": 0.716890,
-    "dates-first-nos": -0.499407,
-    "decaf": 0.557256,
-    "dishwashing": -0.214361,
-    "dock-fishing": -0.111530,
-    "dominion": -0.191370,
-    "doritos": -0.269645,
-    "doxology": 0.007810,
-    "drop-a-ski": -0.064890,
-    "dumbed-down-settlers": 0.475885,
-    "early-bedtime": -0.229362,
-    "epic-duels": 0.151424,
-    "epic-playlist": 0.055459,
-    "epic-prank": -0.010819,
-    "euchre": -0.169412,
-    "euchre-awards-ceremony": -0.593196,
-    "euchre-tournament": -0.379877,
-    "evening-chat": 0.095935,
-    "evening-on-the-dock": 0.504446,
-    "fajitas": 0.134907,
-    "family-baseball-game": -0.034571,
-    "fancy-craft": -0.092379,
-    "fancy-floatie": 0.195590,
-    "fishing-boat": -0.041037,
-    "fishing-evening": -0.062534,
-    "fishing-morning": -0.115670,
-    "fit-to-print": -0.330675,
-    "floating": 0.176197,
-    "forced-family-fun": -0.199908,
-    "grocery-store-run": -0.143052,
-    "group-dinner": 0.396079,
-    "high-end-red": -0.356961,
-    "high-end-white": 0.074677,
-    "hold-the-baby": 0.067808,
-    "ice-cream-sandwich": 0.086235,
-    "ice-wine": -0.216683,
-    "istanbul": 0.924834,
-    "johnny-appleseed": -0.236004,
-    "kayak": 0.299303,
-    "keeper": 0.355902,
-    "kneeboard": 0.037570,
-    "last-years-shirt": 0.076754,
-    "leftovers": 0.515041,
-    "long-distance-visitors": -0.065494,
-    "m-ms": -0.322200,
-    "make-plans": -0.070351,
-    "medical-advice": -0.106116,
-    "morning-bike": -0.015053,
-    "morning-coffee": 0.003499,
-    "morning-run": -0.670076,
-    "morning-walk": -0.471922,
-    "movie": 0.245053,
-    "nap": -0.260799,
-    "navy-sealing": 0.672887,
-    "new-nos-book-entry": 0.107940,
-    "newfangled-tres-fute": 0.417296,
-    "non-fiction-book": 0.003754,
-    "nos-book": -0.135354,
-    "nos-shirt": -0.095007,
-    "outdoor-movie": 0.608720,
-    "paddleboard": -0.149816,
-    "paddleboat": -0.301561,
-    "paint": -0.046702,
-    "paint-rocks": -0.066062,
-    "photo-shoot": -0.307526,
-    "play-with-the-kids": -0.259140,
-    "poker": -0.095665,
-    "ponyback": -0.362541,
-    "potato-pancakes": 0.155568,
-    "prime-picnic-table": 0.433875,
-    "pudding-chomeur": 0.122100,
-    "puerto-rico": -0.180657,
-    "quacks": -0.063696,
-    "read-the-radar": 0.195777,
-    "risk": -0.118072,
-    "rouladen": 0.799480,
-    "san-juan": 0.153991,
-    "schwank": -0.208662,
-    "scout-other-cottages": -0.483786,
-    "scrabble": -0.001664,
-    "screamer-battle": -0.122839,
-    "shady-spot": -0.515988,
-    "sing-song": 0.075453,
-    "ski-boat": 0.053923,
-    "ski-on-shoulders": -0.222549,
-    "sleep-in": -0.384674,
-    "solo": -0.262035,
-    "spa-day": 0.428777,
-    "spikeball": 0.103727,
-    "splendor": 0.252838,
-    "stay-up-late": -0.145976,
-    "steak": 0.202086,
-    "stretch": 0.009606,
-    "sunrise": -0.092041,
-    "sunscreen": 0.031214,
-    "sweet-lawn-chair": 0.091753,
-    "swimming": -0.213405,
-    "tanning": 0.258261,
-    "teach-kid-to-ski": -0.086087,
-    "tell-a-story": -0.417480,
-    "terra-mystica": -0.269370,
-    "the-crew": -0.331956,
-    "thriller-book": -0.299930,
-    "throw-a-baseball": -0.055018,
-    "treat-cereal": 0.150704,
-    "treat-store-run": 0.049492,
-    "trekking-through-history": -0.147914,
-    "tres-fute": -0.225413,
-    "wakeboard": 0.252442,
-    "wakesurf": 0.051452,
-    "water-trampoline": -0.157645,
-    "water-volleyball": -0.095763,
-    "waterski": 0.045640,
-    "wedding-anniversary": 1.032315,
-    "weird-chip-flavour": -0.013668,
-    "wildlife-spotting": -0.064513,
-    "wingspan": -0.022387,
-    "work-call": 0.244861,
-    "wrestle-the-kids": -0.260353,
-    "wurstchen": 0.540489,
-    "zero-gravity-chair": 0.435451,
-    "zumba": -0.111968,
+    "7-wonders": 0.064932,
+    "address-the-food": 0.324543,
+    "adventure-race": 0.825986,
+    "after-dinner-entertainment": 0.756144,
+    "afternoon-coffee": 0.181251,
+    "agricola": -0.487581,
+    "assorted-cutlery": -0.066577,
+    "aunterview": -0.622299,
+    "azul": -0.135485,
+    "beach-conversation": -0.002381,
+    "beach-volleyball": 0.094199,
+    "beaver-burgers": -0.326356,
+    "bend-the-rules": 0.187889,
+    "boat-ride": 0.107194,
+    "bohnanza": 0.298253,
+    "booby-prize": -0.010162,
+    "bougie-coffee-machine": -1.095412,
+    "bracelet-making": 0.142024,
+    "bring-a-friend": 0.159613,
+    "bubly": -0.153021,
+    "bug-spray": -0.065773,
+    "butter-tarts": 0.022607,
+    "calzones": 0.629760,
+    "camp-crossroads-dessert": -0.177358,
+    "campfire": -0.044999,
+    "canoe": 0.248399,
+    "carcassonne": -0.016450,
+    "chalk-art": -0.309851,
+    "charcuterie": 0.158834,
+    "cheap-red": -0.166544,
+    "cheap-white": -0.152297,
+    "cheesy-phone-game": 0.257694,
+    "christmas-name-draw": 0.667510,
+    "chuck-a-frisbee": -0.652299,
+    "cities-and-knights": 0.075735,
+    "civilization-the-boardgame": -0.024953,
+    "classic-book": 0.247484,
+    "cliff-climbing": -0.045467,
+    "colouring": -0.813336,
+    "couch-tube": 0.358086,
+    "dates-first-nos": -1.087655,
+    "decaf": 0.474479,
+    "dishwashing": -0.327700,
+    "dock-fishing": 0.180803,
+    "dominion": -0.156430,
+    "doritos": 0.465300,
+    "doxology": 0.081522,
+    "drop-a-ski": 0.186812,
+    "dumbed-down-settlers": 0.295273,
+    "early-bedtime": -0.702800,
+    "epic-duels": 0.155381,
+    "epic-playlist": 0.152797,
+    "epic-prank": -0.174874,
+    "euchre": 0.001861,
+    "euchre-awards-ceremony": -0.665218,
+    "euchre-tournament": -0.363723,
+    "evening-chat": 0.552937,
+    "evening-on-the-dock": 0.580206,
+    "fajitas": 0.170888,
+    "family-baseball-game": -0.025568,
+    "fancy-craft": -0.671844,
+    "fancy-floatie": 0.211671,
+    "fishing-boat": 0.317440,
+    "fishing-evening": 0.026438,
+    "fishing-morning": -0.350338,
+    "fit-to-print": -0.511966,
+    "floating": 0.017887,
+    "forced-family-fun": 0.389975,
+    "grocery-store-run": -0.465855,
+    "group-dinner": 1.274692,
+    "high-end-red": -0.423862,
+    "high-end-white": -0.153815,
+    "hold-the-baby": 0.198603,
+    "ice-cream-sandwich": 0.787094,
+    "ice-wine": -0.451407,
+    "istanbul": 0.181347,
+    "johnny-appleseed": -0.194783,
+    "kayak": 0.023115,
+    "keeper": 0.305646,
+    "kneeboard": -0.275781,
+    "last-years-shirt": 1.838252,
+    "leftovers": 0.031120,
+    "long-distance-visitors": -0.118030,
+    "m-ms": -0.825724,
+    "make-plans": -0.182007,
+    "medical-advice": -0.165715,
+    "morning-bike": -0.448993,
+    "morning-coffee": -0.488909,
+    "morning-run": -1.319455,
+    "morning-walk": -0.844371,
+    "movie": 0.367864,
+    "nap": -0.247307,
+    "navy-sealing": 1.093665,
+    "new-nos-book-entry": 0.012758,
+    "newfangled-tres-fute": 0.511586,
+    "non-fiction-book": 0.003836,
+    "nos-book": 0.822852,
+    "nos-shirt": -0.030720,
+    "outdoor-movie": 0.516912,
+    "paddleboard": -0.055185,
+    "paddleboat": -0.619066,
+    "paint": -0.017621,
+    "paint-rocks": -0.111405,
+    "photo-shoot": -0.194591,
+    "play-with-the-kids": -0.413593,
+    "poker": -0.100519,
+    "ponyback": -0.286219,
+    "potato-pancakes": 0.268960,
+    "prime-picnic-table": 0.419999,
+    "pudding-chomeur": -0.060819,
+    "puerto-rico": -0.059233,
+    "quacks": 0.388054,
+    "read-the-radar": -0.033005,
+    "risk": -0.233915,
+    "rouladen": 1.325888,
+    "san-juan": 0.585364,
+    "schwank": 0.208598,
+    "scout-other-cottages": -0.747114,
+    "scrabble": 0.054752,
+    "screamer-battle": -0.005739,
+    "shady-spot": -0.278368,
+    "sing-song": 0.253669,
+    "ski-boat": 0.196335,
+    "ski-on-shoulders": -0.887746,
+    "sleep-in": -0.978253,
+    "solo": -0.529884,
+    "spa-day": 0.018718,
+    "spikeball": 0.417895,
+    "splendor": 0.142196,
+    "stay-up-late": -0.335456,
+    "steak": 0.103285,
+    "stretch": 0.077061,
+    "sunrise": -0.145782,
+    "sunscreen": 0.461499,
+    "sweet-lawn-chair": -0.073439,
+    "swimming": 0.106373,
+    "tanning": 0.272445,
+    "teach-kid-to-ski": 0.018196,
+    "tell-a-story": -0.403809,
+    "terra-mystica": -0.393198,
+    "the-crew": -0.059281,
+    "thriller-book": -0.345656,
+    "throw-a-baseball": -0.205823,
+    "treat-cereal": 0.432468,
+    "treat-store-run": -0.361085,
+    "trekking-through-history": -0.369084,
+    "tres-fute": -0.512304,
+    "wakeboard": 0.614707,
+    "wakesurf": 0.448734,
+    "water-trampoline": 0.080896,
+    "water-volleyball": -0.344141,
+    "waterski": -0.247631,
+    "wedding-anniversary": -0.922552,
+    "weird-chip-flavour": -0.454933,
+    "wildlife-spotting": -0.200303,
+    "wingspan": -0.054219,
+    "work-call": 0.276484,
+    "wrestle-the-kids": -0.574106,
+    "wurstchen": 0.921519,
+    "zero-gravity-chair": 0.479730,
+    "zumba": -0.231079,
 }
 
 _OSMIUM_RESERVE_CACHE_MAX = 262144
@@ -555,9 +555,9 @@ def _ensure_osmium_caches() -> None:
         bf_float = float(bf_int)
         if meta.immediate_energy_gain > cost and title != "Sleep In":
             net_e = float(meta.immediate_energy_gain - cost)
-        elif title == "Butter Tarts" or title == "Istanbul":
+        elif title == "Butter Tarts":
             net_e = 3.0
-        elif title == "Potato Pancakes":
+        elif title == "Potato Pancakes" or title == "Istanbul":
             net_e = 2.0
         elif title == "Shady Spot":
             net_e = 2.5
@@ -1088,9 +1088,9 @@ def _osmium_reserve_score(
         if is_zeroed:
             if meta.immediate_energy_gain > cost and title != "Sleep In":
                 net_e_pos += float(meta.immediate_energy_gain - cost)
-            elif title in {"Butter Tarts", "Istanbul"}:
+            elif title == "Butter Tarts":
                 net_e_pos += 3.0
-            elif title == "Potato Pancakes":
+            elif title in {"Potato Pancakes", "Istanbul"}:
                 net_e_pos += 2.0
             elif title == "Shady Spot":
                 net_e_pos += 2.5
@@ -1115,9 +1115,9 @@ def _osmium_reserve_score(
 
         if meta.immediate_energy_gain > cost and title != "Sleep In":
             net_e_pos += float(meta.immediate_energy_gain - cost)
-        elif title in {"Butter Tarts", "Istanbul"}:
+        elif title == "Butter Tarts":
             net_e_pos += 3.0
-        elif title == "Potato Pancakes":
+        elif title in {"Potato Pancakes", "Istanbul"}:
             net_e_pos += 2.0
         elif title == "Shady Spot":
             net_e_pos += 2.5
@@ -1285,6 +1285,61 @@ def _osmium_reserve_score(
     return val
 
 
+def _colouring_tag_score(
+    tags: frozenset[str],
+    wanted_tags: dict[str, float],
+    cond: object,
+    char: object,
+) -> tuple[float, int]:
+    """Deterministic tie-break / ranking heuristic for a Colouring target's tag set."""
+    score = sum(wanted_tags.get(t, 0.0) for t in sorted(tags))
+    if cond is not None:
+        if getattr(cond, "fun_tag", "") in tags:
+            score += float(getattr(cond, "fun_delta", 0)) * 0.8
+        if getattr(cond, "hot_day", False):
+            if "Outdoors" in tags:
+                score -= 0.8
+            if "Indoors" in tags:
+                score += 0.8
+    if char is not None:
+        fun_tag = getattr(char, "fun_tag", "")
+        if fun_tag and fun_tag in tags:
+            score += float(getattr(char, "fun_delta", 0)) * 0.8
+        energy_tag = getattr(char, "energy_tag", "")
+        if energy_tag and energy_tag in tags:
+            score -= float(getattr(char, "energy_delta", 0)) * 0.8
+    return (score, len(tags))
+
+
+def _colouring_candidate_indices(
+    options: Sequence[CardInstance],
+    zero_tag: str | None,
+) -> list[int]:
+    """Select the highest-value representative index per distinct Colouring tag set."""
+    non_zero_indices = [
+        i
+        for i, c in enumerate(options)
+        if c.tags and not (zero_tag and zero_tag in c.tags)
+    ]
+    cand_pool = non_zero_indices or [
+        i
+        for i, c in enumerate(options)
+        if not (zero_tag and zero_tag in c.tags)
+    ]
+    if not cand_pool:
+        cand_pool = list(range(len(options)))
+    seen_tag_sets: dict[frozenset[str], tuple[tuple[int, int, int], int]] = {}
+    for i in cand_pool:
+        card = options[i]
+        tset = card.tags
+        # Prefer higher-value targets so later Bohnanza discards won't strip the mark.
+        rep_key = (card.effective_base_fun, card.definition.cost, -i)
+        prev = seen_tag_sets.get(tset)
+        if prev is None or rep_key > prev[0]:
+            seen_tag_sets[tset] = (rep_key, i)
+    return [item[1] for item in seen_tag_sets.values()]
+
+
 class _OsmiumOverrideEvalAI(_HydrogenEvalAI):
     """Lightweight sub-decision override wrapper used inside search branching."""
 
@@ -1293,6 +1348,7 @@ class _OsmiumOverrideEvalAI(_HydrogenEvalAI):
         "discard_tuple_override",
         "copy_idx_override",
         "optional_override",
+        "target_idx_override",
     )
 
     def __init__(
@@ -1302,12 +1358,14 @@ class _OsmiumOverrideEvalAI(_HydrogenEvalAI):
         discard_tuple_override: tuple[int, ...] | None = None,
         copy_idx_override: int | None = None,
         optional_override: bool | None = None,
+        target_idx_override: int | None = None,
     ) -> None:
         super().__init__()
         self.spend_override = spend_override
         self.discard_tuple_override = discard_tuple_override
         self.copy_idx_override = copy_idx_override
         self.optional_override = optional_override
+        self.target_idx_override = target_idx_override
 
     def choose_energy_to_spend(
         self, game: Game, player_index: int, card: CardInstance, maximum: int
@@ -1334,6 +1392,18 @@ class _OsmiumOverrideEvalAI(_HydrogenEvalAI):
         ):
             return self.copy_idx_override
         return super().choose_card_to_copy(game, player_index, options)
+
+    def choose_card_target(
+        self, game: Game, player_index: int, options: Sequence[CardInstance]
+    ) -> int:
+        if (
+            self.target_idx_override is not None
+            and 0 <= self.target_idx_override < len(options)
+        ):
+            played = game.players[player_index].played_today
+            if played and _effective_card_title(played[-1]) == "Colouring":
+                return self.target_idx_override
+        return super().choose_card_target(game, player_index, options)
 
     def choose_optional_action(
         self, game: Game, player_index: int, action: str
@@ -1430,6 +1500,9 @@ class OsmiumAI(HydrogenAI):
                     if not m or (
                         "_copied_definition" not in m
                         and not m.get("energy_cubes")
+                        and not m.get("_ski_on_shoulders_energy_cube")
+                        and not m.get("discarded_card")
+                        and m.get("discarded_item") is None
                         and m.get("target_card") is None
                         and m.get("target_player_index") is None
                     ):
@@ -1443,6 +1516,9 @@ class OsmiumAI(HydrogenAI):
                                 m.get("energy_cubes", 0),
                                 getattr(m.get("target_card"), "instance_id", None),
                                 m.get("target_player_index"),
+                                bool(m.get("_ski_on_shoulders_energy_cube")),
+                                bool(m.get("discarded_card")),
+                                getattr(m.get("discarded_item"), "instance_id", None),
                             )
                         )
                 if not has_real_sig:
@@ -2315,7 +2391,7 @@ class OsmiumAI(HydrogenAI):
                     for c in player.played_today
                     if "Food" in c.tags
                     and c.instance_id not in copy_chain
-                    and c.effective_behavior.can_play(state, player, card)
+                    and c.definition.behavior.can_play(state, player, card)
                 ]
                 pay_cost = False
             else:
@@ -2325,7 +2401,7 @@ class OsmiumAI(HydrogenAI):
                     if o_i != player_index
                     for c in opp.played_today
                     if c.definition.cost <= rem_e
-                    and c.effective_behavior.can_play(state, player, card)
+                    and c.definition.behavior.can_play(state, player, card)
                 ]
                 pay_cost = True
             if len(elig) >= 2:
@@ -2339,6 +2415,46 @@ class OsmiumAI(HydrogenAI):
                 for c_idx in scored_c[:2]:
                     child = _hydrogen_copy_game_for_play(state, player_index)
                     child.ais = [_OsmiumOverrideEvalAI(copy_idx_override=c_idx)] * 4
+                    try:
+                        if known_cost is not None and is_hsim:
+                            child.play_card_known_cost(player_index, hand_idx, known_cost)  # type: ignore[attr-defined]
+                        else:
+                            child.play_card(player_index, hand_idx)
+                        branches.append(child)
+                    except Exception:
+                        pass
+                    finally:
+                        child.ais = _HYDROGEN_SIM_AIS
+                if branches:
+                    return branches
+
+        elif title == "Colouring" and len(player.played_today) >= 2:
+            prior = player.played_today
+            zero_tag = (
+                player.character.zero_fun_tag
+                if player.character is not None
+                else None
+            )
+            distinct_indices = _colouring_candidate_indices(prior, zero_tag)
+            if len(distinct_indices) >= 2:
+                wanted_tags = _wanted_tags_for_player_fast(player)
+                cond = state.daily_condition
+                char = player.character
+
+                def _colouring_tag_rank(opt_i: int) -> tuple[float, int, int]:
+                    score, n_tags = _colouring_tag_score(
+                        prior[opt_i].tags, wanted_tags, cond, char
+                    )
+                    return (score, n_tags, -opt_i)
+
+                ranked_t = sorted(
+                    distinct_indices,
+                    key=_colouring_tag_rank,
+                    reverse=True,
+                )[:3]
+                for t_idx in ranked_t:
+                    child = _hydrogen_copy_game_for_play(state, player_index)
+                    child.ais = [_OsmiumOverrideEvalAI(target_idx_override=t_idx)] * 4
                     try:
                         if known_cost is not None and is_hsim:
                             child.play_card_known_cost(player_index, hand_idx, known_cost)  # type: ignore[attr-defined]
@@ -3187,7 +3303,7 @@ class OsmiumAI(HydrogenAI):
             key=lambda i: _contextual_copy_value(
                 game, player_index, options[i], live_source_card, pay_cost=pay_cost
             )
-            - (1.35 if _effective_card_title(options[i]) == "Group Dinner" else 0.0),
+            - (1.35 if options[i].definition.title == "Group Dinner" else 0.0),
             reverse=True,
         )[:5]
         best_indices = [ranked_indices[0]]
@@ -3302,6 +3418,208 @@ class OsmiumAI(HydrogenAI):
         finally:
             self._evaluation_depth = prev_depth
         return best_spend
+
+    def choose_card_target(
+        self,
+        game: Game,
+        player_index: int,
+        options: Sequence[CardInstance],
+    ) -> int:
+        if (
+            self._evaluation_depth >= 1
+            or len(options) <= 1
+            or game.stats is _get_shared_sim_stats()
+            or len(game.players[player_index].played_today) >= 10
+        ):
+            return super().choose_card_target(game, player_index, options)
+
+        player = game.players[player_index]
+        last_played = (
+            _effective_card_title(player.played_today[-1])
+            if player.played_today
+            else ""
+        )
+
+        if last_played == "Colouring":
+            zero_tag = (
+                player.character.zero_fun_tag
+                if player.character is not None
+                else None
+            )
+            distinct_indices = _colouring_candidate_indices(options, zero_tag)
+            if len(distinct_indices) <= 1:
+                return distinct_indices[0]
+
+            wanted_tags = _wanted_tags_for_player_fast(player)
+            cond = game.daily_condition
+            char = player.character
+
+            def _tag_tie_score(opt_i: int) -> tuple[float, int]:
+                return _colouring_tag_score(
+                    options[opt_i].tags, wanted_tags, cond, char
+                )
+
+            self._ensure_live_game(game)
+            base_sim = self._prepare_observable_game(game, player_index)
+            sim_p0 = base_sim.players[player_index]
+            if not sim_p0.hand or not sim_p0.played_today:
+                return max(distinct_indices, key=lambda i: (_tag_tie_score(i), -i))
+
+            prior_by_id = {
+                c.instance_id: i for i, c in enumerate(sim_p0.played_today[:-1])
+            }
+            if not all(options[i].instance_id in prior_by_id for i in distinct_indices):
+                return max(distinct_indices, key=lambda i: (_tag_tie_score(i), -i))
+
+            best_val = float("-inf")
+            best_tie: tuple[float, int] = (float("-inf"), -1)
+            best_indices: list[int] = []
+            prev_depth = self._evaluation_depth
+            self._evaluation_depth = 1
+            try:
+                for opt_i in distinct_indices:
+                    sim = _hydrogen_copy_game(base_sim)
+                    sim.rng = _clone_random(base_sim.rng)
+                    sim_player = sim.players[player_index]
+                    sim_source = sim_player.played_today[-1]
+                    t_pos = prior_by_id[options[opt_i].instance_id]
+                    sim_target = sim_player.played_today[t_pos]
+                    try:
+                        sim_target.markers["energy_cube"] = True
+                        sim_source.markers["target_card"] = sim_target
+                        sim._has_card_ref = True  # type: ignore[attr-defined]
+                        if hasattr(sim, "_p_flags"):
+                            sim._p_flags[player_index] |= _PF_HAS_SIG_MARKER  # type: ignore[attr-defined]
+                        sim._sync_played_today_tags(sim_player)
+                        for t_src in tuple(sim_player.tomorrow_cards):
+                            t_src.effective_behavior.on_tomorrow_card_play(
+                                sim, sim_player, t_src, sim_source
+                            )
+                        for p_src in tuple(sim_player.played_today):
+                            p_src.effective_behavior.on_card_play(
+                                sim, sim_player, p_src, sim_source
+                            )
+                        _, val = self._search_best_day_plan(
+                            sim,
+                            player_index,
+                            beam_width=10,
+                            max_plays=7,
+                            allow_bed_now=True,
+                            base_turns_offset=1,
+                            root_skipped_override=sim_p0.skipped_turns,
+                            start_extra_active=_card_allows_extra_plays(
+                                sim, sim_player, sim_source
+                            ),
+                        )
+                    except Exception:
+                        continue
+                    tie_key = _tag_tie_score(opt_i)
+                    if val > best_val + 1e-9:
+                        best_val = val
+                        best_tie = tie_key
+                        best_indices = [opt_i]
+                    elif abs(val - best_val) <= 1e-9:
+                        if tie_key > best_tie:
+                            best_tie = tie_key
+                            best_indices = [opt_i]
+                        elif tie_key == best_tie:
+                            best_indices.append(opt_i)
+            finally:
+                self._evaluation_depth = prev_depth
+
+            if not best_indices:
+                return max(distinct_indices, key=lambda i: (_tag_tie_score(i), -i))
+            return self.rng.choice(best_indices)
+
+        if last_played == "Address the Food":
+            self._ensure_live_game(game)
+            own_markers = _carbon_own_suitcase_markers(player)
+            pr_markers, scout_markers = _opponent_suitcase_markers(
+                game, player_index
+            )
+            base_sim = self._prepare_observable_game(game, player_index)
+            sim_p0 = base_sim.players[player_index]
+            if not sim_p0.played_today:
+                return super().choose_card_target(game, player_index, options)
+            sc_by_id = {c.instance_id for c in base_sim.suitcase}
+            if not all(opt.instance_id in sc_by_id for opt in options):
+                return super().choose_card_target(game, player_index, options)
+
+            best_val = float("-inf")
+            best_indices = []
+            prev_depth = self._evaluation_depth
+            self._evaluation_depth = 1
+            try:
+                for opt_i, opt in enumerate(options):
+                    sim = _hydrogen_copy_game(base_sim)
+                    sim.rng = _clone_random(base_sim.rng)
+                    sim_player = sim.players[player_index]
+                    sim_source = sim_player.played_today[-1]
+                    sim_target = next(
+                        (
+                            c
+                            for c in sim.suitcase
+                            if c.instance_id == opt.instance_id
+                        ),
+                        None,
+                    )
+                    if sim_target is None:
+                        continue
+                    try:
+                        if sim.trunk or sim.discard:
+                            picked = sim.pick_suitcase_cards(
+                                player_index, (sim_target,)
+                            )[0]
+                        else:
+                            sim.suitcase.remove(sim_target)
+                            if sim_target.markers:
+                                sim_target.markers.clear()
+                            sim.give_card(player_index, sim_target)
+                            sim.record_card_pick_or_draw(player_index, sim_target)
+                            picked = sim_target
+                        sim.play_card_for_effect(
+                            player_index, picked, pay_energy=False
+                        )
+                        for t_src in tuple(sim_player.tomorrow_cards):
+                            t_src.effective_behavior.on_tomorrow_card_play(
+                                sim, sim_player, t_src, sim_source
+                            )
+                        for p_src in tuple(sim_player.played_today):
+                            p_src.effective_behavior.on_card_play(
+                                sim, sim_player, p_src, sim_source
+                            )
+                        _, val = self._search_best_day_plan(
+                            sim,
+                            player_index,
+                            beam_width=10,
+                            max_plays=7,
+                            allow_bed_now=True,
+                            base_turns_offset=1,
+                            root_skipped_override=sim_p0.skipped_turns,
+                            start_extra_active=_card_allows_extra_plays(
+                                sim, sim_player, sim_source
+                            ),
+                        )
+                    except Exception:
+                        continue
+                    adj_val = val + _suitcase_denial_value(
+                        game, player_index, opt, pr_markers, scout_markers
+                    )
+                    if own_markers and any(m in opt.markers for m in own_markers):
+                        adj_val -= 3.0
+                    if adj_val > best_val + 1e-9:
+                        best_val = adj_val
+                        best_indices = [opt_i]
+                    elif abs(adj_val - best_val) <= 1e-9:
+                        best_indices.append(opt_i)
+            finally:
+                self._evaluation_depth = prev_depth
+
+            if not best_indices:
+                return super().choose_card_target(game, player_index, options)
+            return self.rng.choice(best_indices)
+
+        return super().choose_card_target(game, player_index, options)
 
     def _quacks_multiplier(self, game: Game, player_index: int) -> float:
         return 1.0

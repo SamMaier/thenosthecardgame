@@ -547,14 +547,7 @@ def _beryllium_quick_card_desirability(
             )
             val += prof.conditional_energy_gain * (0.95 if has_cond else 0.35)
 
-    if title == "Nos Book":
-        if (
-            player.played_today
-            or len(player.hand) >= 2
-            or game.day < DAY_COUNT
-        ):
-            val += 3.0
-    elif title == "Assorted Cutlery":
+    if title == "Assorted Cutlery":
         has_combo = any(
             other is not card
             and (
@@ -668,7 +661,7 @@ def _beryllium_quick_card_desirability(
             and (c.definition.cost if not c.markers else c.effective_cost) == 0
         )
         val += zero_cards * 1.45
-    elif title == "Evening on the Dock":
+    elif title in {"Evening on the Dock", "Nos Book"}:
         val += 3.5
     elif title == "Couch Tube":
         val += 2.6
@@ -862,8 +855,13 @@ def _contextual_copy_value(
 ) -> float:
     """Fast, board-aware valuation of copying `option` with `source_card` (Leftovers / Wedding Anniversary)."""
     player = game.players[player_index]
-    prof = _beryllium_build_profile(option)
-    title = _effective_card_title(option)
+    printed_option = (
+        CardInstance(option.instance_id, option.definition)
+        if option.markers and "_copied_definition" in option.markers
+        else option
+    )
+    prof = _beryllium_build_profile(printed_option)
+    title = option.definition.title
     days_left = DAY_COUNT - game.day
 
     if title in {"Evening Chat", "Early Bedtime"} and (
@@ -894,7 +892,7 @@ def _contextual_copy_value(
     if zeroed:
         board_fun = 0.0
     else:
-        board_fun = float(option.effective_base_fun + prof.immediate_fun_gain)
+        board_fun = float(option.definition.base_fun + prof.immediate_fun_gain)
         if title == "Ice Wine":
             board_fun = 1.0 + 2.0 * sum(
                 1 for c in prior_cards if "Food" in c.tags
@@ -907,14 +905,12 @@ def _contextual_copy_value(
             board_fun = 1.0 + 2.0 * sum(
                 1 for c in prior_cards if "Relax" in c.tags
             )
-        elif title == "Evening on the Dock":
+        elif title in {"Evening on the Dock", "Nos Book"}:
             board_fun = float(len(prior_cards))
         elif title == "Couch Tube":
             board_fun = float(sum(c.definition.cost for c in prior_cards))
         elif title == "New Nos Book Entry":
             board_fun = 5.0 if len(prior_cards) >= 4 else 1.0
-        elif title == "Nos Book":
-            board_fun = 3.0 if len(prior_cards) >= 1 else 0.0
         elif title == "Campfire":
             board_fun = 2.0 * len(player.tomorrow_cards)
         elif title == "Bubly":
@@ -946,7 +942,7 @@ def _contextual_copy_value(
     elif title == "Würstchen":
         imm_e = float(len(prior_cards))
     elif title == "Istanbul":
-        e_per = _istanbul_energy_per_discard(option)
+        e_per = _istanbul_energy_per_discard(printed_option)
         has_e_sink = any(
             _effective_card_title(hc) in {"Kayak", "Decaf", "Wakesurf"}
             for hc in player.hand
@@ -974,7 +970,7 @@ def _contextual_copy_value(
     elif prof.conditional_energy_gain > 0:
         imm_e = (
             float(prof.conditional_energy_gain)
-            if _condition_met_in_played(player, option, prof)
+            if _condition_met_in_played(player, printed_option, prof)
             else 0.0
         )
     else:
@@ -1123,7 +1119,7 @@ def _select_bohnanza_discards(
                 continue
             if hc.title == "Couch Tube":
                 aura += card.definition.cost * 0.9
-            elif hc.title == "Evening on the Dock":
+            elif hc.title in {"Evening on the Dock", "Nos Book"}:
                 aura += 0.9
             elif (
                 hc.title == "New Nos Book Entry"
@@ -1332,6 +1328,8 @@ def _evaluate_istanbul_discards(
             )
 
             had_all_tags = "_all_tags" in c.markers
+            had_extra_tags = "_extra_tags" in c.markers
+            orig_extra_tags = c.markers.get("_extra_tags") if had_extra_tags else None
             player.played_today.append(c)
             try:
                 player.energy = 0
@@ -1357,6 +1355,10 @@ def _evaluate_istanbul_discards(
                 player.played_today.pop()
                 if not had_all_tags:
                     c.markers.pop("_all_tags", None)
+                if had_extra_tags:
+                    c.markers["_extra_tags"] = orig_extra_tags
+                else:
+                    c.markers.pop("_extra_tags", None)
                 sim._sync_played_today_tags(player)
 
             imm_fun_bonus = (
@@ -1365,9 +1367,7 @@ def _evaluate_istanbul_discards(
                 else prof.immediate_fun_gain * c_mult
             )
             g_val = base_board_fun + imm_fun_bonus
-            if title == "Nos Book":
-                g_val += 3.0
-            elif title == "San Juan":
+            if title == "San Juan":
                 if any(
                     not opp.asleep
                     and len(opp.played_today) <= 2
@@ -2023,7 +2023,10 @@ class _FastArgonEvalAI(_EvalPlayerAI):
                 game, player_index, card, wanted_tags, prof=prof
             )
             bucket = prof.play_order_bucket
-            if card.definition.title == "Nos Book" and not player.played_today:
+            if (
+                card.definition.title in {"Nos Book", "Colouring"}
+                and not player.played_today
+            ):
                 bucket = 6
                 est -= 6.0
             key = (bucket, -est)
@@ -2234,11 +2237,7 @@ def _get_beryllium_sim_game_cls() -> type:
             pay_source_cost: bool = True,
         ) -> None:
             player = self.players[player_index]
-            if (
-                source.definition.title
-                if not source.markers
-                else _effective_card_title(source)
-            ) == "Last Year's Shirt" and player.hand:
+            if source.definition.title == "Last Year's Shirt" and player.hand:
                 player.hand = [
                     CardInstance(
                         c.instance_id,
@@ -2263,6 +2262,15 @@ def _get_beryllium_sim_game_cls() -> type:
             )
             if temporary_all_tags:
                 card.markers["_all_tags"] = True
+            temporary_extra_tags = False
+            if (
+                not card.markers.get("_all_tags")
+                and "_extra_tags" not in card.markers
+            ):
+                extra_tags = self._granted_extra_tags(player, card)
+                if extra_tags:
+                    card.markers["_extra_tags"] = extra_tags
+                    temporary_extra_tags = True
             try:
                 c_defn = (
                     card.definition
@@ -2270,15 +2278,21 @@ def _get_beryllium_sim_game_cls() -> type:
                     else card.effective_definition
                 )
                 cost = c_defn.cost
+                if cost < 0:
+                    cost = 0
                 c_tags = (
                     card.tags
-                    if (temporary_all_tags or card.markers)
+                    if (temporary_all_tags or temporary_extra_tags or card.markers)
                     else c_defn.tags
                 )
                 if self.daily_condition is not None:
                     cost = self.daily_condition.modify_energy_cost(c_tags, cost)
+                    if cost < 0:
+                        cost = 0
                 if player.character is not None:
                     cost = player.character.modify_energy_cost(c_tags, cost)
+                    if cost < 0:
+                        cost = 0
                 c_beh = c_defn.behavior
                 if (
                     type(c_beh).modify_own_energy_cost
@@ -2287,6 +2301,8 @@ def _get_beryllium_sim_game_cls() -> type:
                     cost = c_beh.modify_own_energy_cost(
                         self, player, card, cost
                     )
+                    if cost < 0:
+                        cost = 0
                 for source in player.tomorrow_cards:
                     s_beh = (
                         source.definition.behavior
@@ -2300,6 +2316,8 @@ def _get_beryllium_sim_game_cls() -> type:
                         cost = s_beh.modify_tomorrow_energy_cost(
                             self, player, source, card, cost
                         )
+                        if cost < 0:
+                            cost = 0
                 for source in player.played_today:
                     s_beh = (
                         source.definition.behavior
@@ -2313,10 +2331,29 @@ def _get_beryllium_sim_game_cls() -> type:
                         cost = s_beh.modify_energy_cost(
                             self, player, source, card, cost
                         )
-                return cost if cost >= 0 else 0
+                        if cost < 0:
+                            cost = 0
+                for source in player.played_today:
+                    s_beh = (
+                        source.definition.behavior
+                        if not source.markers
+                        else source.effective_behavior
+                    )
+                    if (
+                        type(s_beh).finalize_energy_cost
+                        is not CardBehavior.finalize_energy_cost
+                    ):
+                        cost = s_beh.finalize_energy_cost(
+                            self, player, source, card, cost
+                        )
+                        if cost < 0:
+                            cost = 0
+                return cost
             finally:
                 if temporary_all_tags:
                     card.markers.pop("_all_tags", None)
+                if temporary_extra_tags:
+                    card.markers.pop("_extra_tags", None)
 
         def playable_hand_indices(self, player_index: int) -> list[int]:
             player = self.players[player_index]
@@ -2660,9 +2697,10 @@ class BerylliumBrain(ArgonBrain):
                     c.markers.get("energy_cubes", 0),
                     getattr(c.markers.get("target_card"), "instance_id", None),
                     c.markers.get("target_player_index"),
+                    bool(c.markers.get("_ski_on_shoulders_energy_cube")),
                 )
                 if c.markers
-                else (c.definition.title, c.definition.title, 0, None, None)
+                else (c.definition.title, c.definition.title, 0, None, None, False)
                 for c in p.played_today
             ),
             tuple(sorted(c.definition.title for c in p.hand)),
@@ -2899,7 +2937,8 @@ class BerylliumBrain(ArgonBrain):
             bonus += 1.35
         elif title == "Colouring":
             if (
-                player.character is not None
+                getattr(card.effective_behavior, "after_all_tags", False)
+                and player.character is not None
                 and player.character.zero_fun_tag is not None
             ):
                 bonus -= 6.0
@@ -3930,7 +3969,7 @@ class BerylliumBrain(ArgonBrain):
                             active_after_tags.get(t, 0.0)
                             + h_prof.signed_match_benefit * 0.70
                         )
-                elif hc.definition.title == "Evening on the Dock":
+                elif hc.definition.title in {"Evening on the Dock", "Nos Book"}:
                     pending_before_bonus += len(player.played_today) * 0.90
                 elif hc.definition.title == "Couch Tube":
                     pending_before_bonus += (
@@ -4266,8 +4305,6 @@ class BerylliumBrain(ArgonBrain):
                 if char is not None:
                     cost = max(0, char.modify_energy_cost(c_tags, cost))
                 base_f = float(c_defn.base_fun + c_prof.immediate_fun_gain)
-                if c_title == "Nos Book":
-                    base_f += 3.0
                 if char is not None:
                     base_f = float(
                         char.finalize_fun(

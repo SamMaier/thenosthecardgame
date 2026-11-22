@@ -55,6 +55,30 @@ class PaintTests(unittest.TestCase):
         )
         self.assertEqual(game.players[0].skipped_turns, 0)
 
+    def test_skipped_turn_clears_when_going_to_bed_same_turn(self) -> None:
+        game = empty_game()
+        p0 = game.players[0]
+        p0.energy = 7
+        p0.hand.extend(
+            [
+                make_card("epic-duels"),
+                make_card("paint"),
+                make_card("early-bedtime"),
+            ]
+        )
+
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+        self.assertTrue(p0.asleep)
+        self.assertEqual(p0.skipped_turns, 1)
+
+        game.end_day()
+        self.assertEqual(p0.skipped_turns, 0)
+
+        game.start_day()
+        self.assertEqual(p0.skipped_turns, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

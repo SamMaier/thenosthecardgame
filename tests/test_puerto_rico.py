@@ -75,12 +75,33 @@ class PuertoRicoTests(unittest.TestCase):
                     game.trunk = [make_card("biography")]
                     game.pick_from_suitcase(0)
                     self.assertIn(target, player.hand)
+                    self.assertEqual(target.markers, {})
                 else:
                     game.trunk = [make_card("biography") for _ in range(4)]
                     game.unpack(0)
                     self.assertIn(target, game.discard)
 
                 self.assertEqual(game.card_fun(0, card), 3)
+
+    def test_end_day_clears_markers_on_surviving_suitcase_target(self) -> None:
+        game = empty_game()
+        game.ais[0] = TargetSuitcaseAI(1, game.rng)
+        player = game.players[0]
+        player.energy = 7
+        player.hand.append(make_card("puerto-rico"))
+        target = make_card("biography")
+        game.suitcase = [
+            make_card("fajitas"),
+            target,
+            make_card("solo"),
+            make_card("nap"),
+        ]
+
+        game.play_card(0, 0)
+        self.assertTrue(target.markers["energy_cube"])
+
+        game.end_day()
+        self.assertEqual(target.markers, {})
 
     def test_discarded_target_does_not_regain_bonus_if_recycled(self) -> None:
         game = empty_game()

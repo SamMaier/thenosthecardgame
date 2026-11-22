@@ -13,7 +13,7 @@ class FancyCraftTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Relax"}))
 
-    def test_next_item_scores_twice_its_written_energy_cost(self) -> None:
+    def test_next_item_scores_triple_its_written_energy_cost(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 7
@@ -32,7 +32,7 @@ class FancyCraftTests(unittest.TestCase):
         self.assertEqual(player.energy, 2)
         self.assertEqual(game.card_fun(0, fancy_craft), 0)
         self.assertEqual(game.card_fun(0, non_item), 2)
-        self.assertEqual(game.card_fun(0, item), 5)
+        self.assertEqual(game.card_fun(0, item), 7)
 
 
 if __name__ == "__main__":

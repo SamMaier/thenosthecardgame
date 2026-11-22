@@ -4,17 +4,13 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from thenos.ais import GalaxybrainAI, RandomAI
-from thenos.ais.greedy import GreedyAI
-from thenos.ais.planner import PlannerAI
-from thenos.ais.megamind import MegamindAI
-from thenos.ais.genius import GeniusAI
+from thenos.ais import OsmiumAI, RandomAI
 from thenos.cards.base import CardDefinition, CardInstance
 from thenos.cards.catalog import CARD_REGISTRY, create_default_deck, make_card
 from thenos.daily_conditions import DAILY_CONDITIONS
 from thenos.game import Game
 from scripts.pull_cards_csv import _title_key as normalized_title
-from thenos.simulation import simulate_games, simulate_four_galaxybrain, write_report_csv
+from thenos.simulation import simulate_games, write_report_csv
 
 
 def condition(title):
@@ -160,10 +156,6 @@ class DailyConditionTests(unittest.TestCase):
         self.assertEqual(simulate_games(4, seed=905, workers=1, daily_conditions=True),
                          simulate_games(4, seed=905, workers=2, daily_conditions=True))
 
-    def test_galaxybrain_serial_parallel_parity_with_conditions(self):
-        self.assertEqual(simulate_four_galaxybrain(4, seed=907, workers=1, daily_conditions=True),
-                         simulate_four_galaxybrain(4, seed=907, workers=2, daily_conditions=True))
-
     def test_cli_flag_reaches_every_mode_and_defaults_off(self):
         from thenos.__main__ import main
         import sys
@@ -209,22 +201,8 @@ class DailyConditionTests(unittest.TestCase):
     def test_all_policies_accept_new_decisions(self):
         game = game_with("Normal day")
         game.players[0].hand = [make_card("waterski")]
-        for cls in (RandomAI, GreedyAI, PlannerAI, GeniusAI, MegamindAI, GalaxybrainAI):
+        for cls in (RandomAI, OsmiumAI):
             with self.subTest(policy=cls.__name__):
                 ai = cls(random.Random(0))
                 self.assertIn(ai.choose_tag(game, 0, ("Food", "Relax")), ("Food", "Relax"))
                 self.assertEqual(sorted(ai.order_daily_conditions(game, 0, DAILY_CONDITIONS[:3])), [0, 1, 2])
-
-    def test_galaxybrain_samples_hidden_order_but_keeps_private_knowledge(self):
-        game = Game.default(906, daily_conditions=True)
-        game.setup()
-        game.start_day()
-        game.arrange_daily_conditions(0)
-        game.ais[0] = GalaxybrainAI(random.Random(9))
-        other = game.copy_for_simulation()
-        other._condition_deck.reverse()
-        first = game.ais[0]._planning_copy(game, 0)
-        second = other.ais[0]._planning_copy(other, 0)
-        self.assertEqual(first._condition_deck, second._condition_deck)
-        self.assertEqual(tuple(reversed(first._condition_deck[-3:])), game.known_daily_conditions(0))
-        self.assertEqual(first.known_daily_conditions(1), ())
