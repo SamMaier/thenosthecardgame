@@ -16,9 +16,19 @@ if TYPE_CHECKING:
 
 
 class DatesFirstNosBehavior(CardBehavior):
-    """Boost every card played tomorrow."""
+    """Boost every card played tomorrow if at least 3 Fun was scored today."""
 
     has_tomorrow_action = True
+
+    def on_end_day(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        if game.fun_scored_today(player) < 3 and card in player.played_today:
+            player.played_today.remove(card)
+            game.discard_card(card)
 
     def modify_tomorrow_fun(
         self,

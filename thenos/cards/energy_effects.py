@@ -264,11 +264,8 @@ class MedicalAdviceBehavior(CardBehavior):
         return current_cost
 
 
-class AfterDinnerEntertainmentBehavior(EnergyForNextTagBehavior):
-    """Discount and add Fun to the next Social card today."""
-
-    def __init__(self) -> None:
-        super().__init__("Social", -2)
+class AfterDinnerEntertainmentBehavior(CardBehavior):
+    """Double Fun on the next Exercise card after an earlier Food play today."""
 
     def modify_fun(
         self,
@@ -278,10 +275,18 @@ class AfterDinnerEntertainmentBehavior(EnergyForNextTagBehavior):
         target: CardInstance,
         current_fun: int,
     ) -> int:
-        if _is_next_matching(
-            player, source, target, lambda candidate: "Social" in candidate.tags
+        source_position = _today_position(player, source)
+        if source_position is None:
+            return current_fun
+        if not any(
+            "Food" in played_card.tags
+            for played_card in player.played_today[:source_position]
         ):
-            return current_fun + 2
+            return current_fun
+        if _is_next_matching(
+            player, source, target, lambda candidate: "Exercise" in candidate.tags
+        ):
+            return current_fun * 2
         return current_fun
 
 
@@ -323,7 +328,7 @@ ROULADEN = CardDefinition(
     slug="rouladen",
     title="Rouladen",
     tags=frozenset({"Food"}),
-    cost=4,
+    cost=5,
     behavior=EnergyForAllCardsAfterBehavior(-1),
 )
 

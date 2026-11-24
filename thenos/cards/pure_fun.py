@@ -28,6 +28,36 @@ class NewfangledTresFuteBehavior(CardBehavior):
         return card.effective_base_fun + len(unique_tags)
 
 
+class SevenWondersBehavior(CardBehavior):
+    """Score a bonus when you played strictly more Board Games than both neighbours."""
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        player_index = game.players.index(player)
+        player_count = len(game.players)
+        own_board_games = sum(
+            "Board Game" in played_card.tags
+            for played_card in player.played_today
+        )
+        neighbours = (
+            game.players[(player_index - 1) % player_count],
+            game.players[(player_index + 1) % player_count],
+        )
+        more_than_both = all(
+            own_board_games
+            > sum(
+                "Board Game" in played_card.tags
+                for played_card in neighbour.played_today
+            )
+            for neighbour in neighbours
+        )
+        return card.effective_base_fun + (4 if more_than_both else 0)
+
+
 TRES_FUTE = CardDefinition(
     slug="tres-fute",
     title="Tres Fute",
@@ -58,7 +88,8 @@ SEVEN_WONDERS = CardDefinition(
     title="7 Wonders",
     tags=frozenset({"Board Game"}),
     cost=2,
-    base_fun=3,
+    base_fun=1,
+    behavior=SevenWondersBehavior(),
 )
 
 DUMBED_DOWN_SETTLERS = CardDefinition(

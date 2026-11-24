@@ -225,48 +225,14 @@ class FloatingBehavior(CardBehavior):
 
 
 class ColouringBehavior(CardBehavior):
-    """Mark one earlier card today so cards played after this gain its tags."""
-
-    def on_play(
-        self,
-        game: Game,
-        player: PlayerState,
-        card: CardInstance,
-    ) -> None:
-        previous_cards = tuple(game.cards_played_before(player, card))
-        if not previous_cards:
-            return
-        player_index = game.players.index(player)
-        target = game.choose_card_target(player_index, previous_cards)
-        target.markers["energy_cube"] = True
-        card.markers["target_card"] = target
-        game._sync_played_today_tags(player)
+    """Grant the Relax tag to every card played after this today."""
 
     def granted_after_tags(
         self,
         player: PlayerState,
         source: CardInstance,
     ) -> frozenset[str]:
-        marked = source.markers.get("target_card")
-        if not isinstance(marked, CardInstance) or not marked.markers.get(
-            "energy_cube"
-        ):
-            return frozenset()
-        source_position = next(
-            (i for i, c in enumerate(player.played_today) if c is source),
-            None,
-        )
-        marked_position = next(
-            (i for i, c in enumerate(player.played_today) if c is marked),
-            None,
-        )
-        if (
-            source_position is not None
-            and marked_position is not None
-            and marked_position < source_position
-        ):
-            return marked.tags
-        return frozenset()
+        return frozenset({"Relax"})
 
 
 class PaintBehavior(CardBehavior):
@@ -425,8 +391,8 @@ COLOURING = CardDefinition(
     slug="colouring",
     title="Colouring",
     tags=frozenset({"Relax"}),
-    cost=5,
-    base_fun=0,
+    cost=2,
+    base_fun=1,
     behavior=ColouringBehavior(),
 )
 

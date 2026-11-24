@@ -115,7 +115,7 @@ class SimulationTests(unittest.TestCase):
             self.assertLessEqual(card.free_pick_rate, 1.0)
             self.assertGreaterEqual(card.acquisitions, card.picks)
             self.assertGreaterEqual(card.plays, 0)
-            if title in {"Chuck a Frisbee", "Wedding Anniversary", "Leftovers"}:
+            if title in {"Chuck a Frisbee", "Wedding Anniversary", "Leftovers", "Nos Shirt"}:
                 self.assertLessEqual(card.play_rate, 6.0)
             else:
                 self.assertLessEqual(card.play_rate, 1.0)

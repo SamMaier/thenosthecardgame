@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import random
 from dataclasses import dataclass
 from operator import attrgetter
@@ -26,10 +27,10 @@ from thenos.ais.carbon import (
     _carbon_own_suitcase_markers,
     _effective_card_title,
     _opponent_suitcase_markers,
+    _projected_opponent_day_fun,
     _suitcase_denial_value,
 )
 from thenos.ais.hydrogen import (
-    _FTB_ZERO_E_STAY,
     _HYDROGEN_COPY_FOOD_TITLES,
     _HYDROGEN_EVAL_AI_SINGLETON,
     _HYDROGEN_META_BY_DEFN_ID,
@@ -57,6 +58,7 @@ from thenos.ais.hydrogen import (
     _wanted_tags_for_player_fast,
 )
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
+from thenos.cards.basic import cities_and_knights_condition_met
 from thenos.models import PlayerState
 
 if TYPE_CHECKING:
@@ -159,10 +161,10 @@ _OSMIUM_BASE_WEIGHTS: tuple[float, ...] = (
 )
 
 _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
-    "7-wonders": 0.305407,
+    "7-wonders": 0.050000,
     "address-the-food": -1.035186,
     "adventure-race": 0.465357,
-    "after-dinner-entertainment": 0.734647,
+    "after-dinner-entertainment": 0.200000,
     "afternoon-coffee": -0.265428,
     "agricola": -0.395413,
     "assorted-cutlery": -0.866406,
@@ -193,13 +195,13 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "cheesy-phone-game": 0.889732,
     "christmas-name-draw": 0.202683,
     "chuck-a-frisbee": 1.161063,
-    "cities-and-knights": 0.409093,
+    "cities-and-knights": 1.150000,
     "civilization-the-boardgame": 0.873473,
     "classic-book": 0.215115,
     "cliff-climbing": -0.828539,
-    "colouring": 4.279967,
+    "colouring": 0.400000,
     "couch-tube": 2.521061,
-    "dates-first-nos": 1.700527,
+    "dates-first-nos": 0.450000,
     "decaf": 0.389490,
     "dishwashing": -0.664983,
     "dock-fishing": 0.316217,
@@ -211,7 +213,7 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "early-bedtime": 1.503427,
     "epic-duels": -0.004370,
     "epic-playlist": -1.618146,
-    "epic-prank": -0.005243,
+    "epic-prank": 0.250000,
     "euchre": -1.040411,
     "euchre-awards-ceremony": -1.476773,
     "euchre-tournament": -2.315201,
@@ -224,7 +226,7 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "fishing-boat": 0.216247,
     "fishing-evening": -0.565163,
     "fishing-morning": -0.386606,
-    "fit-to-print": -0.768210,
+    "fit-to-print": -0.350000,
     "floating": 0.403721,
     "forced-family-fun": -1.053715,
     "grocery-store-run": -1.115974,
@@ -240,7 +242,7 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "keeper": 0.376220,
     "kneeboard": -0.576329,
     "last-years-shirt": -0.511820,
-    "leftovers": -0.202424,
+    "leftovers": -0.750000,
     "long-distance-visitors": -0.371222,
     "m-ms": -0.680769,
     "make-plans": 0.712748,
@@ -256,9 +258,9 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "newfangled-tres-fute": 0.489753,
     "non-fiction-book": -0.577863,
     "nos-book": 0.877031,
-    "nos-shirt": 1.210483,
+    "nos-shirt": 0.350000,
     "outdoor-movie": 1.058520,
-    "paddleboard": -0.391463,
+    "paddleboard": 1.950000,
     "paddleboat": 0.654633,
     "paint": -0.006023,
     "paint-rocks": 0.041167,
@@ -273,7 +275,7 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "quacks": -0.156225,
     "read-the-radar": -0.652858,
     "risk": -0.228392,
-    "rouladen": 2.960619,
+    "rouladen": -0.080000,
     "san-juan": -0.066760,
     "schwank": -1.036712,
     "scout-other-cottages": 0.032884,
@@ -284,7 +286,7 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "ski-boat": -0.225525,
     "ski-on-shoulders": -0.134483,
     "sleep-in": -0.651480,
-    "solo": 0.235076,
+    "solo": 0.650000,
     "spa-day": 0.273807,
     "spikeball": -0.231654,
     "splendor": -0.793402,
@@ -323,10 +325,10 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
 }
 
 _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
-    "7-wonders": 0.064932,
+    "7-wonders": 0.000000,
     "address-the-food": 0.324543,
     "adventure-race": 0.825986,
-    "after-dinner-entertainment": 0.756144,
+    "after-dinner-entertainment": 0.150000,
     "afternoon-coffee": 0.181251,
     "agricola": -0.487581,
     "assorted-cutlery": -0.066577,
@@ -357,13 +359,13 @@ _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
     "cheesy-phone-game": 0.257694,
     "christmas-name-draw": 0.667510,
     "chuck-a-frisbee": -0.652299,
-    "cities-and-knights": 0.075735,
+    "cities-and-knights": -0.450000,
     "civilization-the-boardgame": -0.024953,
     "classic-book": 0.247484,
     "cliff-climbing": -0.045467,
-    "colouring": -0.813336,
+    "colouring": -0.200000,
     "couch-tube": 0.358086,
-    "dates-first-nos": -1.087655,
+    "dates-first-nos": -1.500000,
     "decaf": 0.474479,
     "dishwashing": -0.327700,
     "dock-fishing": 0.180803,
@@ -375,7 +377,7 @@ _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
     "early-bedtime": -0.702800,
     "epic-duels": 0.155381,
     "epic-playlist": 0.152797,
-    "epic-prank": -0.174874,
+    "epic-prank": -1.200000,
     "euchre": 0.001861,
     "euchre-awards-ceremony": -0.665218,
     "euchre-tournament": -0.363723,
@@ -388,7 +390,7 @@ _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
     "fishing-boat": 0.317440,
     "fishing-evening": 0.026438,
     "fishing-morning": -0.350338,
-    "fit-to-print": -0.511966,
+    "fit-to-print": -0.250000,
     "floating": 0.017887,
     "forced-family-fun": 0.389975,
     "grocery-store-run": -0.465855,
@@ -404,7 +406,7 @@ _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
     "keeper": 0.305646,
     "kneeboard": -0.275781,
     "last-years-shirt": 1.838252,
-    "leftovers": 0.031120,
+    "leftovers": -0.250000,
     "long-distance-visitors": -0.118030,
     "m-ms": -0.825724,
     "make-plans": -0.182007,
@@ -420,9 +422,9 @@ _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
     "newfangled-tres-fute": 0.511586,
     "non-fiction-book": 0.003836,
     "nos-book": 0.822852,
-    "nos-shirt": -0.030720,
+    "nos-shirt": -0.450000,
     "outdoor-movie": 0.516912,
-    "paddleboard": -0.055185,
+    "paddleboard": 0.650000,
     "paddleboat": -0.619066,
     "paint": -0.017621,
     "paint-rocks": -0.111405,
@@ -437,7 +439,7 @@ _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
     "quacks": 0.388054,
     "read-the-radar": -0.033005,
     "risk": -0.233915,
-    "rouladen": 1.325888,
+    "rouladen": 0.700000,
     "san-juan": 0.585364,
     "schwank": 0.208598,
     "scout-other-cottages": -0.747114,
@@ -448,7 +450,7 @@ _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
     "ski-boat": 0.196335,
     "ski-on-shoulders": -0.887746,
     "sleep-in": -0.978253,
-    "solo": -0.529884,
+    "solo": 0.350000,
     "spa-day": 0.018718,
     "spikeball": 0.417895,
     "splendor": 0.142196,
@@ -493,6 +495,21 @@ _OSMIUM_LARGE_RESERVE_CACHE: dict[tuple | int, float] = {}
 _OSMIUM_SIM_GAME_CLS_CACHED: type | None = None
 
 
+_RELAX_PAYOFF_TITLES: frozenset[str] = frozenset(
+    {
+        "Sweet Lawn Chair",
+        "Zero Gravity Chair",
+        "Spa Day",
+        "Outdoor Movie",
+        "Potato Pancakes",
+        "Classic Book",
+        "Water Trampoline",
+        "Fancy Floatie",
+        "Photo Shoot",
+    }
+)
+
+
 @dataclass(frozen=True, slots=True)
 class _OsmiumCardSpec:
     defn: CardDefinition
@@ -503,6 +520,8 @@ class _OsmiumCardSpec:
     bf_int: int
     bf_float: float
     bf_pos: bool
+    bf_first_ok: bool
+    ade_ex_fun: int
     net_e_pos: float
     is_scaler: bool
     is_multi_scaler: bool
@@ -604,6 +623,8 @@ def _ensure_osmium_caches() -> None:
             pb |= 1 << 50
         if title == "Epic Duels":
             pb |= 1 << 55
+        if title in _RELAX_PAYOFF_TITLES:
+            pb |= 1 << 60
         bf_flags = 0
         if title == "Colouring":
             bf_flags |= 1
@@ -617,14 +638,27 @@ def _ensure_osmium_caches() -> None:
             bf_flags |= 16
         elif title == "Civilization the Boardgame":
             bf_flags |= 32
+        elif title == "After Dinner Entertainment":
+            bf_flags |= 64
         if title == "Photo Shoot":
             t_kind = 1
         elif title == "Date's First Nos":
             t_kind = 2
         elif title == "Wildlife Spotting":
             t_kind = 3
+        elif title == "Epic Prank":
+            t_kind = 4
         else:
             t_kind = 0
+        ade_ex_f = (
+            bf_int
+            if (
+                "Exercise" in defn.tags
+                and not meta.must_play_first
+                and bf_int >= 4
+            )
+            else 0
+        )
         _OSMIUM_SPEC_BY_SLUG[defn.slug] = _OsmiumCardSpec(
             defn=defn,
             slug=defn.slug,
@@ -634,6 +668,8 @@ def _ensure_osmium_caches() -> None:
             bf_int=bf_int,
             bf_float=bf_float,
             bf_pos=bf_int > 0,
+            bf_first_ok=(bf_int > 0 and not meta.must_play_late),
+            ade_ex_fun=ade_ex_f,
             net_e_pos=net_e,
             is_scaler=is_scaler,
             is_multi_scaler=meta.is_multi_scaler,
@@ -666,6 +702,8 @@ def _osmium_reserve_score_plain_specs(
     tom_e = 0
     tom_photo = 0.0
     tom_dates = 0.0
+    tom_epic_prank = 0.0
+    tom_has_relax_bonus = False
     has_tom_bonuses = False
     tom_tag_arr: list[float] | None = None
 
@@ -687,6 +725,8 @@ def _osmium_reserve_score_plain_specs(
                 tom_dates += 1.0
             elif tk == 3:
                 tom_wild += 1.0
+            elif tk == 4:
+                tom_epic_prank += 1.0
             smb = ts.smb
             if smb > 0.0:
                 tom_pos_smb += smb
@@ -722,6 +762,7 @@ def _osmium_reserve_score_plain_specs(
             val += w[12] * tom_pos_smb
         if tom_neg_smb:
             val += w[13] * tom_neg_smb
+        tom_has_relax_bonus = tom_tag_arr is not None and tom_tag_arr[5] > 0.0
 
     eff_h_len = len(sorted_specs)
     acc_a = 0
@@ -733,6 +774,9 @@ def _osmium_reserve_score_plain_specs(
     scaler_cnt = 0
     bf_pos_cnt = 0
     bf_pos_sum_int = 0
+    max_first_cost = 7 + (tom_e if tom_e > 0 else 0)
+    best_first_fun = 0.0
+    max_ade_ex_fun = 0
     hand_scaler_by_tag: list[float] | None = None
     tag_tom_match: list[float] | None = (
         [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] if has_tom_bonuses else None
@@ -747,6 +791,14 @@ def _osmium_reserve_score_plain_specs(
         if sp.bf_pos:
             bf_pos_cnt += 1
             bf_pos_sum_int += sp.bf_int
+        if (
+            sp.bf_first_ok
+            and sp.cost <= max_first_cost
+            and sp.bf_float > best_first_fun
+        ):
+            best_first_fun = sp.bf_float
+        if sp.ade_ex_fun > max_ade_ex_fun:
+            max_ade_ex_fun = sp.ade_ex_fun
         if sp.is_scaler:
             scaler_power += sp.smb
             scaler_cnt += 1
@@ -875,8 +927,17 @@ def _osmium_reserve_score_plain_specs(
         if tom_dates > 0.0 and (cheap_cnt > 0 or net_e_pos > 0.0):
             c_plus_e = float(cheap_cnt) + net_e_pos
             val += w[69] * float(tom_dates * (c_plus_e if c_plus_e < 5.0 else 5.0))
-        if (b_flags & 1) and scaler_cnt > 0:
-            val += w[70] * float(scaler_cnt if scaler_cnt < 3 else 3)
+        if (b_flags & 1) and (
+            ((combo_hi >> 35) & 0x1F) > 0
+            or tom_photo > 0.0
+            or tom_has_relax_bonus
+        ):
+            relax_syn = (
+                float((combo_hi >> 35) & 0x1F)
+                + tom_photo
+                + (1.0 if (tom_has_relax_bonus and tom_photo == 0.0) else 0.0)
+            )
+            val += 1.9 * (relax_syn if relax_syn < 2.0 else 2.0)
         if (b_flags & 2) and (acquirer_cnt + tom_photo) > 0:
             acq_p = float(acquirer_cnt) + tom_photo
             val += w[71] * float(acq_p if acq_p < 3.0 else 3.0)
@@ -911,6 +972,14 @@ def _osmium_reserve_score_plain_specs(
                 copy_food_cnt * (high_food_cnt if high_food_cnt < 3 else 3)
             )
 
+    if tom_epic_prank > 0.0:
+        capped_bf = best_first_fun if best_first_fun < 18.0 else 18.0
+        bf_bonus = 0.75 * (capped_bf - 3.0) if capped_bf > 3.0 else 0.0
+        val += tom_epic_prank * (3.6 + bf_bonus)
+    if (b_flags & 64) and ((acc_a >> 12) & 0x3F) and max_ade_ex_fun >= 4:
+        ex_gain = float(max_ade_ex_fun - 2)
+        val += 0.35 * (ex_gain if ex_gain < 8.0 else 8.0)
+
     if eff_h_len:
         is_d1 = days_left == 1
         i_s = 0
@@ -927,6 +996,76 @@ def _osmium_reserve_score_plain_specs(
                 val += sp_i.w_slug_d1 * w_s
 
     return val
+
+
+def _projected_end_hand_size(sim: Game, player_index: int) -> int:
+    """Estimate a player's hand size after end-of-day hand-returning effects."""
+    player = sim.players[player_index]
+    hand_size = len(player.hand)
+    has_scout = False
+    nos_shirt_cnt = 0
+    ck_cnt = 0
+    for card in player.played_today:
+        markers = card.markers
+        title = (
+            card.definition.title
+            if (not markers or "_copied_definition" not in markers)
+            else _effective_card_title(card)
+        )
+        if title == "Chuck a Frisbee":
+            hand_size += 1
+        elif title == "Nos Shirt":
+            nos_shirt_cnt += 1
+        elif title == "Cities and Knights":
+            ck_cnt += 1
+        elif title == "Scout Other Cottages":
+            has_scout = True
+
+    if nos_shirt_cnt > 0:
+        start_f = (
+            sim._fun_at_start_of_day[player_index]
+            if sim._fun_at_start_of_day is not None
+            else player.fun
+        )
+        proj_day_fun = (player.fun - start_f) + sum(
+            sim.card_fun(player_index, pc) for pc in player.played_today
+        )
+        if proj_day_fun > 7:
+            hand_size += nos_shirt_cnt
+
+    if ck_cnt > 0 and sim.day < DAY_COUNT:
+        if cities_and_knights_condition_met(
+            pc.tags for pc in player.played_today
+        ):
+            avail_pool = len(sim.suitcase) + len(sim.trunk) + len(sim.discard)
+            hand_size += min(ck_cnt * 2, avail_pool)
+
+    if not has_scout or not sim.suitcase:
+        return hand_size
+
+    # Mirror Game.end_day() resolution order so contested or duplicate
+    # Scout Other Cottages marks never double-count the same Suitcase card.
+    claimed_sc: set[int] = set()
+    for p_idx in sim.player_order():
+        for card in sim.players[p_idx].played_today:
+            markers = card.markers
+            title = (
+                card.definition.title
+                if (not markers or "_copied_definition" not in markers)
+                else _effective_card_title(card)
+            )
+            if title != "Scout Other Cottages":
+                continue
+            owner_marker = f"_scout_energy_cube_{card.instance_id}"
+            for sc in sim.suitcase:
+                sc_id = sc.instance_id
+                if sc_id not in claimed_sc and sc.markers.get(owner_marker):
+                    claimed_sc.add(sc_id)
+                    if p_idx == player_index:
+                        hand_size += 1
+        if p_idx == player_index:
+            break
+    return hand_size
 
 
 def _suitcase_pick1_edge(sim: Game, player_index: int) -> float:
@@ -989,6 +1128,7 @@ def _osmium_reserve_score(
     tom_photo = 0.0
     tom_dates = 0.0
     tom_wild = 0.0
+    tom_epic_prank = 0.0
     tom_pos_smb = 0.0
     tom_neg_smb = 0.0
     tom_tag_bonuses: dict[str, float] = {}
@@ -1006,6 +1146,8 @@ def _osmium_reserve_score(
             tom_dates += 1.0
         elif t_title == "Wildlife Spotting":
             tom_wild += 1.0
+        elif t_title == "Epic Prank":
+            tom_epic_prank += 1.0
         smb = t_meta.signed_match_benefit
         if smb > 0.0:
             tom_pos_smb += smb
@@ -1021,6 +1163,9 @@ def _osmium_reserve_score(
             tom_tag_bonuses[chosen_t] = tom_tag_bonuses.get(chosen_t, 0.0) + 1.2
 
     all_cards_zeroed = bool(tom_all_tags and zero_tag)
+    tom_has_relax_bonus = (
+        tom_tag_bonuses.get("Relax", 0.0) > 0.0 and not all_cards_zeroed
+    )
     if tom_e:
         val += w[5] * float(tom_e)
         if tom_e > 2:
@@ -1056,6 +1201,7 @@ def _osmium_reserve_score(
     scaler_cnt = 0
 
     has_colouring = False
+    has_ade = False
     has_paddleboat = False
     acquirer_cnt = 0
     has_leftovers = False
@@ -1068,6 +1214,10 @@ def _osmium_reserve_score(
     empty_hand_cnt = 0
     wrestle_pwtk_cnt = 0
     epic_duels_cnt = 0
+    relax_payoff_cnt = 0
+    max_first_cost = 7 + (tom_e if tom_e > 0 else 0)
+    best_first_fun = 0.0
+    max_ade_ex_fun = 0
 
     tag_cnts = [0] * 7
     hand_scaler_by_tag = [0.0] * 7
@@ -1098,10 +1248,25 @@ def _osmium_reserve_score(
 
         eff_h_len += 1
         hand_meta_tags.append((meta, ctags))
-        bf = float(hc.effective_base_fun + meta.immediate_fun_gain)
+        bf_int = hc.effective_base_fun + meta.immediate_fun_gain
+        bf = float(bf_int)
         total_cost += cost
         if bf > 0.0:
             base_funs.append(bf)
+        if (
+            bf_int > 0
+            and not meta.must_play_late
+            and cost <= max_first_cost
+            and bf > best_first_fun
+        ):
+            best_first_fun = bf
+        if (
+            "Exercise" in ctags
+            and not meta.must_play_first
+            and bf_int >= 4
+            and bf_int > max_ade_ex_fun
+        ):
+            max_ade_ex_fun = bf_int
         if cost == 0:
             zero_cost_cnt += 1
         if cost <= 1:
@@ -1142,6 +1307,8 @@ def _osmium_reserve_score(
 
         if title == "Colouring":
             has_colouring = True
+        elif title == "After Dinner Entertainment":
+            has_ade = True
         elif title == "Paddleboat":
             has_paddleboat = True
         elif title == "Leftovers":
@@ -1154,6 +1321,8 @@ def _osmium_reserve_score(
             has_civ = True
         elif title == "Epic Duels":
             epic_duels_cnt += 1
+        if title in _RELAX_PAYOFF_TITLES:
+            relax_payoff_cnt += 1
 
         if meta.is_acquirer:
             acquirer_cnt += 1
@@ -1249,8 +1418,15 @@ def _osmium_reserve_score(
         val += w[68] * float(tom_e * min(heavy_cnt, 2))
     if tom_dates > 0 and (cheap_cnt > 0 or net_e_pos > 0.0):
         val += w[69] * float(tom_dates * min(float(cheap_cnt) + net_e_pos, 5.0))
-    if has_colouring and scaler_cnt > 0:
-        val += w[70] * float(min(scaler_cnt, 3))
+    if has_colouring and (
+        relax_payoff_cnt > 0 or tom_photo > 0.0 or tom_has_relax_bonus
+    ):
+        relax_syn = (
+            float(relax_payoff_cnt)
+            + tom_photo
+            + (1.0 if (tom_has_relax_bonus and tom_photo == 0.0) else 0.0)
+        )
+        val += 1.9 * (relax_syn if relax_syn < 2.0 else 2.0)
     if has_paddleboat and (acquirer_cnt + tom_photo) > 0:
         val += w[71] * float(min(float(acquirer_cnt) + tom_photo, 3.0))
     if has_leftovers and copy_food_cnt > 0:
@@ -1273,6 +1449,14 @@ def _osmium_reserve_score(
     if copy_food_cnt > 0 and high_food_cnt > 0:
         val += w[80] * float(copy_food_cnt * min(high_food_cnt, 3))
 
+    if tom_epic_prank > 0.0 and not all_cards_zeroed:
+        capped_bf = best_first_fun if best_first_fun < 18.0 else 18.0
+        bf_bonus = 0.75 * (capped_bf - 3.0) if capped_bf > 3.0 else 0.0
+        val += tom_epic_prank * (3.6 + bf_bonus)
+    if has_ade and tag_cnts[2] > 0 and max_ade_ex_fun >= 4:
+        ex_gain = float(max_ade_ex_fun - 2)
+        val += 0.35 * (ex_gain if ex_gain < 8.0 else 8.0)
+
     is_d1 = days_left == 1
     slug_weights = _OSMIUM_SLUG_WEIGHTS
     slug_d1_weights = _OSMIUM_SLUG_D1_WEIGHTS
@@ -1285,61 +1469,6 @@ def _osmium_reserve_score(
     return val
 
 
-def _colouring_tag_score(
-    tags: frozenset[str],
-    wanted_tags: dict[str, float],
-    cond: object,
-    char: object,
-) -> tuple[float, int]:
-    """Deterministic tie-break / ranking heuristic for a Colouring target's tag set."""
-    score = sum(wanted_tags.get(t, 0.0) for t in sorted(tags))
-    if cond is not None:
-        if getattr(cond, "fun_tag", "") in tags:
-            score += float(getattr(cond, "fun_delta", 0)) * 0.8
-        if getattr(cond, "hot_day", False):
-            if "Outdoors" in tags:
-                score -= 0.8
-            if "Indoors" in tags:
-                score += 0.8
-    if char is not None:
-        fun_tag = getattr(char, "fun_tag", "")
-        if fun_tag and fun_tag in tags:
-            score += float(getattr(char, "fun_delta", 0)) * 0.8
-        energy_tag = getattr(char, "energy_tag", "")
-        if energy_tag and energy_tag in tags:
-            score -= float(getattr(char, "energy_delta", 0)) * 0.8
-    return (score, len(tags))
-
-
-def _colouring_candidate_indices(
-    options: Sequence[CardInstance],
-    zero_tag: str | None,
-) -> list[int]:
-    """Select the highest-value representative index per distinct Colouring tag set."""
-    non_zero_indices = [
-        i
-        for i, c in enumerate(options)
-        if c.tags and not (zero_tag and zero_tag in c.tags)
-    ]
-    cand_pool = non_zero_indices or [
-        i
-        for i, c in enumerate(options)
-        if not (zero_tag and zero_tag in c.tags)
-    ]
-    if not cand_pool:
-        cand_pool = list(range(len(options)))
-    seen_tag_sets: dict[frozenset[str], tuple[tuple[int, int, int], int]] = {}
-    for i in cand_pool:
-        card = options[i]
-        tset = card.tags
-        # Prefer higher-value targets so later Bohnanza discards won't strip the mark.
-        rep_key = (card.effective_base_fun, card.definition.cost, -i)
-        prev = seen_tag_sets.get(tset)
-        if prev is None or rep_key > prev[0]:
-            seen_tag_sets[tset] = (rep_key, i)
-    return [item[1] for item in seen_tag_sets.values()]
-
-
 class _OsmiumOverrideEvalAI(_HydrogenEvalAI):
     """Lightweight sub-decision override wrapper used inside search branching."""
 
@@ -1347,8 +1476,6 @@ class _OsmiumOverrideEvalAI(_HydrogenEvalAI):
         "spend_override",
         "discard_tuple_override",
         "copy_idx_override",
-        "optional_override",
-        "target_idx_override",
     )
 
     def __init__(
@@ -1357,15 +1484,11 @@ class _OsmiumOverrideEvalAI(_HydrogenEvalAI):
         spend_override: int | None = None,
         discard_tuple_override: tuple[int, ...] | None = None,
         copy_idx_override: int | None = None,
-        optional_override: bool | None = None,
-        target_idx_override: int | None = None,
     ) -> None:
         super().__init__()
         self.spend_override = spend_override
         self.discard_tuple_override = discard_tuple_override
         self.copy_idx_override = copy_idx_override
-        self.optional_override = optional_override
-        self.target_idx_override = target_idx_override
 
     def choose_energy_to_spend(
         self, game: Game, player_index: int, card: CardInstance, maximum: int
@@ -1393,26 +1516,243 @@ class _OsmiumOverrideEvalAI(_HydrogenEvalAI):
             return self.copy_idx_override
         return super().choose_card_to_copy(game, player_index, options)
 
-    def choose_card_target(
-        self, game: Game, player_index: int, options: Sequence[CardInstance]
-    ) -> int:
-        if (
-            self.target_idx_override is not None
-            and 0 <= self.target_idx_override < len(options)
-        ):
-            played = game.players[player_index].played_today
-            if played and _effective_card_title(played[-1]) == "Colouring":
-                return self.target_idx_override
-        return super().choose_card_target(game, player_index, options)
 
-    def choose_optional_action(
-        self, game: Game, player_index: int, action: str
-    ) -> bool:
-        if self.optional_override is not None and (
-            "Cities and Knights" in action or "Epic Prank" in action
-        ):
-            return self.optional_override
-        return super().choose_optional_action(game, player_index, action)
+def _current_day_fun_est(sim: Game, p_idx: int) -> float:
+    p = sim.players[p_idx]
+    start_f = (
+        sim._fun_at_start_of_day[p_idx]
+        if sim._fun_at_start_of_day is not None
+        else p.fun
+    )
+    val = float(p.fun - start_f)
+    for pc in p.played_today:
+        val += float(sim.card_fun(p_idx, pc))
+    return val
+
+
+def _poisson_beat_bg(opp: PlayerState, opp_bg: int, target_bg: int) -> float:
+    if opp.asleep:
+        return 1.0 if target_bg > opp_bg else 0.0
+    opp_h = len(opp.hand)
+    if opp_h <= 0:
+        return 1.0 if target_bg > opp_bg else 0.0
+    k_max = target_bg - opp_bg - 1
+    if k_max < 0:
+        return 0.0
+    rem_plays = min(float(opp_h), 0.3 + opp.energy / 2.3)
+    bg_rate = 0.28 if opp_bg > 0 else 0.17
+    if opp.character is not None and opp.character.fun_tag == "Board Game":
+        bg_rate = 0.35
+    else:
+        for tc in (*opp.played_today, *opp.tomorrow_cards):
+            if _effective_card_title(tc) in {
+                "Carcassonne",
+                "Trekking Through History",
+                "Forced Family Fun",
+                "Bend the Rules",
+            }:
+                bg_rate = 0.35
+                break
+    lam = max(0.0, rem_plays * bg_rate)
+    term = math.exp(-lam)
+    cdf = term
+    for k in range(1, k_max + 1):
+        term *= lam / k
+        cdf += term
+    return min(1.0, cdf)
+
+
+def _awake_opp_new_cards_adjustment(
+    terminal_sim: Game,
+    player_index: int,
+    next_tomorrow_cards: Sequence[CardInstance],
+    eval_sim: Game | None = None,
+) -> float:
+    """Discount 7 Wonders, Solo, and Epic Prank when opponents can still act today."""
+    players = terminal_sim.players
+    player = players[player_index]
+    played_today = player.played_today
+    has_target = False
+    for c in played_today:
+        m = c.markers
+        eff_t = (
+            c.definition.title
+            if (not m or "_copied_definition" not in m)
+            else _effective_card_title(c)
+        )
+        if eff_t == "7 Wonders" or eff_t == "Solo" or eff_t == "Epic Prank":
+            has_target = True
+            break
+    if not has_target:
+        return 0.0
+
+    adj = 0.0
+    n_players = len(players)
+    my_day_fun: float | None = None
+    max_opp_day_fun: float | None = None
+    pre_after_fun: int | None = None
+    opp_proj_cache: dict[int, float] = {}
+
+    for c_idx, c in enumerate(played_today):
+        m = c.markers
+        eff_t = (
+            c.definition.title
+            if (not m or "_copied_definition" not in m)
+            else _effective_card_title(c)
+        )
+        if eff_t == "7 Wonders":
+            own_bg = sum(1 for pc in played_today if "Board Game" in pc.tags)
+            left_idx = (player_index - 1) % n_players
+            right_idx = (player_index + 1) % n_players
+            left_opp = players[left_idx]
+            right_opp = players[right_idx]
+            left_bg = sum(
+                1 for oc in left_opp.played_today if "Board Game" in oc.tags
+            )
+            right_bg = sum(
+                1 for oc in right_opp.played_today if "Board Game" in oc.tags
+            )
+            if (
+                own_bg > left_bg
+                and own_bg > right_bg
+                and (not left_opp.asleep or not right_opp.asleep)
+            ):
+                p_left = _poisson_beat_bg(left_opp, left_bg, own_bg)
+                p_right = _poisson_beat_bg(right_opp, right_bg, own_bg)
+                mult = 1
+                if c_idx == 0 and any(
+                    _effective_card_title(tc) == "Epic Prank"
+                    for tc in player.tomorrow_cards
+                ):
+                    mult *= 2
+                if (
+                    c_idx > 0
+                    and _effective_card_title(played_today[c_idx - 1]) == "Work Call"
+                ):
+                    mult *= 2
+                for p_i in range(c_idx):
+                    if _effective_card_title(played_today[p_i]) == "Bring a Friend":
+                        mult *= 2
+                adj -= 4.0 * float(mult) * (1.0 - p_left * p_right)
+        elif eff_t == "Solo":
+            if eval_sim is not None and eval_sim is not terminal_sim:
+                if pre_after_fun is None:
+                    pre_after_fun = player.fun + sum(
+                        terminal_sim.card_fun(player_index, pc)
+                        for pc in played_today
+                    )
+                if eval_sim.players[player_index].fun <= pre_after_fun:
+                    continue
+                if my_day_fun is None:
+                    my_day_fun = _current_day_fun_est(
+                        terminal_sim, player_index
+                    )
+                can_score_solo = True
+            else:
+                if my_day_fun is None:
+                    my_day_fun = _current_day_fun_est(
+                        terminal_sim, player_index
+                    )
+                    max_opp_day_fun = max(
+                        (
+                            _current_day_fun_est(terminal_sim, idx)
+                            for idx in range(n_players)
+                            if idx != player_index
+                        ),
+                        default=0.0,
+                    )
+                can_score_solo = my_day_fun >= max_opp_day_fun  # type: ignore[operator]
+            if can_score_solo:
+                solo_fun = max(0, terminal_sim.card_fun(player_index, c))
+                if solo_fun > 0:
+                    p_win_day = 1.0
+                    for idx in range(n_players):
+                        if idx == player_index or players[idx].asleep:
+                            continue
+                        opp_proj = opp_proj_cache.get(idx)
+                        if opp_proj is None:
+                            opp_proj = _projected_opponent_day_fun(
+                                terminal_sim, idx
+                            )
+                            opp_proj_cache[idx] = opp_proj
+                        scale = 2.0 + 0.35 * min(
+                            float(players[idx].energy), 7.0
+                        )
+                        z = max(
+                            -12.0,
+                            min(12.0, (my_day_fun - opp_proj + 0.5) / scale),
+                        )
+                        p_win_day *= 1.0 / (1.0 + math.exp(-z))
+                    adj -= float(solo_fun) * (1.0 - p_win_day)
+        elif eff_t == "Epic Prank":
+            if terminal_sim.day < DAY_COUNT and any(
+                tc.instance_id == c.instance_id for tc in next_tomorrow_cards
+            ):
+                t_idx = m.get("target_player_index") if m else None
+                if (
+                    isinstance(t_idx, int)
+                    and 0 <= t_idx < n_players
+                    and not players[t_idx].asleep
+                ):
+                    if my_day_fun is None:
+                        my_day_fun = _current_day_fun_est(
+                            terminal_sim, player_index
+                        )
+                        max_opp_day_fun = max(
+                            (
+                                _current_day_fun_est(terminal_sim, idx)
+                                for idx in range(n_players)
+                                if idx != player_index
+                            ),
+                            default=0.0,
+                        )
+                    opp_proj = opp_proj_cache.get(t_idx)
+                    if opp_proj is None:
+                        opp_proj = _projected_opponent_day_fun(
+                            terminal_sim, t_idx
+                        )
+                        opp_proj_cache[t_idx] = opp_proj
+                    scale = 2.0 + 0.35 * min(
+                        float(players[t_idx].energy), 7.0
+                    )
+                    z = max(
+                        -12.0,
+                        min(12.0, (my_day_fun - opp_proj + 0.5) / scale),
+                    )
+                    p_keep = 1.0 / (1.0 + math.exp(-z))
+                    tom_e_ep = sum(
+                        max(0, _get_card_meta(tc).tomorrow_start_energy)
+                        for tc in next_tomorrow_cards
+                    )
+                    max_first_c = 7 + tom_e_ep
+                    zero_tag = (
+                        player.character.zero_fun_tag
+                        if player.character is not None
+                        else ""
+                    )
+                    best_first_f = 0.0
+                    for hc in player.hand:
+                        hm = hc.markers
+                        hc_tags = hc.definition.tags if not hm else hc.tags
+                        if zero_tag and zero_tag in hc_tags:
+                            continue
+                        hc_meta = _get_card_meta(hc)
+                        if (
+                            not hc_meta.must_play_late
+                            and max(0, hc.effective_cost) <= max_first_c
+                        ):
+                            bf = float(
+                                hc.effective_base_fun + hc_meta.immediate_fun_gain
+                            )
+                            if bf > best_first_f:
+                                best_first_f = bf
+                    capped_bf = best_first_f if best_first_f < 18.0 else 18.0
+                    ep_tom_val = 3.6 + (
+                        0.75 * (capped_bf - 3.0) if capped_bf > 3.0 else 0.0
+                    )
+                    adj -= (1.0 - p_keep) * ep_tom_val
+
+    return adj
 
 
 class OsmiumAI(HydrogenAI):
@@ -1433,6 +1773,7 @@ class OsmiumAI(HydrogenAI):
     def __init__(self, rng: random.Random | None = None) -> None:
         super().__init__(rng)
         _ensure_osmium_caches()
+        self._draft_opp_pending_draws: tuple[int, int, int, int] | None = None
         if type(self) is OsmiumAI:
             self.__dict__.pop("_reserve_eval_cache", None)
         elif "_reserve_eval_cache" not in type(self).__dict__:
@@ -1560,6 +1901,67 @@ class OsmiumAI(HydrogenAI):
             * _suitcase_pick1_edge(sim, player_index),
         )
 
+    def _next_day_starter_prob(
+        self,
+        sim: Game,
+        player_index: int,
+        my_end_hand: int,
+    ) -> float:
+        """Estimate P(player_index starts tomorrow) under fewest-cards-in-hand."""
+        players = sim.players
+        starter = sim.starting_player
+        my_pos = (player_index - starter) % 4
+        pending_draws = self._draft_opp_pending_draws
+        p_win = 1.0
+        for idx in range(4):
+            if idx == player_index:
+                continue
+            opp = players[idx]
+            opp_pos = (idx - starter) % 4
+            # Ties go to the first player clockwise starting from sim.starting_player.
+            need_ge = my_end_hand if my_pos < opp_pos else my_end_hand + 1
+            if need_ge <= 0:
+                continue
+
+            extra = pending_draws[idx] if pending_draws is not None else 0
+            opp_eod_h = _projected_end_hand_size(sim, idx) + extra
+
+            if opp.asleep:
+                if opp_eod_h < need_ge:
+                    return 0.0
+                continue
+
+            opp_h = len(opp.hand) + extra
+            if opp_h <= 0:
+                if opp_eod_h < need_ge:
+                    return 0.0
+                continue
+
+            opp_e = opp.energy
+            if opp_eod_h < need_ge:
+                if opp_e <= 0 or need_ge - opp_eod_h > 2:
+                    return 0.0
+                p_beat = 0.08 if need_ge - opp_eod_h == 1 else 0.02
+            else:
+                if opp_e <= 0:
+                    est_plays = min(float(opp_h), 0.25)
+                else:
+                    est_plays = min(float(opp_h), 0.35 + opp_e / 2.6)
+                mu = opp_eod_h - est_plays
+                diff = mu - (need_ge - 0.5)
+                scale = 0.25 + 0.15 * min(float(opp_h), max(0.0, opp_e * 0.5))
+                z = diff / scale
+                if z >= 12.0:
+                    p_beat = 1.0
+                elif z <= -12.0:
+                    p_beat = 0.0
+                else:
+                    p_beat = 1.0 / (1.0 + math.exp(-z))
+            p_win *= p_beat
+            if p_win < 0.02:
+                return 0.0
+        return p_win
+
     def _first_to_bed_value(
         self,
         sim: Game,
@@ -1568,60 +1970,24 @@ class OsmiumAI(HydrogenAI):
         turns_from_root: int = 0,
         root_skipped_turns: int = 0,
         _base_bonus_override: float | None = None,
+        _my_end_hand_override: int | None = None,
     ) -> float:
+        """Expected value of being tomorrow's starting player (fewest cards in hand)."""
         if sim.day >= DAY_COUNT:
             return 0.0
-        players = sim.players
-        for idx in range(4):
-            if idx != player_index and players[idx].asleep:
-                return 0.0
-        player = players[player_index]
-        delta_skipped = max(0, player.skipped_turns - root_skipped_turns)
-        if turns_from_root <= 0:
-            opp_rounds = 0
-        elif player.asleep:
-            opp_rounds = max(0, (turns_from_root - 1) + delta_skipped)
-        else:
-            opp_rounds = turns_from_root + delta_skipped
-
+        my_end_hand = (
+            _my_end_hand_override
+            if _my_end_hand_override is not None
+            else _projected_end_hand_size(sim, player_index)
+        )
+        p_win = self._next_day_starter_prob(sim, player_index, my_end_hand)
+        if p_win <= 0.0:
+            return 0.0
         base_bonus = (
             _base_bonus_override
             if _base_bonus_override is not None
             else self._suitcase_pick1_bonus(sim, player_index)
         )
-        if opp_rounds <= 0:
-            return base_bonus
-
-        p_win = 1.0
-        for idx in range(4):
-            if idx == player_index:
-                continue
-            opp = players[idx]
-            eff_turns = opp_rounds - opp.skipped_turns
-            if eff_turns <= 0:
-                continue
-            opp_h = len(opp.hand)
-            if opp_h <= 0:
-                return 0.0
-            opp_e = opp.energy
-            for t in range(eff_turns):
-                est_h = opp_h - t
-                if est_h <= 0:
-                    return 0.0
-                est_e = opp_e - 2 * t
-                if est_e <= 0:
-                    p_stay = _FTB_ZERO_E_STAY[est_h if est_h < 4 else 4]
-                elif est_e == 1:
-                    p_stay = 0.48
-                elif est_e == 2:
-                    p_stay = 0.68
-                elif est_e <= 4:
-                    p_stay = 0.80
-                else:
-                    p_stay = 0.88
-                p_win *= p_stay
-                if p_win < 0.03:
-                    return 0.0
         return base_bonus * p_win
 
     def _evaluate_terminal_day(
@@ -1635,118 +2001,21 @@ class OsmiumAI(HydrogenAI):
     ) -> float:
         players = terminal_sim.players
         player = players[player_index]
-        if _ftb_ctx is not None and (
+        ctx_matches = _ftb_ctx is not None and (
             (player_index == 0 or players[0] is _ftb_ctx[0])
             and (player_index == 1 or players[1] is _ftb_ctx[1])
             and (player_index == 2 or players[2] is _ftb_ctx[2])
             and (player_index == 3 or players[3] is _ftb_ctx[3])
-        ):
+        )
+        if ctx_matches:
             awake_opps = _ftb_ctx[4]
             opponents_awake = awake_opps > 0
-            if terminal_sim.day < DAY_COUNT and awake_opps == 3:
-                f_dict = _ftb_ctx[5]
-                if (
-                    len(_ftb_ctx) >= 9
-                    and 0 <= turns_from_root < 256
-                    and 0 <= player.skipped_turns < 256
-                    and 0 <= root_skipped_turns < 256
-                ):
-                    if terminal_sim.suitcase is _ftb_ctx[6]:
-                        sc_ids = _ftb_ctx[7]
-                        use_int_k = True
-                    else:
-                        sc_ids = tuple(
-                            c.instance_id for c in terminal_sim.suitcase
-                        )
-                        use_int_k = sc_ids == _ftb_ctx[7]
-                    if use_int_k:
-                        fkey: int | tuple = (
-                            (root_skipped_turns << 18)
-                            | (turns_from_root << 10)
-                            | (player.skipped_turns << 2)
-                            | (2 if player.asleep else 0)
-                            | 1
-                        )
-                    else:
-                        fkey = (
-                            turns_from_root,
-                            player.asleep,
-                            player.skipped_turns,
-                            root_skipped_turns,
-                            sc_ids,
-                        )
-                    ftb_val = f_dict.get(fkey)
-                    if ftb_val is None:
-                        p_hand_ids = tuple(c.instance_id for c in player.hand)
-                        sc_bkey = ("b", p_hand_ids, _ftb_ctx[8], sc_ids)
-                        base_b = f_dict.get(sc_bkey)
-                        if base_b is None:
-                            base_b = self._suitcase_pick1_bonus(
-                                terminal_sim, player_index
-                            )
-                            f_dict[sc_bkey] = base_b
-                        ftb_val = self._first_to_bed_value(
-                            terminal_sim,
-                            player_index,
-                            turns_from_root=turns_from_root,
-                            root_skipped_turns=root_skipped_turns,
-                            _base_bonus_override=base_b,
-                        )
-                        f_dict[fkey] = ftb_val
-                    first_to_bed_value = ftb_val
-                else:
-                    sc_ids = tuple(c.instance_id for c in terminal_sim.suitcase)
-                    full_key = (
-                        turns_from_root,
-                        player.asleep,
-                        player.skipped_turns,
-                        root_skipped_turns,
-                        sc_ids,
-                    )
-                    ftb_val = f_dict.get(full_key)
-                    if ftb_val is None:
-                        p_hand_ids = tuple(c.instance_id for c in player.hand)
-                        p_tom_ids = (
-                            _ftb_ctx[8]
-                            if len(_ftb_ctx) >= 9
-                            else tuple(
-                                c.instance_id for c in player.tomorrow_cards
-                            )
-                        )
-                        sc_bkey = ("b", p_hand_ids, p_tom_ids, sc_ids)
-                        base_b = f_dict.get(sc_bkey)
-                        if base_b is None:
-                            base_b = self._suitcase_pick1_bonus(
-                                terminal_sim, player_index
-                            )
-                            f_dict[sc_bkey] = base_b
-                        ftb_val = self._first_to_bed_value(
-                            terminal_sim,
-                            player_index,
-                            turns_from_root=turns_from_root,
-                            root_skipped_turns=root_skipped_turns,
-                            _base_bonus_override=base_b,
-                        )
-                        f_dict[full_key] = ftb_val
-                    first_to_bed_value = ftb_val
-            else:
-                first_to_bed_value = 0.0
         else:
             awake_opps = 0
             for idx in range(4):
                 if idx != player_index and not players[idx].asleep:
                     awake_opps += 1
             opponents_awake = awake_opps > 0
-            first_to_bed_value = (
-                self._first_to_bed_value(
-                    terminal_sim,
-                    player_index,
-                    turns_from_root=turns_from_root,
-                    root_skipped_turns=root_skipped_turns,
-                )
-                if (terminal_sim.day < DAY_COUNT and awake_opps == 3)
-                else 0.0
-            )
 
         played_today = player.played_today
         is_hsim = type(terminal_sim) is _OSMIUM_SIM_GAME_CLS_CACHED
@@ -1873,7 +2142,7 @@ class OsmiumAI(HydrogenAI):
                         if idx != player_index
                     ):
                         today_total_fun -= (
-                            3.6 if played_len <= 3 else 1.9
+                            4.5 if played_len <= 3 else 2.4
                         )
                 elif eff_title == "Play With the Kids":
                     if hand_len <= 2 and all(
@@ -1934,9 +2203,62 @@ class OsmiumAI(HydrogenAI):
                                     break
                     if relax_opps < 2:
                         today_total_fun += 0.35 * awake_opps
+            today_total_fun += _awake_opp_new_cards_adjustment(
+                terminal_sim, player_index, next_tomorrow_cards, eval_sim
+            )
 
         if terminal_sim.day >= DAY_COUNT:
             return today_total_fun
+
+        my_proj_h = (
+            len(eval_sim.players[player_index].hand)
+            if eval_sim is not terminal_sim
+            else (
+                len(player.hand)
+                if not needs_full_end_day
+                else _projected_end_hand_size(terminal_sim, player_index)
+            )
+        )
+        if ctx_matches:
+            f_dict = _ftb_ctx[5]
+            has_sc_ctx = (
+                len(_ftb_ctx) >= 9 and terminal_sim.suitcase is _ftb_ctx[6]
+            )
+            sc_ids = (
+                _ftb_ctx[7]
+                if has_sc_ctx
+                else tuple(c.instance_id for c in terminal_sim.suitcase)
+            )
+            pkey = ("p", my_proj_h, sc_ids)
+            p_win = f_dict.get(pkey)
+            if p_win is None:
+                p_win = self._next_day_starter_prob(
+                    terminal_sim, player_index, my_proj_h
+                )
+                f_dict[pkey] = p_win
+            if p_win <= 0.0:
+                first_to_bed_value = 0.0
+            else:
+                p_hand_ids = tuple(c.instance_id for c in player.hand)
+                p_tom_ids = (
+                    _ftb_ctx[8]
+                    if len(_ftb_ctx) >= 9
+                    else tuple(c.instance_id for c in player.tomorrow_cards)
+                )
+                sc_bkey = ("b", p_hand_ids, p_tom_ids, sc_ids)
+                base_b = f_dict.get(sc_bkey)
+                if base_b is None:
+                    base_b = self._suitcase_pick1_bonus(
+                        terminal_sim, player_index
+                    )
+                    f_dict[sc_bkey] = base_b
+                first_to_bed_value = base_b * p_win
+        else:
+            first_to_bed_value = self._first_to_bed_value(
+                terminal_sim,
+                player_index,
+                _my_end_hand_override=my_proj_h,
+            )
 
         if (
             eval_sim is terminal_sim
@@ -1962,6 +2284,34 @@ class OsmiumAI(HydrogenAI):
                 days_left=DAY_COUNT - terminal_sim.day,
             )
         return today_total_fun + first_to_bed_value + reserve_value
+
+    def _rollout_awake_opp_adjustment(
+        self,
+        term_sim: Game,
+        next_sim: Game,
+        player_index: int,
+        awake_opps: int,
+    ) -> float:
+        adj = 0.0
+        players = term_sim.players
+        played_today = players[player_index].played_today
+        played_len = len(played_today)
+        if played_len <= 4 and any(
+            _effective_card_title(c) == "Fit to Print" for c in played_today
+        ):
+            if all(
+                played_len >= len(players[idx].played_today)
+                for idx in range(len(players))
+                if idx != player_index
+            ):
+                adj -= 4.5 if played_len <= 3 else 2.4
+        adj += _awake_opp_new_cards_adjustment(
+            term_sim,
+            player_index,
+            next_sim.players[player_index].tomorrow_cards,
+            next_sim,
+        )
+        return adj
 
     def _canonical_reserve_cache_key(
         self,
@@ -2349,34 +2699,6 @@ class OsmiumAI(HydrogenAI):
                 if branches:
                     return branches
 
-        elif title in {"Cities and Knights", "Epic Prank"} and len(player.hand) >= 2:
-            has_elig = (
-                len(player.hand) >= 2
-                if title == "Cities and Knights"
-                else any(
-                    i != hand_idx and "Item" in c.tags
-                    for i, c in enumerate(player.hand)
-                )
-            )
-            if has_elig:
-                for opt_choice in (True, False):
-                    child = _hydrogen_copy_game_for_play(state, player_index)
-                    child.ais = [
-                        _OsmiumOverrideEvalAI(optional_override=opt_choice)
-                    ] * 4
-                    try:
-                        if known_cost is not None and is_hsim:
-                            child.play_card_known_cost(player_index, hand_idx, known_cost)  # type: ignore[attr-defined]
-                        else:
-                            child.play_card(player_index, hand_idx)
-                        branches.append(child)
-                    except Exception:
-                        pass
-                    finally:
-                        child.ais = _HYDROGEN_SIM_AIS
-                if branches:
-                    return branches
-
         elif title in {"Wedding Anniversary", "Leftovers"}:
             cost = (
                 state.energy_cost(player_index, card)
@@ -2415,46 +2737,6 @@ class OsmiumAI(HydrogenAI):
                 for c_idx in scored_c[:2]:
                     child = _hydrogen_copy_game_for_play(state, player_index)
                     child.ais = [_OsmiumOverrideEvalAI(copy_idx_override=c_idx)] * 4
-                    try:
-                        if known_cost is not None and is_hsim:
-                            child.play_card_known_cost(player_index, hand_idx, known_cost)  # type: ignore[attr-defined]
-                        else:
-                            child.play_card(player_index, hand_idx)
-                        branches.append(child)
-                    except Exception:
-                        pass
-                    finally:
-                        child.ais = _HYDROGEN_SIM_AIS
-                if branches:
-                    return branches
-
-        elif title == "Colouring" and len(player.played_today) >= 2:
-            prior = player.played_today
-            zero_tag = (
-                player.character.zero_fun_tag
-                if player.character is not None
-                else None
-            )
-            distinct_indices = _colouring_candidate_indices(prior, zero_tag)
-            if len(distinct_indices) >= 2:
-                wanted_tags = _wanted_tags_for_player_fast(player)
-                cond = state.daily_condition
-                char = player.character
-
-                def _colouring_tag_rank(opt_i: int) -> tuple[float, int, int]:
-                    score, n_tags = _colouring_tag_score(
-                        prior[opt_i].tags, wanted_tags, cond, char
-                    )
-                    return (score, n_tags, -opt_i)
-
-                ranked_t = sorted(
-                    distinct_indices,
-                    key=_colouring_tag_rank,
-                    reverse=True,
-                )[:3]
-                for t_idx in ranked_t:
-                    child = _hydrogen_copy_game_for_play(state, player_index)
-                    child.ais = [_OsmiumOverrideEvalAI(target_idx_override=t_idx)] * 4
                     try:
                         if known_cost is not None and is_hsim:
                             child.play_card_known_cost(player_index, hand_idx, known_cost)  # type: ignore[attr-defined]
@@ -2829,6 +3111,68 @@ class OsmiumAI(HydrogenAI):
         live_player = game.players[player_index]
         own_markers = _carbon_own_suitcase_markers(live_player)
         pr_markers, scout_markers = _opponent_suitcase_markers(game, player_index)
+        if live_player.asleep:
+            if game.day >= DAY_COUNT:
+                return 0
+            sim = _hydrogen_copy_game(
+                self._prepare_observable_game(game, player_index)
+            )
+            sim_p = sim.players[player_index]
+            today_fun = game.fun_scored_today(live_player)
+            next_tom: list[CardInstance] = []
+            for c in live_player.played_today:
+                eff_t = _effective_card_title(c)
+                if eff_t == "Chuck a Frisbee" or (
+                    eff_t == "Nos Shirt" and today_fun > 7
+                ):
+                    sim_p.hand.append(CardInstance(c.instance_id, c.definition))
+                    continue
+                if not c.effective_behavior.has_tomorrow_action:
+                    continue
+                if eff_t == "Date's First Nos" and today_fun < 3:
+                    continue
+                if eff_t == "Epic Prank":
+                    t_idx = (
+                        c.markers.get("target_player_index")
+                        if c.markers
+                        else None
+                    )
+                    if (
+                        isinstance(t_idx, int)
+                        and today_fun < game.fun_scored_today(game.players[t_idx])
+                    ):
+                        continue
+                next_tom.append(_clone_card(c))
+            days_left_eod = DAY_COUNT - game.day
+            if getattr(sim, "_all_canonical_defs", False) and any(
+                c.definition.slug not in _OSMIUM_SPEC_BY_SLUG
+                or _OSMIUM_SPEC_BY_SLUG[c.definition.slug].defn is not c.definition
+                for c in (*sim_p.hand, *options)
+            ):
+                sim._all_canonical_defs = False  # type: ignore[attr-defined]
+            best_val_eod = float("-inf")
+            best_indices_eod: list[int] = [0]
+            for idx, option in enumerate(options):
+                opt_copy = CardInstance(option.instance_id, option.definition)
+                sim_p.hand.append(opt_copy)
+                try:
+                    val = self._evaluate_tomorrow_and_reserve_fast(
+                        sim, player_index, next_tom, days_left=days_left_eod
+                    )
+                finally:
+                    sim_p.hand.pop()
+                val += _suitcase_denial_value(
+                    game, player_index, option, pr_markers, scout_markers
+                )
+                if own_markers and any(m in option.markers for m in own_markers):
+                    val -= 3.0
+                if val > best_val_eod + 1e-9:
+                    best_val_eod = val
+                    best_indices_eod = [idx]
+                elif abs(val - best_val_eod) <= 1e-9:
+                    best_indices_eod.append(idx)
+            return self.rng.choice(best_indices_eod)
+
         remaining_draw_picks = self._remaining_draw_picks_today(game, player_index)
         if live_player.played_today and (
             len(live_player.played_today) >= 8
@@ -3051,12 +3395,37 @@ class OsmiumAI(HydrogenAI):
                             sim.suitcase[slot_i],
                         )
 
-                _, sample_val = self._search_best_day_plan(
-                    sim,
-                    player_index,
-                    beam_width=draft_beam,
-                    max_plays=draft_max_plays,
-                )
+                prev_pending = self._draft_opp_pending_draws
+                if (
+                    not live_player.played_today
+                    and game._is_setup
+                    and game.stats is not _get_shared_sim_stats()
+                    and game.day < DAY_COUNT
+                ):
+                    my_pos = (player_index - game.starting_player) % 4
+                    n_fut = min(len(future_pools), 2)
+                    self._draft_opp_pending_draws = tuple(
+                        0
+                        if o_idx == player_index
+                        else n_fut
+                        + (
+                            1
+                            if ((o_idx - game.starting_player) % 4) > my_pos
+                            else 0
+                        )
+                        for o_idx in range(4)
+                    )
+                else:
+                    self._draft_opp_pending_draws = None
+                try:
+                    _, sample_val = self._search_best_day_plan(
+                        sim,
+                        player_index,
+                        beam_width=draft_beam,
+                        max_plays=draft_max_plays,
+                    )
+                finally:
+                    self._draft_opp_pending_draws = prev_pending
                 plan_sum += sample_val
 
             total_val = (plan_sum / len(samples)) + synergy_val
@@ -3124,14 +3493,6 @@ class OsmiumAI(HydrogenAI):
                     sim.discard_from_hand(player_index, hand_idx)
                     if sim_player.played_today:
                         sim_source = sim_player.played_today[-1]
-                        if last_played == "Cities and Knights":
-                            sim_source.markers["discarded_card"] = True
-                            if hasattr(sim, "_p_flags"):
-                                sim._p_flags[player_index] |= _PF_HAS_SIG_MARKER  # type: ignore[attr-defined]
-                        elif last_played == "Epic Prank":
-                            sim_source.markers["discarded_item"] = target_card
-                            if hasattr(sim, "_p_flags"):
-                                sim._p_flags[player_index] |= _PF_HAS_SIG_MARKER  # type: ignore[attr-defined]
                         for t_src in tuple(sim_player.tomorrow_cards):
                             t_src.effective_behavior.on_tomorrow_card_play(
                                 sim, sim_player, t_src, sim_source
@@ -3440,97 +3801,6 @@ class OsmiumAI(HydrogenAI):
             else ""
         )
 
-        if last_played == "Colouring":
-            zero_tag = (
-                player.character.zero_fun_tag
-                if player.character is not None
-                else None
-            )
-            distinct_indices = _colouring_candidate_indices(options, zero_tag)
-            if len(distinct_indices) <= 1:
-                return distinct_indices[0]
-
-            wanted_tags = _wanted_tags_for_player_fast(player)
-            cond = game.daily_condition
-            char = player.character
-
-            def _tag_tie_score(opt_i: int) -> tuple[float, int]:
-                return _colouring_tag_score(
-                    options[opt_i].tags, wanted_tags, cond, char
-                )
-
-            self._ensure_live_game(game)
-            base_sim = self._prepare_observable_game(game, player_index)
-            sim_p0 = base_sim.players[player_index]
-            if not sim_p0.hand or not sim_p0.played_today:
-                return max(distinct_indices, key=lambda i: (_tag_tie_score(i), -i))
-
-            prior_by_id = {
-                c.instance_id: i for i, c in enumerate(sim_p0.played_today[:-1])
-            }
-            if not all(options[i].instance_id in prior_by_id for i in distinct_indices):
-                return max(distinct_indices, key=lambda i: (_tag_tie_score(i), -i))
-
-            best_val = float("-inf")
-            best_tie: tuple[float, int] = (float("-inf"), -1)
-            best_indices: list[int] = []
-            prev_depth = self._evaluation_depth
-            self._evaluation_depth = 1
-            try:
-                for opt_i in distinct_indices:
-                    sim = _hydrogen_copy_game(base_sim)
-                    sim.rng = _clone_random(base_sim.rng)
-                    sim_player = sim.players[player_index]
-                    sim_source = sim_player.played_today[-1]
-                    t_pos = prior_by_id[options[opt_i].instance_id]
-                    sim_target = sim_player.played_today[t_pos]
-                    try:
-                        sim_target.markers["energy_cube"] = True
-                        sim_source.markers["target_card"] = sim_target
-                        sim._has_card_ref = True  # type: ignore[attr-defined]
-                        if hasattr(sim, "_p_flags"):
-                            sim._p_flags[player_index] |= _PF_HAS_SIG_MARKER  # type: ignore[attr-defined]
-                        sim._sync_played_today_tags(sim_player)
-                        for t_src in tuple(sim_player.tomorrow_cards):
-                            t_src.effective_behavior.on_tomorrow_card_play(
-                                sim, sim_player, t_src, sim_source
-                            )
-                        for p_src in tuple(sim_player.played_today):
-                            p_src.effective_behavior.on_card_play(
-                                sim, sim_player, p_src, sim_source
-                            )
-                        _, val = self._search_best_day_plan(
-                            sim,
-                            player_index,
-                            beam_width=10,
-                            max_plays=7,
-                            allow_bed_now=True,
-                            base_turns_offset=1,
-                            root_skipped_override=sim_p0.skipped_turns,
-                            start_extra_active=_card_allows_extra_plays(
-                                sim, sim_player, sim_source
-                            ),
-                        )
-                    except Exception:
-                        continue
-                    tie_key = _tag_tie_score(opt_i)
-                    if val > best_val + 1e-9:
-                        best_val = val
-                        best_tie = tie_key
-                        best_indices = [opt_i]
-                    elif abs(val - best_val) <= 1e-9:
-                        if tie_key > best_tie:
-                            best_tie = tie_key
-                            best_indices = [opt_i]
-                        elif tie_key == best_tie:
-                            best_indices.append(opt_i)
-            finally:
-                self._evaluation_depth = prev_depth
-
-            if not best_indices:
-                return max(distinct_indices, key=lambda i: (_tag_tie_score(i), -i))
-            return self.rng.choice(best_indices)
-
         if last_played == "Address the Food":
             self._ensure_live_game(game)
             own_markers = _carbon_own_suitcase_markers(player)
@@ -3651,109 +3921,6 @@ class OsmiumAI(HydrogenAI):
             p_outdoors = unseen_counts.get("Outdoors", 50) / max(1, unseen_total)
             mult = self._quacks_multiplier(game, player_index)
             return p_outdoors < (mult / (1.0 + draws))
-
-        if (
-            ("Cities and Knights" in action or "Epic Prank" in action)
-            and self._evaluation_depth == 0
-            and game.stats is not _get_shared_sim_stats()
-        ):
-            self._ensure_live_game(game)
-            live_p = game.players[player_index]
-            is_prank = "Epic Prank" in action
-            live_opts = (
-                tuple(c for c in live_p.hand if "Item" in c.tags)
-                if is_prank
-                else tuple(live_p.hand)
-            )
-            if live_opts and len(live_p.played_today) < 9:
-                base_sim = self._prepare_observable_game(game, player_index)
-                sim_p0 = base_sim.players[player_index]
-                sim_src0 = sim_p0.played_today[-1] if sim_p0.played_today else None
-                if sim_src0 is not None:
-                    prev_depth = self._evaluation_depth
-                    self._evaluation_depth = 1
-                    try:
-                        sim_no = _hydrogen_copy_game(base_sim)
-                        sim_no.rng = _clone_random(base_sim.rng)
-                        p_no = sim_no.players[player_index]
-                        src_no = p_no.played_today[-1]
-                        for t_src in tuple(p_no.tomorrow_cards):
-                            t_src.effective_behavior.on_tomorrow_card_play(
-                                sim_no, p_no, t_src, src_no
-                            )
-                        for p_src in tuple(p_no.played_today):
-                            p_src.effective_behavior.on_card_play(
-                                sim_no, p_no, p_src, src_no
-                            )
-                        _, val_no = self._search_best_day_plan(
-                            sim_no,
-                            player_index,
-                            beam_width=10,
-                            max_plays=6,
-                            allow_bed_now=True,
-                            base_turns_offset=1,
-                            root_skipped_override=sim_p0.skipped_turns,
-                            start_extra_active=_card_allows_extra_plays(
-                                sim_no, p_no, src_no
-                            ),
-                        )
-
-                        sim_yes = _hydrogen_copy_game(base_sim)
-                        sim_yes.rng = _clone_random(base_sim.rng)
-                        p_yes = sim_yes.players[player_index]
-                        src_yes = p_yes.played_today[-1]
-                        opts_yes = (
-                            tuple(c for c in p_yes.hand if "Item" in c.tags)
-                            if is_prank
-                            else tuple(p_yes.hand)
-                        )
-                        val_yes = float("-inf")
-                        if opts_yes:
-                            d_idx = _HYDROGEN_EVAL_AI_SINGLETON.choose_card_to_discard(
-                                sim_yes, player_index, opts_yes
-                            )
-                            discarded_c = opts_yes[d_idx]
-                            hand_idx = next(
-                                (
-                                    i
-                                    for i, hc in enumerate(p_yes.hand)
-                                    if hc is discarded_c
-                                ),
-                                None,
-                            )
-                            if hand_idx is not None:
-                                sim_yes.discard_from_hand(player_index, hand_idx)
-                                if is_prank:
-                                    src_yes.markers["discarded_item"] = discarded_c
-                                else:
-                                    src_yes.markers["discarded_card"] = True
-                                if hasattr(sim_yes, "_p_flags"):
-                                    sim_yes._p_flags[player_index] |= _PF_HAS_SIG_MARKER  # type: ignore[attr-defined]
-                                for t_src in tuple(p_yes.tomorrow_cards):
-                                    t_src.effective_behavior.on_tomorrow_card_play(
-                                        sim_yes, p_yes, t_src, src_yes
-                                    )
-                                for p_src in tuple(p_yes.played_today):
-                                    p_src.effective_behavior.on_card_play(
-                                        sim_yes, p_yes, p_src, src_yes
-                                    )
-                                _, val_yes = self._search_best_day_plan(
-                                    sim_yes,
-                                    player_index,
-                                    beam_width=10,
-                                    max_plays=6,
-                                    allow_bed_now=True,
-                                    base_turns_offset=1,
-                                    root_skipped_override=sim_p0.skipped_turns,
-                                    start_extra_active=_card_allows_extra_plays(
-                                        sim_yes, p_yes, src_yes
-                                    ),
-                                )
-                        return val_yes >= val_no
-                    except Exception:
-                        pass
-                    finally:
-                        self._evaluation_depth = prev_depth
 
         return super().choose_optional_action(game, player_index, action)
 

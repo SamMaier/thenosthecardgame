@@ -233,7 +233,7 @@ class PaddleboatBehavior(CardBehavior):
 
 
 class PaddleboardBehavior(CardBehavior):
-    """Discard this player's hand and pick the same number of Suitcase cards."""
+    """Lose one Fun for each card remaining in hand when played."""
 
     def on_play(
         self,
@@ -241,11 +241,17 @@ class PaddleboardBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        player_index = game.players.index(player)
-        hand_size = len(player.hand)
-        game.discard_cards_from_hand(player_index, range(hand_size))
-        for _ in range(hand_size):
-            game.pick_from_suitcase(player_index)
+        card.markers["energy_cubes"] = len(player.hand)
+
+    def fun_value(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> int:
+        return card.effective_base_fun - int(
+            card.markers.get("energy_cubes", 0)
+        )
 
 
 class NavySEALingBehavior(CardBehavior):
@@ -429,7 +435,7 @@ PADDLEBOARD = CardDefinition(
     title="Paddleboard",
     tags=frozenset({"Exercise", "Outdoors"}),
     cost=3,
-    base_fun=2,
+    base_fun=7,
     behavior=PaddleboardBehavior(),
 )
 

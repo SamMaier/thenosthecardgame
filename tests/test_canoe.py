@@ -21,7 +21,7 @@ class CanoeTests(unittest.TestCase):
         self.assertEqual(card.definition.tags, frozenset({"Exercise", "Outdoors"}))
         self.assertEqual(game.card_fun(0, card), 3)
         self.assertEqual(game.card_fun(0, non_item), 3)
-        self.assertEqual(game.card_fun(0, item), 7)
+        self.assertEqual(game.card_fun(0, item), 2)
 
     def test_written_cost_ignores_a_later_energy_modifier(self) -> None:
         game = empty_game()
@@ -39,11 +39,11 @@ class CanoeTests(unittest.TestCase):
         canoe = game.play_card(0, 0)
         item = player.hand[0]
 
-        self.assertEqual(game.energy_cost(0, item), 2)
+        self.assertEqual(game.energy_cost(0, item), 0)
         game.play_card(0, 0)
 
         self.assertEqual(game.card_fun(0, canoe), 3)
-        self.assertEqual(game.card_fun(0, item), 7)
+        self.assertEqual(game.card_fun(0, item), 2)
 
 
 if __name__ == "__main__":

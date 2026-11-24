@@ -236,7 +236,7 @@ LEFTOVERS = CardDefinition(
     slug="leftovers",
     title="Leftovers",
     tags=frozenset({"Food"}),
-    cost=2,
+    cost=3,
     behavior=LeftoversBehavior(),
 )
 

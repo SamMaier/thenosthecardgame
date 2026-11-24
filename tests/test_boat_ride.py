@@ -23,9 +23,9 @@ class BoatRideTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 2)
         self.assertEqual(card.definition.tags, frozenset({"Relax", "Outdoors"}))
         self.assertEqual(non_item.definition.tags, frozenset({"Relax"}))
-        self.assertEqual(first_item.definition.cost, 3)
-        self.assertEqual(later_item.definition.cost, 3)
-        self.assertEqual(player.energy, 1)
+        self.assertEqual(first_item.definition.cost, 1)
+        self.assertEqual(later_item.definition.cost, 1)
+        self.assertEqual(player.energy, 3)
 
     def test_next_item_stays_free_even_after_later_cost_increases_and_matches_sims(self) -> None:
         game = empty_game()

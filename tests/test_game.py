@@ -381,12 +381,12 @@ class GameTests(unittest.TestCase):
             Counter({s0.title: 1, "Sleep In": 1}),
         )
 
-        # refill_2 remains unseen at end of Day 1; if Player 2 goes to bed first,
-        # Player 2 becomes Day 2's starting player and first-sees refill_2, while the
-        # final replacement on Day 6 stays unattributed when the game ends.
-        game.starting_player = 2
+        # refill_2 remains unseen at end of Day 1; Player 2 has the fewest
+        # cards in hand entering the next Drawing phase, so Player 2 becomes
+        # the starting player and first-sees refill_2, while the final
+        # replacement on Day 6 stays unattributed when the game ends.
+        game.players[2].hand = [make_card("nap")]
         game.playing_phase()
-        self.assertEqual(game.starting_player, 2)
         game.end_day()
         game.day = DAYS_PER_GAME - 1
         final_unseen = make_card("booby-prize")
@@ -394,11 +394,82 @@ class GameTests(unittest.TestCase):
         game.trunk.extend([final_unseen, *filler_cards])
         game.start_day()
         game.draw_phase()
+        self.assertEqual(game.starting_player, 2)
         self.assertEqual(game.stats.first_seen_by_player[2][refill_2.title], 1)
         for idx in range(PLAYER_COUNT):
             self.assertEqual(
                 game.stats.first_seen_by_player[idx][final_unseen.title], 0
             )
+
+    def test_starting_player_is_fewest_cards_in_hand_with_clockwise_tiebreak(self) -> None:
+        game = Game.default(seed=42)
+        game.setup()
+        # Day 1 tie (all 3 cards): Player 1 (index 0) starts.
+        self.assertEqual(game.next_starting_player(), 0)
+        game.draw_phase()
+        self.assertEqual(game.starting_player, 0)
+
+        # Unique fewest cards wins regardless of previous starting player.
+        game.players[0].hand = [make_card("nap")] * 4
+        game.players[1].hand = [make_card("nap")] * 3
+        game.players[2].hand = [make_card("nap")] * 2
+        game.players[3].hand = [make_card("nap")] * 5
+        game.draw_phase()
+        self.assertEqual(game.starting_player, 2)
+
+        # Tie goes to first player clockwise starting from previous starting_player (2):
+        # order is [2, 3, 0, 1]; players 3 and 0 tie at 1 card -> player 3 starts.
+        game.players[2].hand = [make_card("nap")] * 4
+        game.players[3].hand = [make_card("nap")] * 1
+        game.players[0].hand = [make_card("nap")] * 1
+        game.players[1].hand = [make_card("nap")] * 2
+        game.draw_phase()
+        self.assertEqual(game.starting_player, 3)
+
+        # If previous starting_player (3) is itself tied for fewest, it stays starter.
+        game.players[3].hand = [make_card("nap")] * 2
+        game.players[0].hand = [make_card("nap")] * 2
+        game.players[1].hand = [make_card("nap")] * 4
+        game.players[2].hand = [make_card("nap")] * 4
+        game.draw_phase()
+        self.assertEqual(game.starting_player, 3)
+
+    def test_playing_phase_does_not_change_starting_player_on_first_to_bed(self) -> None:
+        class BedOnlyForSeat1AI(RandomAI):
+            def choose_to_go_to_bed(self, game, player_index, playable_hand_indices):
+                return player_index == 1
+
+        game = Game.default(seed=43)
+        game.setup()
+        game.starting_player = 2
+        for idx in range(PLAYER_COUNT):
+            game.ais[idx] = BedOnlyForSeat1AI()
+            game.players[idx].energy = 7
+        game.players[1].hand = [make_card("nap")]
+        game.players[2].hand = [make_card("nap")]
+        game.players[3].hand = [make_card("nap")]
+        game.players[0].hand = [make_card("nap")]
+
+        game.playing_phase()
+        self.assertEqual(game.starting_player, 2)
+
+    def test_end_day_hand_returns_affect_next_day_starting_player(self) -> None:
+        game = Game.default(seed=44)
+        game.setup()
+        game.starting_player = 0
+        # Player 0 has 0 cards in hand, but Chuck a Frisbee returns at end_day -> 1 card.
+        # Player 1 has 0 cards in hand and no returns -> 0 cards, so Player 1 starts next day.
+        game.players[0].hand = []
+        game.players[0].played_today = [make_card("chuck-a-frisbee")]
+        game.players[1].hand = []
+        game.players[2].hand = [make_card("nap")] * 2
+        game.players[3].hand = [make_card("nap")] * 2
+
+        game.end_day()
+        self.assertEqual(len(game.players[0].hand), 1)
+        self.assertEqual(len(game.players[1].hand), 0)
+        game.draw_phase()
+        self.assertEqual(game.starting_player, 1)
 
     def test_unpack_costs_fun_discards_and_refills_four_cards(self) -> None:
         game = Game.default(seed=8)

@@ -17,10 +17,10 @@ class RouladenTests(unittest.TestCase):
         after = game.play_card(0, 0)
         zero_cost_after = game.play_card(0, 0)
 
-        self.assertEqual(card.definition.cost, 4)
+        self.assertEqual(card.definition.cost, 5)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
         self.assertEqual(game.energy_cost(0, zero_cost_after), 0)
-        self.assertEqual(player.energy, 2)
+        self.assertEqual(player.energy, 1)
         self.assertEqual(after.definition.cost, 2)
 
 

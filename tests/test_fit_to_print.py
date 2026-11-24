@@ -32,7 +32,7 @@ class FitToPrintTests(unittest.TestCase):
 
                 game.end_day()
 
-                self.assertEqual(player.fun, 4)
+                self.assertEqual(player.fun, 5)
 
     def test_does_not_score_bonus_when_any_opponent_is_ahead(self) -> None:
         game = empty_game()

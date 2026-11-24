@@ -50,12 +50,31 @@ WEDDING_ANNIVERSARY = CardDefinition(
     behavior=WeddingAnniversaryBehavior(),
 )
 
+class NosShirtBehavior(CardBehavior):
+    """Return this card to its owner's hand when more than 7 Fun was scored today."""
+
+    def on_end_day(
+        self,
+        game: Game,
+        player: PlayerState,
+        card: CardInstance,
+    ) -> None:
+        if game.fun_scored_today(player) > 7 and card in player.played_today:
+            player.played_today.remove(card)
+            # A copier that became Nos Shirt must revert to its printed card
+            # before it can be played again from hand.
+            card.is_tomorrow = False
+            card.markers.clear()
+            player.hand.append(card)
+
+
 NOS_SHIRT = CardDefinition(
     slug="nos-shirt",
     title="Nos Shirt",
     tags=frozenset({"Item"}),
-    cost=3,
-    base_fun=4,
+    cost=1,
+    base_fun=1,
+    behavior=NosShirtBehavior(),
 )
 
 

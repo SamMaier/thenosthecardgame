@@ -24,7 +24,7 @@ class LeftoversTests(unittest.TestCase):
         card = make_card("leftovers")
 
         self.assertEqual(card.title, "Leftovers")
-        self.assertEqual(card.definition.cost, 2)
+        self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Food"}))
 
@@ -41,9 +41,9 @@ class LeftoversTests(unittest.TestCase):
         leftovers = game.play_card(0, 0)
 
         self.assertEqual(ai.eligible_titles, ("Fajitas",))
-        self.assertEqual(player.energy, 10)
+        self.assertEqual(player.energy, 9)
         self.assertIs(leftovers.effective_behavior, target.definition.behavior)
-        self.assertEqual(leftovers.effective_cost, 2)
+        self.assertEqual(leftovers.effective_cost, 3)
         self.assertEqual(leftovers.tags, frozenset({"Food"}))
         self.assertTrue(target.markers["energy_cube"])
 
@@ -81,7 +81,7 @@ class LeftoversTests(unittest.TestCase):
         leftovers = game.play_card(0, 0)
 
         self.assertIsNone(ai.eligible_titles)
-        self.assertEqual(player.energy, 4)
+        self.assertEqual(player.energy, 3)
         self.assertIs(leftovers.effective_behavior, leftovers.definition.behavior)
 
     def test_restricted_food_card_that_is_not_legal_in_this_slot_is_excluded(self) -> None:

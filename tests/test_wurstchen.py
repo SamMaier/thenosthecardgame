@@ -60,8 +60,8 @@ class WurstchenTests(unittest.TestCase):
 
         game.play_card(0, 0)  # cost 1 -> energy 6
         game.play_card(0, 0)  # cost 4, +1 energy -> energy 3
-        leftovers = game.play_card(0, 0)  # cost 2, copies Wurstchen (+2 energy) -> energy 3
-        self.assertEqual(player.energy, 3)
+        leftovers = game.play_card(0, 0)  # cost 3, copies Wurstchen (+2 energy) -> energy 2
+        self.assertEqual(player.energy, 2)
         self.assertTrue(leftovers.markers["_gave_energy"])
 
         blocked_game = empty_game()

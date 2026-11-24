@@ -170,8 +170,8 @@ class WeddingAnniversaryTests(unittest.TestCase):
         wedding = game.play_card(0, 0)
 
         self.assertIs(wedding.effective_behavior, food.effective_behavior)
-        self.assertEqual(wedding.effective_cost, 2)
-        self.assertEqual(player.energy, 12)
+        self.assertEqual(wedding.effective_cost, 3)
+        self.assertEqual(player.energy, 11)
         self.assertTrue(food.markers["energy_cube"])
 
     def test_copying_resolved_leftovers_runs_leftovers_instead_of_nested_target(self) -> None:
@@ -199,8 +199,8 @@ class WeddingAnniversaryTests(unittest.TestCase):
         wedding = game.play_card(0, 0)
 
         self.assertIs(wedding.effective_behavior, own_food.definition.behavior)
-        self.assertEqual(wedding.effective_cost, 2)
-        self.assertEqual(p0.energy, 8)
+        self.assertEqual(wedding.effective_cost, 3)
+        self.assertEqual(p0.energy, 7)
         self.assertEqual(game.card_fun(0, wedding), 3)
         self.assertTrue(own_food.markers["energy_cube"])
 

@@ -80,13 +80,17 @@ class EveningChatTests(unittest.TestCase):
         self.assertEqual(player.fun, 5)
         self.assertEqual(player.tomorrow_cards, [])
 
-    def test_extra_play_still_makes_player_first_to_bed(self) -> None:
+    def test_extra_play_still_puts_player_to_bed_immediately(self) -> None:
         game = empty_game()
         game.ais[0] = PlayEveryExtraCardAI(game.rng)
         player = game.players[0]
         player.energy = 7
         player.hand.extend(
-            [make_card("epic-duels"), make_card("evening-chat")]
+            [
+                make_card("epic-duels"),
+                make_card("evening-chat"),
+                make_card("biography"),
+            ]
         )
 
         game.playing_phase()
@@ -95,7 +99,8 @@ class EveningChatTests(unittest.TestCase):
             [card.title for card in player.played_today],
             ["Epic Duels", "Evening Chat"],
         )
-        self.assertEqual(game.starting_player, 0)
+        self.assertEqual([card.title for card in player.hand], ["Non-Fiction Book"])
+        self.assertTrue(player.asleep)
 
 
 if __name__ == "__main__":

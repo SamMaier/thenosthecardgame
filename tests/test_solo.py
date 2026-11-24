@@ -6,66 +6,68 @@ from tests.helpers import empty_game
 
 class SoloTests(unittest.TestCase):
     def test_cost_tags_and_base_fun(self) -> None:
-        game = empty_game()
-        player = game.players[0]
-        player.energy = 3
-        player.hand.append(make_card("solo"))
-
-        card = game.play_card(0, 0)
+        card = make_card("solo")
 
         self.assertEqual(card.definition.cost, 3)
         self.assertEqual(card.definition.base_fun, 3)
         self.assertEqual(card.definition.tags, frozenset({"Board Game"}))
-        self.assertEqual(player.energy, 0)
-        self.assertEqual(game.card_fun(0, card), 5)
-        self.assertTrue(card.markers["energy_cube"])
 
-    def test_no_bonus_if_any_opponent_played_a_board_game_previously_today(self) -> None:
+    def test_rescores_card_after_end_day_when_leading_or_tied_today(
+        self,
+    ) -> None:
+        # Tied for today's Fun (despite lagging in prior cumulative Fun), plus Work Call doubles Solo.
         game = empty_game()
-        opponent = game.players[1]
-        opponent.energy = 1
-        opponent.hand.append(make_card("tres-fute"))
-        game.play_card(1, 0)
+        p0 = game.players[0]
+        p1 = game.players[1]
+        p0.fun = 0
+        p1.fun = 20
+        p0.energy = 10
+        p1.energy = 10
+        p0.hand.extend([make_card("work-call"), make_card("solo")])
+        p1.hand.append(make_card("biography"))
 
-        player = game.players[0]
-        player.energy = 3
-        player.hand.append(make_card("solo"))
+        game.play_card(0, 0)
+        solo = game.play_card(0, 0)
+        game.play_card(1, 0)  # scores 2 today
 
-        card = game.play_card(0, 0)
+        # Work Call (-4) + Solo (3*2=6) = 2 Fun today, tying p1's 2 Fun.
+        self.assertEqual(game.card_fun(0, solo), 6)
+        game.end_day()
 
-        self.assertEqual(game.card_fun(0, card), 3)
-        self.assertNotIn("energy_cube", card.markers)
+        # Solo rescores its 6 Fun -> 2 + 6 = 8.
+        self.assertEqual(p0.fun, 8)
 
-    def test_non_board_games_by_opponents_do_not_prevent_bonus(self) -> None:
+    def test_does_not_rescore_when_behind_an_opponent_today(self) -> None:
         game = empty_game()
-        opponent = game.players[1]
-        opponent.energy = 1
-        opponent.hand.append(make_card("biography"))
-        game.play_card(1, 0)
+        p0 = game.players[0]
+        p1 = game.players[1]
+        p0.energy = 7
+        p1.energy = 7
+        p0.hand.append(make_card("solo"))
+        p1.hand.append(make_card("waterski"))
 
-        player = game.players[0]
-        player.energy = 3
-        player.hand.append(make_card("solo"))
+        game.play_card(0, 0)  # 3 today
+        game.play_card(1, 0)  # 6 today
+        game.end_day()
 
-        card = game.play_card(0, 0)
+        self.assertEqual(p0.fun, 3)
 
-        self.assertEqual(game.card_fun(0, card), 5)
-        self.assertTrue(card.markers["energy_cube"])
-
-    def test_active_tomorrow_board_games_do_not_count_as_previously_played(self) -> None:
+    def test_counts_fit_to_print_end_day_fun_in_comparison(self) -> None:
         game = empty_game()
-        tomorrow_card = make_card("tres-fute")
-        tomorrow_card.is_tomorrow = True
-        game.players[1].tomorrow_cards.append(tomorrow_card)
+        p0 = game.players[0]
+        p1 = game.players[1]
+        p0.energy = 10
+        p1.energy = 7
+        p0.hand.extend([make_card("solo"), make_card("fit-to-print")])
+        p1.hand.append(make_card("waterski"))
 
-        player = game.players[0]
-        player.energy = 3
-        player.hand.append(make_card("solo"))
+        game.play_card(0, 0)
+        game.play_card(0, 0)  # 3 + 5 = 8 today (most cards played: 2 > 1)
+        game.play_card(1, 0)  # 6 today
+        game.end_day()
 
-        card = game.play_card(0, 0)
-
-        self.assertEqual(game.card_fun(0, card), 5)
-        self.assertTrue(card.markers["energy_cube"])
+        # Solo rescores 3 -> 3 + 5 + 3 = 11.
+        self.assertEqual(p0.fun, 11)
 
 
 if __name__ == "__main__":

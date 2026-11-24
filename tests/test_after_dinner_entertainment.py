@@ -1,55 +1,86 @@
 import unittest
 
-from thenos.ai import RandomAI
+from thenos.ais.hydrogen import _hydrogen_copy_game
 from thenos.cards import make_card
 from tests.helpers import empty_game
 
 
 class AfterDinnerEntertainmentTests(unittest.TestCase):
-    def test_next_social_costs_two_less_and_scores_two_more(self) -> None:
+    def test_without_earlier_food_next_exercise_is_not_doubled_and_no_discount(
+        self,
+    ) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 7
+        player.energy = 10
         player.hand.extend(
             [
                 make_card("after-dinner-entertainment"),
-                make_card("johnny-appleseed"),
-                make_card("johnny-appleseed"),
+                make_card("waterski"),
+                make_card("waterski"),
             ]
         )
 
         card = game.play_card(0, 0)
-        next_social = game.play_card(0, 0)
-        later_social = game.play_card(0, 0)
-
         self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
-        self.assertEqual(game.energy_cost(0, later_social), 1)
-        self.assertEqual(player.energy, 4)
-        self.assertEqual(next_social.definition.cost, 1)
-        self.assertEqual(game.card_fun(0, next_social), 3)
-        self.assertEqual(game.card_fun(0, later_social), 1)
+        self.assertEqual(game.energy_cost(0, player.hand[0]), 5)
 
-    def test_has_no_tomorrow_effect(self) -> None:
+        first_ex = game.play_card(0, 0)
+        self.assertEqual(player.energy, 3)
+        self.assertEqual(game.card_fun(0, first_ex), 6)
+
+    def test_earlier_food_doubles_only_next_exercise_and_matches_fast_sim(
+        self,
+    ) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 2
-        player.hand.append(make_card("after-dinner-entertainment"))
+        player.energy = 20
+        player.hand.extend(
+            [
+                make_card("stretch"),
+                make_card("cheap-white"),
+                make_card("after-dinner-entertainment"),
+                make_card("biography"),
+                make_card("waterski"),
+                make_card("waterski"),
+            ]
+        )
 
-        card = game.play_card(0, 0)
-        game.end_day()
-        self.assertNotIn(card, player.tomorrow_cards)
+        for _ in range(4):
+            game.play_card(0, 0)
+        first_ex = game.play_card(0, 0)
+        later_ex = game.play_card(0, 0)
 
-    def test_unplayed_social_card_in_hand_does_not_get_fun_bonus(self) -> None:
+        # Stretch adds +2 to Exercise; ADE doubles (6 + 2) -> 16 on first Exercise only.
+        self.assertEqual(game.card_fun(0, first_ex), 16)
+        self.assertEqual(game.card_fun(0, later_ex), 6 + 2)
+
+        hsim = _hydrogen_copy_game(game)
+        self.assertEqual(
+            hsim.score_played_today_fast(0)[0],
+            sum(game.card_fun(0, c) for c in player.played_today),
+        )
+
+    def test_has_no_tomorrow_effect_and_food_after_ade_does_not_arm_it(
+        self,
+    ) -> None:
         game = empty_game()
         player = game.players[0]
-        player.energy = 7
-        unplayed_social = make_card("johnny-appleseed")
-        player.hand.extend([make_card("after-dinner-entertainment"), unplayed_social])
+        player.energy = 12
+        player.hand.extend(
+            [
+                make_card("after-dinner-entertainment"),
+                make_card("cheap-white"),
+                make_card("waterski"),
+            ]
+        )
 
+        ade = game.play_card(0, 0)
         game.play_card(0, 0)
-
-        self.assertEqual(game.card_fun(0, unplayed_social), 1)
+        ex = game.play_card(0, 0)
+        self.assertEqual(game.card_fun(0, ex), 6)
+        game.end_day()
+        self.assertNotIn(ade, player.tomorrow_cards)
 
 
 if __name__ == "__main__":

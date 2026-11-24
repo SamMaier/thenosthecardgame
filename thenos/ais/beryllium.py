@@ -51,7 +51,6 @@ _STOCHASTIC_PLAY_TITLES: frozenset[str] = frozenset(
         "Long Distance Visitors",
         "Make Plans",
         "Medical Advice",
-        "Paddleboard",
         "Poker",
         "Quacks",
         "Scrabble",
@@ -74,7 +73,6 @@ _ACQUIRER_TITLES: frozenset[str] = frozenset(
         "Long Distance Visitors",
         "Make Plans",
         "Medical Advice",
-        "Paddleboard",
         "Photo Shoot",
         "Scout Other Cottages",
         "Scrabble",
@@ -935,6 +933,22 @@ def _contextual_copy_value(
             board_fun = 2.0 * sum(
                 1 for c in prior_cards if "Board Game" in c.tags
             )
+        elif title == "Paddleboard":
+            board_fun = float(7 - len(player.hand))
+        elif title == "7 Wonders":
+            p_cnt = len(game.players)
+            own_bg = sum(1 for c in prior_cards if "Board Game" in c.tags) + 1
+            left_bg = sum(
+                1
+                for c in game.players[(player_index - 1) % p_cnt].played_today
+                if "Board Game" in c.tags
+            )
+            right_bg = sum(
+                1
+                for c in game.players[(player_index + 1) % p_cnt].played_today
+                if "Board Game" in c.tags
+            )
+            board_fun = 5.0 if (own_bg > left_bg and own_bg > right_bg) else 1.0
 
     # 2. Immediate Energy gain (valued by whether we have playable cards left in hand)
     if not _allows_energy_gain_today(game, player, source_card):
@@ -2123,6 +2137,7 @@ def _get_beryllium_sim_game_cls() -> type:
                     f"Not enough Energy to play {raw_card.title}"
                 )
 
+            self._capture_day_start_fun()
             player.energy -= cost
             player.hand.pop(hand_index)
             card = CardInstance(
@@ -2549,6 +2564,10 @@ def _beryllium_fast_copy_game(src: Game, ais: list[Any]) -> Game:
         if src._fun_at_start_of_scoring is None
         else list(src._fun_at_start_of_scoring)
     )
+    sim._fun_at_start_of_day = src._fun_at_start_of_day
+    sim._fun_scored_today = src._fun_scored_today
+    sim._end_day_played_tags = src._end_day_played_tags
+    sim._scored_card_fun = None
     return sim
 
 

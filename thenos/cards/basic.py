@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
@@ -66,32 +67,22 @@ class TheCrewBehavior(CardBehavior):
 
 
 class SoloBehavior(CardBehavior):
-    """Score a bonus when no opponent played a Board Game previously today."""
+    """Rescore this card after end of day when tied or leading in Fun today."""
 
-    def on_play(
+    def on_after_end_day(
         self,
         game: Game,
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        opponents = [opponent for opponent in game.players if opponent is not player]
-        if not any(
-            "Board Game" in played_card.tags
-            for opponent in opponents
-            for played_card in opponent.played_today
+        my_fun_today = game.fun_scored_today(player)
+        if all(
+            my_fun_today >= game.fun_scored_today(opponent)
+            for opponent in game.players
+            if opponent is not player
         ):
-            card.markers["energy_cube"] = True
-            card.markers["_solo_energy_cube"] = True
-
-    def fun_value(
-        self,
-        game: Game,
-        player: PlayerState,
-        card: CardInstance,
-    ) -> int:
-        return card.effective_base_fun + (
-            2 if card.markers.get("_solo_energy_cube") else 0
-        )
+            player_index = game.players.index(player)
+            player.fun += game.scored_card_fun(player_index, card)
 
 
 class CarcassonneBehavior(CardBehavior):
@@ -222,45 +213,56 @@ class PuertoRicoBehavior(CardBehavior):
         return card.effective_base_fun + (3 if target_survived else 0)
 
 
-class SettlersCitiesAndKnightsBehavior(CardBehavior):
-    """Optionally discard one card from hand for this card's Fun bonus."""
+def cities_and_knights_condition_met(tag_sets: Iterable[frozenset[str]]) -> bool:
+    """Return whether at least 3 cards share one tag and 2 share another."""
+    tag_counts: dict[str, int] = {}
+    for tags in tag_sets:
+        for tag in tags:
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+    top_counts = sorted(tag_counts.values(), reverse=True)
+    return len(top_counts) >= 2 and top_counts[0] >= 3 and top_counts[1] >= 2
 
-    def on_play(
+
+class SettlersCitiesAndKnightsBehavior(CardBehavior):
+    """Pick two Suitcase cards at end of day when tag thresholds are met."""
+
+    def on_end_day(
         self,
         game: Game,
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        if not player.hand:
+        if not cities_and_knights_condition_met(game.end_day_played_tags(player)):
             return
+
+        from thenos.game import DAYS_PER_GAME
 
         player_index = game.players.index(player)
-        if not game.choose_optional_action(
-            player_index, "discard one card for Cities and Knights"
-        ):
-            return
-        hand = tuple(player.hand)
-        choice = game.ais[player_index].choose_card_to_discard(
-            game, player_index, hand
-        )
-        if choice < 0 or choice >= len(hand):
-            raise ValueError(f"AI returned invalid hand discard index: {choice}")
-
-        game.discard_from_hand(player_index, choice)
-        card.markers["discarded_card"] = True
-
-    def fun_value(
-        self,
-        game: Game,
-        player: PlayerState,
-        card: CardInstance,
-    ) -> int:
-        bonus = 4 if card.markers.get("discarded_card") else 0
-        return card.effective_base_fun + bonus
+        for _ in range(2):
+            if not game.suitcase:
+                break
+            if game.day < DAYS_PER_GAME:
+                game.pick_from_suitcase(player_index)
+            else:
+                offered = tuple(game.suitcase)
+                choice = game.ais[player_index].choose_suitcase_card(
+                    game, player_index, offered
+                )
+                if choice < 0 or choice >= len(offered):
+                    raise ValueError(
+                        f"AI returned invalid Suitcase index: {choice}"
+                    )
+                game.acquire_suitcase_cards(
+                    player_index,
+                    (offered[choice],),
+                    track_acquisition=False,
+                )
 
 
 class EpicPrankBehavior(CardBehavior):
-    """Discard an Item from hand to increase this card's Fun."""
+    """Double tomorrow's first card if today's Fun matches or beats a target opponent."""
+
+    has_tomorrow_action = True
 
     def on_play(
         self,
@@ -268,40 +270,45 @@ class EpicPrankBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        item_cards = tuple(
-            hand_card for hand_card in player.hand if "Item" in hand_card.tags
-        )
-        if not item_cards:
-            return
-
         player_index = game.players.index(player)
-        if not game.choose_optional_action(
-            player_index, "discard an Item card for Epic Prank"
-        ):
+        eligible_player_indices = [
+            index for index in range(len(game.players)) if index != player_index
+        ]
+        if not eligible_player_indices:
             return
-        choice = game.ais[player_index].choose_card_to_discard(
-            game, player_index, item_cards
+        target_player_index = game.choose_player(
+            player_index, eligible_player_indices
         )
-        if choice < 0 or choice >= len(item_cards):
-            raise ValueError(f"AI returned invalid Item discard index: {choice}")
+        card.markers["target_player_index"] = target_player_index
 
-        discarded_item = item_cards[choice]
-        hand_index = next(
-            index
-            for index, hand_card in enumerate(player.hand)
-            if hand_card is discarded_item
-        )
-        game.discard_from_hand(player_index, hand_index)
-        card.markers["discarded_item"] = discarded_item
-
-    def fun_value(
+    def on_end_day(
         self,
         game: Game,
         player: PlayerState,
         card: CardInstance,
+    ) -> None:
+        target_player_index = card.markers.get("target_player_index")
+        if not isinstance(target_player_index, int):
+            return
+        target_player = game.players[target_player_index]
+        if (
+            game.fun_scored_today(player) < game.fun_scored_today(target_player)
+            and card in player.played_today
+        ):
+            player.played_today.remove(card)
+            game.discard_card(card)
+
+    def modify_tomorrow_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
     ) -> int:
-        bonus = 5 if card.markers.get("discarded_item") is not None else 0
-        return card.effective_base_fun + bonus
+        if player.played_today and player.played_today[0] is target:
+            return current_fun * 2
+        return current_fun
 
 
 class EpicDuelsBehavior(CardBehavior):
@@ -331,7 +338,7 @@ class FitToPrintBehavior(CardBehavior):
             for opponent in game.players
             if opponent is not player
         ]
-        bonus = 4 if all(
+        bonus = 5 if all(
             player_card_count >= opponent_count
             for opponent_count in opponent_card_counts
         ) else 0
@@ -490,7 +497,7 @@ SETTLERS_CITIES_AND_KNIGHTS = CardDefinition(
     slug="cities-and-knights",
     title="Cities and Knights",
     tags=frozenset({"Board Game"}),
-    cost=4,
+    cost=3,
     base_fun=3,
     behavior=SettlersCitiesAndKnightsBehavior(),
 )
@@ -499,8 +506,8 @@ EPIC_PRANK = CardDefinition(
     slug="epic-prank",
     title="Epic Prank",
     tags=frozenset({"Social"}),
-    cost=4,
-    base_fun=2,
+    cost=3,
+    base_fun=0,
     behavior=EpicPrankBehavior(),
 )
 

@@ -58,12 +58,13 @@ from thenos.ais.carbon import (
     _get_carbon_sim_game_cls,
     _get_known_trunk_top_any,
     _opponent_suitcase_markers,
+    _projected_opponent_day_fun,
     _suitcase_denial_value,
     _wanted_tags_for_player,
 )
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
+from thenos.cards.basic import cities_and_knights_condition_met
 from thenos.cards.energy_effects import (
-    AfterDinnerEntertainmentBehavior,
     EnergyForAllCardsAfterBehavior,
     EnergyForNextTagBehavior,
     EnergyForTagAfterBehavior,
@@ -291,6 +292,8 @@ _HQ_PAINT = 19
 _HQ_CLIFF_CLIMBING = 20
 _HQ_WATER_VOLLEYBALL = 21
 _HQ_BRACELET_MAKING = 22
+_HQ_NOS_SHIRT = 23
+_HQ_PADDLEBOARD = 24
 
 _HQ_BY_TITLE: dict[str, int] = {
     "Chuck a Frisbee": _HQ_CHUCK_A_FRISBEE,
@@ -317,6 +320,8 @@ _HQ_BY_TITLE: dict[str, int] = {
     "Cliff Climbing": _HQ_CLIFF_CLIMBING,
     "Water Volleyball": _HQ_WATER_VOLLEYBALL,
     "Bracelet Making": _HQ_BRACELET_MAKING,
+    "Nos Shirt": _HQ_NOS_SHIRT,
+    "Paddleboard": _HQ_PADDLEBOARD,
 }
 
 # Reserve dynamic adjustment codes
@@ -369,7 +374,7 @@ _CUTLERY_REAL_COMBO_TITLES: frozenset[str] = frozenset(
     }
 )
 _DUMP_HELPER_TITLES: frozenset[str] = frozenset(
-    {"Paddleboard", "Navy SEALing", "Istanbul", "Scrabble"}
+    {"Navy SEALing", "Istanbul", "Scrabble"}
 )
 _ISTANBUL_SINK_HAND_TITLES: frozenset[str] = frozenset(
     {"Kayak", "Decaf", "Wakesurf", "Adventure Race", "Wakeboard"}
@@ -429,6 +434,9 @@ _OQ_SUITCASE_SWEEPER_2 = 19
 _OQ_PADDLEBOARD = 20
 _OQ_ISTANBUL = 21
 _OQ_SHADY_SPOT = 22
+_OQ_AFTER_DINNER_ENTERTAINMENT = 23
+_OQ_DATES_FIRST_NOS = 24
+_OQ_EPIC_PRANK = 25
 
 _OQ_BY_TITLE: dict[str, int] = {
     "Colouring": _OQ_COLOURING,
@@ -458,6 +466,9 @@ _OQ_BY_TITLE: dict[str, int] = {
     "Paddleboard": _OQ_PADDLEBOARD,
     "Istanbul": _OQ_ISTANBUL,
     "Shady Spot": _OQ_SHADY_SPOT,
+    "After Dinner Entertainment": _OQ_AFTER_DINNER_ENTERTAINMENT,
+    "Date's First Nos": _OQ_DATES_FIRST_NOS,
+    "Epic Prank": _OQ_EPIC_PRANK,
 }
 
 # Quick desirability synergy / global mode codes
@@ -716,8 +727,6 @@ def _compile_mod_fun(
         return (_MF_NEXT_CARD_MUL, "", frozenset(), beh.multiplier, 0)  # type: ignore[attr-defined]
     if bt is FunForNextTagBehavior:
         return (_MF_NEXT_TAG_ADD, beh.tag, frozenset(), beh.bonus, 0)  # type: ignore[attr-defined]
-    if bt is AfterDinnerEntertainmentBehavior:
-        return (_MF_NEXT_TAG_ADD, "Social", frozenset(), 2, 0)
     if bt is FunForNextTagWrittenCostBehavior or bt is FancyCraftBehavior:
         return (_MF_NEXT_TAG_COST_ADD, beh.tag, frozenset(), beh.multiplier, 0)  # type: ignore[attr-defined]
     if bt is WaterTrampolineBehavior:
@@ -766,7 +775,7 @@ def _compile_cost_mod(
         return (_CM_ALL_ADD, 0, 1)
     if bt is FunForAllCardsAfterDoubleBehavior:
         return (_CM_ALL_MUL2, 0, 2)
-    if bt is EnergyForNextTagBehavior or bt is AfterDinnerEntertainmentBehavior:
+    if bt is EnergyForNextTagBehavior:
         m = _TAG_MASK.get(beh.tag, 0)  # type: ignore[attr-defined]
         if m:
             return (_CM_NEXT_TAG_ADD, m, beh.energy_delta)  # type: ignore[attr-defined]
@@ -922,6 +931,13 @@ def _build_defn_meta(
             and prof.signed_match_benefit > 0.0
         )
         or prof.is_global_after_scaler
+        or eff_t
+        in {
+            "After Dinner Entertainment",
+            "Date's First Nos",
+            "Cities and Knights",
+            "Epic Prank",
+        }
     ):
         played_flags |= _PF_HAS_CONT_AFTER
 
@@ -1078,7 +1094,9 @@ def _build_defn_meta(
         if title == "Photo Shoot":
             q_tom_extra = 3.7
         elif title == "Date's First Nos":
-            q_tom_extra = 3.2
+            q_tom_extra = 1.0
+        elif title == "Epic Prank":
+            q_tom_extra = 2.5
         elif title == "Floating":
             q_tom_extra = 0.65
         elif title == "Stay Up Late":
@@ -1114,7 +1132,6 @@ def _build_defn_meta(
             "Cheesy Phone Game",
             "Assorted Cutlery",
             "Ski on Shoulders",
-            "Epic Prank",
         }
     )
     can_esup_h = (
@@ -3239,7 +3256,9 @@ def _hydrogen_quick_card_desirability(
             if title == "Photo Shoot":
                 val += 3.7
             elif title == "Date's First Nos":
-                val += 3.2
+                val += 1.0
+            elif title == "Epic Prank":
+                val += 2.5
             elif title == "Floating":
                 val += 0.65
             elif title == "Stay Up Late":
@@ -3266,27 +3285,42 @@ def _hydrogen_quick_card_desirability(
                         if w > 0.0:
                             val += 0.20 * (w if w < 3.0 else 3.0)
         elif h_qcode == _HQ_CITIES_AND_KNIGHTS:
-            has_fodder_or_empty = False
-            for other in hand:
-                if other is card:
-                    continue
-                od = other.definition
-                ot = od.title
-                if ot == "Wakesurf" or ot == "Drop a Ski":
-                    has_fodder_or_empty = True
-                    break
-                if od.base_fun <= 0:
-                    if not other.markers:
-                        om = meta_by_slug.get(od.slug)
-                        if om is not None and om.defn is od:
-                            if om.is_fodder_plain:
-                                has_fodder_or_empty = True
-                                break
+            if days_left >= 1 and not is_zeroed:
+                ck_counts: dict[str, int] = {}
+                for t in c_tags:
+                    ck_counts[t] = ck_counts.get(t, 0) + 1
+                for zone in (hand, played_today):
+                    for other in zone:
+                        if other is card:
                             continue
-                    if not _beryllium_build_profile(other).goes_to_tomorrow:
-                        has_fodder_or_empty = True
-                        break
-            val -= 0.55 if has_fodder_or_empty else 1.55
+                        om = other.markers
+                        o_tags = other.definition.tags if not om else other.tags
+                        for t in o_tags:
+                            ck_counts[t] = ck_counts.get(t, 0) + 1
+                top_ck = sorted(ck_counts.values(), reverse=True)
+                if len(top_ck) >= 2:
+                    if top_ck[0] >= 3 and top_ck[1] >= 2:
+                        val += 1.25
+                    elif top_ck[0] >= 2 and top_ck[1] >= 2:
+                        val += 0.65
+        elif h_qcode == _HQ_NOS_SHIRT:
+            if days_left >= 1 and not is_zeroed:
+                val += 0.55 + 0.15 * (days_left if days_left < 3 else 3)
+        elif h_qcode == _HQ_PADDLEBOARD:
+            if not is_zeroed:
+                if in_hand is None:
+                    in_hand = any(hc is card for hc in hand)
+                other_hand = len(hand) - (1 if in_hand else 0)
+                if other_hand > 0:
+                    pen_per = 0.35 if days_left == 0 else 0.65
+                    for other in hand:
+                        if (
+                            other is not card
+                            and other.definition.title in _DUMP_HELPER_TITLES
+                        ):
+                            pen_per *= 0.5
+                            break
+                    val -= (other_hand if other_hand < 5 else 5) * pen_per
         elif h_qcode == _HQ_WILDLIFE_SPOTTING:
             if days_left >= 1 and not is_zeroed:
                 if _ctx is not None and _ctx.all_canonical:
@@ -4807,8 +4841,7 @@ def _fast_morning_denial_value(
     if not tom_cards:
         return (
             0.25
-            if c_title
-            in {"Colouring", "Euchre Awards Ceremony", "Butter Tarts"}
+            if c_title in {"Euchre Awards Ceremony", "Butter Tarts"}
             else 0.0
         )
     c_tags = card.definition.tags if not cm else card.tags
@@ -4835,6 +4868,12 @@ def _fast_morning_denial_value(
             opp_threat += 0.45
         elif t_title == "Date's First Nos" and c_cost <= 1:
             opp_threat += 0.35
+        elif (
+            t_title == "Epic Prank"
+            and c_cost <= 7
+            and card.definition.base_fun >= 5
+        ):
+            opp_threat += 0.35
         else:
             tc_prof = (
                 t_meta.prof
@@ -4845,7 +4884,7 @@ def _fast_morning_denial_value(
                 c_tags & tc_prof.target_tags
             ):
                 opp_threat += 0.25
-    if c_title in {"Colouring", "Euchre Awards Ceremony", "Butter Tarts"}:
+    if c_title in {"Euchre Awards Ceremony", "Butter Tarts"}:
         opp_threat += 0.25
     return opp_threat if opp_threat < 0.75 else 0.75
 
@@ -4981,7 +5020,7 @@ class _HydrogenEvalAI(_CarbonEvalAI):
             )
             bucket = meta.play_order_bucket
             if (
-                card.definition.title in {"Nos Book", "Colouring"}
+                card.definition.title == "Nos Book"
                 and not player.played_today
             ):
                 bucket = 6
@@ -5395,50 +5434,6 @@ class _HydrogenEvalAI(_CarbonEvalAI):
         player_index: int,
         action: str,
     ) -> bool:
-        if "Cities and Knights" in action or "Epic Prank" in action:
-            player = game.players[player_index]
-            eligible = (
-                [c for c in player.hand if "Item" in c.tags]
-                if "Epic Prank" in action
-                else list(player.hand)
-            )
-            if not eligible:
-                return False
-            if (
-                any(
-                    _effective_card_title(c) == "Drop a Ski"
-                    for c in player.played_today
-                )
-                and len(player.hand) == 1
-            ):
-                return False
-            wanted_tags = _wanted_tags_for_player_fast(player)
-            worst_val = min(
-                _hydrogen_hand_keep_value(game, player_index, c, wanted_tags)
-                for c in eligible
-            )
-            is_doubled = any(
-                _effective_card_title(c) == "Bring a Friend"
-                for c in player.played_today[:-1]
-            ) or (
-                len(player.played_today) >= 2
-                and _effective_card_title(player.played_today[-2]) == "Work Call"
-            )
-            base_thresh = 4.6 if "Epic Prank" in action else 3.6
-            if is_doubled:
-                base_thresh *= 1.85
-            if any(
-                _effective_card_title(c) == "Wakesurf"
-                for c in player.played_today
-            ) or (
-                any(
-                    _effective_card_title(c) == "Drop a Ski"
-                    for c in player.played_today
-                )
-                and len(player.hand) == 2
-            ):
-                base_thresh += 2.6
-            return worst_val < base_thresh
         return super().choose_optional_action(game, player_index, action)
 
     def order_cards_for_trunk(
@@ -5953,6 +5948,7 @@ def _get_hydrogen_sim_game_cls() -> type:
             c_meta: _HydrogenDefnMeta,
             cost: int,
         ) -> CardInstance:
+            self._capture_day_start_fun()
             player.energy -= cost
             player.hand.pop(hand_index)
             rm = raw_card.markers
@@ -8258,6 +8254,10 @@ def _hydrogen_copy_game(src: Game) -> Game:
         if src._fun_at_start_of_scoring is None
         else list(src._fun_at_start_of_scoring)
     )
+    sim._fun_at_start_of_day = src._fun_at_start_of_day
+    sim._fun_scored_today = src._fun_scored_today
+    sim._end_day_played_tags = src._end_day_played_tags
+    sim._scored_card_fun = None
     return sim
 
 
@@ -8397,6 +8397,10 @@ def _hydrogen_copy_game_for_play(src: Game, player_index: int) -> Game:
     sim._is_setup = src._is_setup
     sim.stats = src.stats
     sim._fun_at_start_of_scoring = src._fun_at_start_of_scoring
+    sim._fun_at_start_of_day = src._fun_at_start_of_day
+    sim._fun_scored_today = src._fun_scored_today
+    sim._end_day_played_tags = src._end_day_played_tags
+    sim._scored_card_fun = None
     return sim
 
 
@@ -8966,20 +8970,6 @@ class HydrogenAI(CarbonAI):
             )
             if not has_later_ex:
                 bonus -= 0.55
-        elif title == "Cities and Knights":
-            has_dump = any(
-                c is not card
-                and (
-                    c.title in {"Wakesurf", "Drop a Ski"}
-                    or (
-                        c.effective_base_fun <= 0
-                        and not _get_card_meta(c).goes_to_tomorrow
-                    )
-                )
-                for c in player.hand
-            )
-            if not has_dump:
-                bonus -= 0.65
         elif title == "Scrabble":
             if not any(
                 _effective_card_title(c) == "Paddleboat"
@@ -9265,6 +9255,168 @@ class HydrogenAI(CarbonAI):
             tuple([c.definition.title for c in tom]) if tom else (),
         )
 
+    def _extra_continuation_bonus(
+        self,
+        sim: Game,
+        player_index: int,
+        energy_budget: int,
+        has_unconsumed_ade: bool,
+        has_dates_fn: bool,
+        has_ck: bool,
+        epic_prank_target: int | None,
+    ) -> float:
+        is_early_day = sim.day < DAY_COUNT
+        if not (
+            has_unconsumed_ade
+            or (
+                is_early_day
+                and (
+                    has_dates_fn or has_ck or epic_prank_target is not None
+                )
+            )
+        ):
+            return 0.0
+        player = sim.players[player_index]
+        hand = player.hand
+        zero_tag = (
+            player.character.zero_fun_tag
+            if player.character is not None
+            else ""
+        )
+        extra = 0.0
+
+        if has_unconsumed_ade:
+            best_ex_fun = 0
+            for hc in hand:
+                hm = hc.markers
+                h_tags = hc.definition.tags if not hm else hc.tags
+                if "Exercise" not in h_tags or (zero_tag and zero_tag in h_tags):
+                    continue
+                h_cost = (
+                    hc.definition.cost
+                    if (not hm or "_copied_definition" not in hm)
+                    else hc.effective_cost
+                )
+                if h_cost <= energy_budget:
+                    ebf = hc.effective_base_fun
+                    if ebf > best_ex_fun:
+                        best_ex_fun = ebf
+            if best_ex_fun >= 3:
+                extra += (10 if best_ex_fun > 10 else best_ex_fun) * 0.85
+
+        if is_early_day and (has_dates_fn or epic_prank_target is not None):
+            start_f = (
+                sim._fun_at_start_of_day[player_index]
+                if sim._fun_at_start_of_day is not None
+                else player.fun
+            )
+            cur_day_fun = float(
+                (player.fun - start_f)
+                + sum(
+                    sim.card_fun(player_index, pc) for pc in player.played_today
+                )
+            )
+            if has_dates_fn and cur_day_fun < 3.0 and energy_budget >= 0:
+                for hc in hand:
+                    hm = hc.markers
+                    h_tags = hc.definition.tags if not hm else hc.tags
+                    if zero_tag and zero_tag in h_tags:
+                        continue
+                    h_cost = (
+                        hc.definition.cost
+                        if (not hm or "_copied_definition" not in hm)
+                        else hc.effective_cost
+                    )
+                    if h_cost <= energy_budget:
+                        hm_meta = _get_card_meta(hc)
+                        if (
+                            hc.effective_base_fun
+                            + hm_meta.immediate_fun_gain
+                            + hm_meta.conditional_fun_bonus
+                            >= 1
+                            or hm_meta.immediate_energy_gain > h_cost
+                        ):
+                            extra += 3.5
+                            break
+            if epic_prank_target is not None:
+                opp_proj = _projected_opponent_day_fun(sim, epic_prank_target)
+                if cur_day_fun < opp_proj and (
+                    opp_proj - cur_day_fun <= energy_budget * 2.0 + 4.0
+                ):
+                    for hc in hand:
+                        hm = hc.markers
+                        h_tags = hc.definition.tags if not hm else hc.tags
+                        if zero_tag and zero_tag in h_tags:
+                            continue
+                        h_cost = (
+                            hc.definition.cost
+                            if (not hm or "_copied_definition" not in hm)
+                            else hc.effective_cost
+                        )
+                        if (
+                            h_cost <= energy_budget
+                            and hc.effective_base_fun >= 1
+                        ):
+                            extra += 1.8
+                            break
+
+        if is_early_day and has_ck:
+            ck_counts: dict[str, int] = {}
+            for pc in player.played_today:
+                for tg in pc.tags:
+                    ck_counts[tg] = ck_counts.get(tg, 0) + 1
+            top_ck = sorted(ck_counts.values(), reverse=True)
+            if not (len(top_ck) >= 2 and top_ck[0] >= 3 and top_ck[1] >= 2):
+                can_in_one = False
+                playable_hand: list[tuple[int, frozenset[str]]] = []
+                for hc in hand:
+                    hm = hc.markers
+                    h_cost = (
+                        hc.definition.cost
+                        if (not hm or "_copied_definition" not in hm)
+                        else hc.effective_cost
+                    )
+                    if h_cost <= energy_budget:
+                        h_tags = hc.definition.tags if not hm else hc.tags
+                        playable_hand.append((h_cost, h_tags))
+                        for tg in h_tags:
+                            ck_counts[tg] = ck_counts.get(tg, 0) + 1
+                        t1 = sorted(ck_counts.values(), reverse=True)
+                        for tg in h_tags:
+                            ck_counts[tg] -= 1
+                        if len(t1) >= 2 and t1[0] >= 3 and t1[1] >= 2:
+                            can_in_one = True
+                            break
+                if can_in_one:
+                    extra += 1.8
+                elif len(playable_hand) >= 2:
+                    can_in_two = False
+                    n_ph = len(playable_hand)
+                    for i_p in range(n_ph):
+                        c1, t1_tags = playable_hand[i_p]
+                        for j_p in range(i_p + 1, n_ph):
+                            c2, t2_tags = playable_hand[j_p]
+                            if c1 + c2 > energy_budget:
+                                continue
+                            for tg in t1_tags:
+                                ck_counts[tg] = ck_counts.get(tg, 0) + 1
+                            for tg in t2_tags:
+                                ck_counts[tg] = ck_counts.get(tg, 0) + 1
+                            t2 = sorted(ck_counts.values(), reverse=True)
+                            for tg in t1_tags:
+                                ck_counts[tg] -= 1
+                            for tg in t2_tags:
+                                ck_counts[tg] -= 1
+                            if len(t2) >= 2 and t2[0] >= 3 and t2[1] >= 2:
+                                can_in_two = True
+                                break
+                        if can_in_two:
+                            break
+                    if can_in_two:
+                        extra += 0.9
+
+        return extra
+
     def _continuation_potential(self, sim: Game, player_index: int) -> float:
         """PYTHONHASHSEED-deterministic continuation upside for active/pending scalers."""
         player = sim.players[player_index]
@@ -9291,6 +9443,11 @@ class HydrogenAI(CarbonAI):
             aa_arr: list[float] | None = None
             global_after_bonus = 0.0
             has_after_all_tags = False
+            has_food_played = False
+            has_unconsumed_ade = False
+            has_dates_fn = False
+            has_ck = False
+            epic_prank_target: int | None = None
             if pf & _PF_HAS_CONT_AFTER:
                 for played in played_today:
                     pm = played.markers
@@ -9299,9 +9456,33 @@ class HydrogenAI(CarbonAI):
                         if (not pm or "_copied_definition" not in pm)
                         else _get_card_meta(played)
                     )
+                    p_mask = (
+                        _ALL_TAGS_BITMASK
+                        if (pm and "_all_tags" in pm and pm["_all_tags"])
+                        else (
+                            _tags_to_mask(played.tags)[0]
+                            if (pm and "_extra_tags" in pm and pm["_extra_tags"])
+                            else meta.tag_mask
+                        )
+                    )
+                    if has_unconsumed_ade and (p_mask & _MASK_EXERCISE):
+                        has_unconsumed_ade = False
+                    eff_t = meta.title
+                    if eff_t == "After Dinner Entertainment" and has_food_played:
+                        has_unconsumed_ade = True
+                    elif eff_t == "Date's First Nos":
+                        has_dates_fn = True
+                    elif eff_t == "Cities and Knights":
+                        has_ck = True
+                    elif eff_t == "Epic Prank" and pm:
+                        t_p = pm.get("target_player_index")
+                        if isinstance(t_p, int):
+                            epic_prank_target = t_p
+                    if p_mask & _MASK_FOOD:
+                        has_food_played = True
                     if meta.after_all_tags:
                         has_after_all_tags = True
-                    if meta.has_granted_after_tags and pm and "target_card" in pm:
+                    if meta.has_granted_after_tags:
                         g_tags = played.effective_behavior.granted_after_tags(
                             player, played
                         )
@@ -9366,10 +9547,20 @@ class HydrogenAI(CarbonAI):
                             )
                         pending_before_bonus += cost_sum * 0.85
 
+            extra_cont = self._extra_continuation_bonus(
+                sim,
+                player_index,
+                energy_budget,
+                has_unconsumed_ade,
+                has_dates_fn,
+                has_ck,
+                epic_prank_target,
+            )
             if not aa_mask and global_after_bonus == 0.0:
                 return (
                     (energy_budget if energy_budget < 7 else 7) * 0.72
                     + pending_before_bonus
+                    + extra_cont
                 )
             matching_playable = 0.0
             if has_after_all_tags:
@@ -9402,16 +9593,25 @@ class HydrogenAI(CarbonAI):
                 (energy_budget if energy_budget < 7 else 7) * 0.72
                 + matching_playable * 0.95
                 + pending_before_bonus
+                + extra_cont
             )
 
         active_after_tags: dict[str, float] = {}
         granted_tags: set[str] = set()
         global_after_bonus = 0.0
         has_after_all_tags = False
+        has_food_played = False
+        has_unconsumed_ade = False
+        has_dates_fn = False
+        has_ck = False
+        epic_prank_target = None
         if not is_hsim or (sim._p_flags[player_index] & _PF_HAS_CONT_AFTER):  # type: ignore[attr-defined]
             for played in played_today:
                 pm = played.markers
                 p_uncopied = not pm or "_copied_definition" not in pm
+                p_tags = played.definition.tags if not pm else played.tags
+                if has_unconsumed_ade and "Exercise" in p_tags:
+                    has_unconsumed_ade = False
                 if p_uncopied:
                     d = played.definition
                     meta = (
@@ -9423,10 +9623,31 @@ class HydrogenAI(CarbonAI):
                         meta = None
                 else:
                     meta = _get_card_meta(played)
+                eff_t = (
+                    meta.title
+                    if meta is not None
+                    else (
+                        played.definition.title
+                        if p_uncopied
+                        else _effective_card_title(played)
+                    )
+                )
+                if eff_t == "After Dinner Entertainment" and has_food_played:
+                    has_unconsumed_ade = True
+                elif eff_t == "Date's First Nos":
+                    has_dates_fn = True
+                elif eff_t == "Cities and Knights":
+                    has_ck = True
+                elif eff_t == "Epic Prank" and pm:
+                    t_p = pm.get("target_player_index")
+                    if isinstance(t_p, int):
+                        epic_prank_target = t_p
+                if "Food" in p_tags:
+                    has_food_played = True
                 if meta is not None:
                     if meta.after_all_tags:
                         has_after_all_tags = True
-                    if meta.has_granted_after_tags and pm and "target_card" in pm:
+                    if meta.has_granted_after_tags:
                         g_tags = played.effective_behavior.granted_after_tags(
                             player, played
                         )
@@ -9612,6 +9833,15 @@ class HydrogenAI(CarbonAI):
             min(player.energy, 7) * 0.72
             + matching_playable * 0.95
             + pending_before_bonus
+            + self._extra_continuation_bonus(
+                sim,
+                player_index,
+                energy_budget,
+                has_unconsumed_ade,
+                has_dates_fn,
+                has_ck,
+                epic_prank_target,
+            )
         )
 
     def _ordered_candidate_indices_with_costs(
@@ -9693,35 +9923,76 @@ class HydrogenAI(CarbonAI):
                 for tc in player.tomorrow_cards
             )
         )
+        has_epic_prank_first = (
+            not played_today
+            and any(
+                _effective_card_title(tc) == "Epic Prank"
+                for tc in player.tomorrow_cards
+            )
+        )
 
         has_epic_duels_played = False
         has_early_food_played = False
         has_pb_played = False
+        has_food_played = False
+        has_active_ade = False
+        has_baf_played = False
         for pc in played_today:
             pm = pc.markers
+            pc_tags = pc.definition.tags if not pm else pc.tags
             pc_title = (
                 pc.definition.title
                 if (not pm or "_copied_definition" not in pm)
                 else _effective_card_title(pc)
             )
+            if has_active_ade and "Exercise" in pc_tags:
+                has_active_ade = False
+            if pc_title == "After Dinner Entertainment" and has_food_played:
+                has_active_ade = True
+            if "Food" in pc_tags:
+                has_food_played = True
+                if not has_early_food_played and pc_title in _EARLY_COPYABLE_FOOD_TITLES:
+                    has_early_food_played = True
             if pc_title == "Epic Duels":
                 has_epic_duels_played = True
             elif pc_title == "Paddleboat":
                 has_pb_played = True
-            if (
-                not has_early_food_played
-                and "Food" in (pc.definition.tags if not pm else pc.tags)
-                and pc_title in _EARLY_COPYABLE_FOOD_TITLES
-            ):
-                has_early_food_played = True
+            elif pc_title == "Bring a Friend":
+                has_baf_played = True
 
         hand = player.hand
         has_trunk_consumer = False
         has_trunk_setter = False
         first_cutlery_card: CardInstance | None = None
         first_bcm_card: CardInstance | None = None
+        has_food_in_hand = False
+        has_relax_payoff_now = False
+        has_relax_after_scaler_hand = False
         for c in hand:
             ct = c.definition.title
+            if "Food" in c.tags:
+                has_food_in_hand = True
+            if ct in {
+                "Sweet Lawn Chair",
+                "Zero Gravity Chair",
+                "Spa Day",
+                "Outdoor Movie",
+                "Potato Pancakes",
+                "Classic Book",
+                "Water Trampoline",
+                "Fancy Floatie",
+                "Photo Shoot",
+            }:
+                if ct in {
+                    "Sweet Lawn Chair",
+                    "Zero Gravity Chair",
+                    "Spa Day",
+                    "Outdoor Movie",
+                    "Water Trampoline",
+                }:
+                    has_relax_after_scaler_hand = True
+                else:
+                    has_relax_payoff_now = True
             if ct in _TRUNK_CONSUMER_TITLES:
                 has_trunk_consumer = True
                 if ct == "Assorted Cutlery" and first_cutlery_card is None:
@@ -9730,6 +10001,21 @@ class HydrogenAI(CarbonAI):
                     first_bcm_card = c
             if ct in _TRUNK_REORDER_TITLES:
                 has_trunk_setter = True
+        if not has_relax_payoff_now:
+            for c in (*played_today, *player.tomorrow_cards):
+                ct = _effective_card_title(c)
+                if ct in {
+                    "Sweet Lawn Chair",
+                    "Zero Gravity Chair",
+                    "Spa Day",
+                    "Outdoor Movie",
+                    "Water Trampoline",
+                    "Fancy Floatie",
+                    "Photo Shoot",
+                }:
+                    has_relax_payoff_now = True
+                    break
+        cur_day_fun_ord: float | None = None
 
         keyed: list[tuple[int, float, int, int]] = []
         for hand_idx, cost in playable_with_costs:
@@ -9764,6 +10050,26 @@ class HydrogenAI(CarbonAI):
                 desirability += 2.0
                 if bucket > 2:
                     bucket = 2
+            if has_epic_prank_first and (
+                eff_base_fun >= 3 or prof.conditional_fun_bonus >= 3
+            ):
+                bucket = (
+                    0
+                    if (eff_base_fun >= 5 or prof.conditional_fun_bonus >= 5)
+                    else 1
+                )
+                desirability += (
+                    eff_base_fun + 0.5 * prof.conditional_fun_bonus
+                ) * 1.4
+            if (
+                has_active_ade
+                and "Exercise" in c_tags
+                and (eff_base_fun >= 3 or prof.conditional_fun_bonus >= 3)
+            ):
+                bucket = 1
+                desirability += (
+                    eff_base_fun + 0.5 * prof.conditional_fun_bonus
+                ) * 1.4
 
             if (
                 prof.conditional_energy_gain > 0
@@ -9778,22 +10084,15 @@ class HydrogenAI(CarbonAI):
             oq = meta.order_qcode
             if oq:
                 if oq == _OQ_COLOURING:
-                    zero_tag = (
-                        player.character.zero_fun_tag
-                        if player.character is not None
-                        else ""
-                    )
-                    if not played_today:
-                        bucket = 6
-                        desirability -= 6.0
-                    elif zero_tag and all(zero_tag in pc.tags for pc in played_today):
-                        bucket = 6
-                        desirability -= 8.0
-                    elif any(
-                        pc.tags and (not zero_tag or zero_tag not in pc.tags)
-                        for pc in played_today
-                    ):
+                    if len(hand) <= 1:
+                        bucket = 4
+                    elif has_relax_after_scaler_hand and not has_relax_payoff_now:
+                        bucket = 3
+                        desirability += 1.5
+                    else:
                         bucket = 2
+                        if has_relax_payoff_now:
+                            desirability += 2.5
                 elif oq == _OQ_NOS_BOOK:
                     if not played_today:
                         bucket = 6
@@ -9939,27 +10238,11 @@ class HydrogenAI(CarbonAI):
                         bucket = 6
                         desirability -= 4.0
                 elif oq == _OQ_SOLO:
-                    opp_played_bg = any(
-                        "Board Game" in oc.tags
-                        for idx, opp in enumerate(players)
-                        if idx != player_index
-                        for oc in opp.played_today
-                    )
-                    if not opp_played_bg and awake_opps > 0:
-                        has_bg_setup = any(
-                            other.definition.title
-                            in {
-                                "Bend the Rules",
-                                "Forced Family Fun",
-                                "Trekking Through History",
-                            }
-                            and sim.energy_cost(player_index, other)
-                            + max(0, cost - 1)
-                            <= player.energy
-                            for other in hand
-                        )
-                        bucket = 2 if has_bg_setup else 1
-                        desirability += 2.2
+                    if has_epic_prank_first or has_baf_played or last_title == "Work Call":
+                        bucket = 2
+                        desirability += 2.0
+                    else:
+                        bucket = 4
                 elif oq == _OQ_SAN_JUAN:
                     urgent_target = any(
                         not opp.asleep
@@ -9974,8 +10257,13 @@ class HydrogenAI(CarbonAI):
                         bucket = 1
                         desirability += 2.2
                 elif oq == _OQ_CITIES_AND_KNIGHTS:
-                    if len(hand) >= 2:
-                        bucket = 5
+                    if sim.day < DAY_COUNT and cities_and_knights_condition_met(
+                        [*(pc.tags for pc in played_today), *(hc.tags for hc in hand)]
+                    ):
+                        bucket = 3
+                        desirability += 1.2
+                    else:
+                        bucket = 4
                 elif oq == _OQ_ADDRESS_THE_FOOD:
                     played_today.append(card)
                     try:
@@ -10005,9 +10293,106 @@ class HydrogenAI(CarbonAI):
                     elif matches_in_sc == 0:
                         desirability -= 2.0
                 elif oq == _OQ_PADDLEBOARD:
-                    if len(hand) >= 3:
+                    if len(hand) >= 3 and any(
+                        other is not card
+                        and sim.energy_cost(player_index, other) <= player.energy
+                        for other in hand
+                    ):
                         bucket = 5
-                        desirability -= 2.0
+                        desirability -= (
+                            len(hand) - 1 if len(hand) - 1 < 5 else 5
+                        ) * 0.9
+                    elif len(hand) <= 2:
+                        bucket = 3
+                        desirability += 2.0 if len(hand) == 1 else 1.0
+                elif oq == _OQ_AFTER_DINNER_ENTERTAINMENT:
+                    if not has_food_played:
+                        if has_food_in_hand:
+                            bucket = 5
+                            desirability -= 3.5
+                    elif any(
+                        other is not card
+                        and "Exercise" in other.tags
+                        and sim.energy_cost(player_index, other)
+                        <= player.energy - cost
+                        for other in hand
+                    ):
+                        bucket = 2
+                        desirability += 2.5
+                elif oq == _OQ_DATES_FIRST_NOS:
+                    if sim.day >= DAY_COUNT:
+                        bucket = 6
+                        desirability -= 6.0
+                    else:
+                        if cur_day_fun_ord is None:
+                            start_f = (
+                                sim._fun_at_start_of_day[player_index]
+                                if sim._fun_at_start_of_day is not None
+                                else player.fun
+                            )
+                            cur_day_fun_ord = float(
+                                (player.fun - start_f)
+                                + sum(
+                                    sim.card_fun(player_index, pc)
+                                    for pc in played_today
+                                )
+                            )
+                        if cur_day_fun_ord < 3.0:
+                            has_fun_followup = any(
+                                other is not card
+                                and sim.energy_cost(player_index, other)
+                                <= player.energy - cost
+                                and (
+                                    other.effective_base_fun
+                                    + _get_card_meta(other).immediate_fun_gain
+                                    + _get_card_meta(other).conditional_fun_bonus
+                                    >= 1
+                                    or _get_card_meta(other).immediate_energy_gain
+                                    > sim.energy_cost(player_index, other)
+                                )
+                                for other in hand
+                            )
+                            if not has_fun_followup:
+                                bucket = 6
+                                desirability -= 5.0
+                elif oq == _OQ_EPIC_PRANK:
+                    if sim.day >= DAY_COUNT:
+                        bucket = 6
+                        desirability -= 6.0
+                    else:
+                        if cur_day_fun_ord is None:
+                            start_f = (
+                                sim._fun_at_start_of_day[player_index]
+                                if sim._fun_at_start_of_day is not None
+                                else player.fun
+                            )
+                            cur_day_fun_ord = float(
+                                (player.fun - start_f)
+                                + sum(
+                                    sim.card_fun(player_index, pc)
+                                    for pc in played_today
+                                )
+                            )
+                        min_opp_proj = min(
+                            (
+                                _projected_opponent_day_fun(sim, idx)
+                                for idx in range(4)
+                                if idx != player_index
+                            ),
+                            default=0.0,
+                        )
+                        if cur_day_fun_ord + max(0, player.energy - cost) * 1.35 >= min_opp_proj - 1.5 and (
+                            any(
+                                idx != player_index
+                                and players[idx].asleep
+                                and _projected_opponent_day_fun(sim, idx)
+                                <= cur_day_fun_ord + max(0, player.energy - cost) * 1.35 + 1.5
+                                for idx in range(4)
+                            )
+                            or (player.energy - cost >= 2)
+                        ):
+                            bucket = 3
+                            desirability += 1.5
                 elif oq == _OQ_ISTANBUL:
                     if not _allows_energy_gain_today(sim, player, card):
                         bucket = 5
@@ -10543,7 +10928,12 @@ class HydrogenAI(CarbonAI):
                     for c in t_sim.players[player_index].played_today
                     if c.effective_behavior.has_tomorrow_action
                     or _effective_card_title(c)
-                    in {"Chuck a Frisbee", "Scout Other Cottages"}
+                    in {
+                        "Chuck a Frisbee",
+                        "Scout Other Cottages",
+                        "Cities and Knights",
+                        "Nos Shirt",
+                    }
                 ),
                 tuple(
                     (
@@ -10630,6 +11020,13 @@ class HydrogenAI(CarbonAI):
                 post_end_day_fun
                 - 1.35 * gd_cnt
                 - (0.45 * min(awake_opps, 3) if scout_cnt and awake_opps else 0.0)
+                + (
+                    self._rollout_awake_opp_adjustment(
+                        term_sim, next_sim, player_index, awake_opps
+                    )
+                    if awake_opps
+                    else 0.0
+                )
             )
             cache_key = (
                 p_next.energy,
@@ -10723,6 +11120,15 @@ class HydrogenAI(CarbonAI):
                 best_acts.append(act)
 
         return best_acts, best_blended
+
+    def _rollout_awake_opp_adjustment(
+        self,
+        term_sim: Game,
+        next_sim: Game,
+        player_index: int,
+        awake_opps: int,
+    ) -> float:
+        return 0.0
 
     def _evaluate_terminal_day(
         self,
@@ -10901,7 +11307,7 @@ class HydrogenAI(CarbonAI):
                         if idx != player_index
                     ):
                         today_total_fun -= (
-                            3.6 if played_len <= 3 else 1.9
+                            4.5 if played_len <= 3 else 2.4
                         )
                 elif eff_title == "Play With the Kids":
                     if hand_len <= 2 and all(
@@ -11640,14 +12046,6 @@ class HydrogenAI(CarbonAI):
                         if ski_ahead_ge2:
                             is_synergy_piece = True
                             raw_val += 3.60
-                    elif (
-                        c_title == "Epic Prank"
-                        and days_left >= 1
-                        and not is_zeroed
-                        and bool(_MASK_ITEM & ((h_m1 & ~cmask) | h_m2))
-                    ):
-                        is_synergy_piece = True
-                        raw_val += 3.20
                     elif c_meta.is_tomorrow_scaler and not pure_zero_target:
                         if days_left >= 2:
                             raw_val += 0.50 * c_meta.signed_match_benefit
@@ -12139,23 +12537,6 @@ class HydrogenAI(CarbonAI):
                 if ski_ahead_ge2:
                     is_synergy_piece = True
                     raw_val += 3.60
-            elif (
-                c_title == "Epic Prank"
-                and days_left >= 1
-                and not is_zeroed
-                and any(
-                    "Item"
-                    in (
-                        other.definition.tags
-                        if not other.markers
-                        else other.tags
-                    )
-                    for other in hand
-                    if other is not c
-                )
-            ):
-                is_synergy_piece = True
-                raw_val += 3.20
             elif c_prof.is_tomorrow_scaler and not pure_zero_target:
                 if days_left >= 2:
                     raw_val += 0.50 * c_prof.signed_match_benefit

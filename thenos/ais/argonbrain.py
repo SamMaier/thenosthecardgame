@@ -533,6 +533,7 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
         or "PotatoPancakes" in cls_name
         or "FancyFloatie" in cls_name
         or "ClassicBook" in cls_name
+        or "Colouring" in cls_name
     ):
         target_tags.add("Relax")
     elif "FancyCraft" in cls_name:
@@ -541,6 +542,7 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
         "CampCrossroads" in cls_name
         or "Swimming" in cls_name
         or "SkiBoat" in cls_name
+        or "AfterDinnerEntertainment" in cls_name
     ):
         target_tags.add("Exercise")
     elif (
@@ -561,7 +563,7 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
         or "BougieCoffeeMachine" in cls_name
     ):
         target_tags.add("Food")
-    elif "Carcassonne" in cls_name:
+    elif "Carcassonne" in cls_name or "SevenWonders" in cls_name:
         target_tags.add("Board Game")
 
     fun_bonus = int(getattr(b, "bonus", 0) or getattr(b, "fun_bonus", 0) or 0)
@@ -570,8 +572,8 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
     )
     multiplier = int(getattr(b, "multiplier", 1) or 1)
     if "AfterDinnerEntertainment" in cls_name:
-        fun_bonus = 2
-        energy_delta = -2
+        fun_bonus = 4
+        energy_delta = 0
     elif "HalfEnergyForNextTag" in cls_name or "SetEnergyForNextTag" in cls_name:
         energy_delta = -2
     elif "WaterTrampoline" in cls_name:
@@ -650,7 +652,9 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
             _ACTIVE_PROBE_KEYS.discard(cache_key)
 
     if "DatesFirstNos" in cls_name:
-        tomorrow_start_fun = 6
+        tomorrow_start_fun = 4
+    elif "EpicPrank" in cls_name:
+        tomorrow_start_fun = 4
     elif "TreatStoreRun" in cls_name or "FancyFloatie" in cls_name:
         immediate_cards_gained = 1
     elif "BougieCoffeeMachine" in cls_name:
@@ -749,6 +753,7 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
             or "Leftovers" in cls_name
             or "KayakBehavior" in cls_name
             or "TellAStoryBehavior" in cls_name
+            or "PaddleboardBehavior" in cls_name
         )
     )
 
@@ -786,6 +791,7 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
         or has_on_card_play
         or has_on_card_acquire
         or "ChristmasNameDraw" in cls_name
+        or "ColouringBehavior" in cls_name
     ):
         bucket = 2
     elif is_single_buff or "FunForAllCardsAfterDoubleBehavior" in cls_name:
@@ -1348,6 +1354,31 @@ class _EvalPlayerAI(RandomAI):
     ) -> int:
         if not eligible_player_indices:
             raise ValueError("No eligible player was supplied")
+        played_today = game.players[player_index].played_today
+        if played_today and _effective_card_title(played_today[-1]) == "Epic Prank":
+            def _proj_opp_fun(p_idx: int) -> float:
+                opp = game.players[p_idx]
+                start_f = (
+                    game._fun_at_start_of_day[p_idx]
+                    if game._fun_at_start_of_day is not None
+                    else opp.fun
+                )
+                cur_f = float(opp.fun - start_f) + sum(
+                    float(game.card_fun(p_idx, pc)) for pc in opp.played_today
+                )
+                if opp.asleep or not opp.hand:
+                    return cur_f
+                eff_e = min(float(opp.energy), len(opp.hand) * 3.5 + 1.5)
+                return cur_f + eff_e * 1.30 + min(len(opp.hand), 4) * 0.45
+
+            return min(
+                eligible_player_indices,
+                key=lambda p_idx: (
+                    _proj_opp_fun(p_idx),
+                    not game.players[p_idx].asleep,
+                    p_idx,
+                ),
+            )
         best_p = eligible_player_indices[0]
         best_score = -999.0
         for p_idx in eligible_player_indices:
@@ -2043,6 +2074,10 @@ def _fast_copy_game(src: Game) -> Game:
         if src._fun_at_start_of_scoring is None
         else list(src._fun_at_start_of_scoring)
     )
+    sim._fun_at_start_of_day = src._fun_at_start_of_day
+    sim._fun_scored_today = src._fun_scored_today
+    sim._end_day_played_tags = src._end_day_played_tags
+    sim._scored_card_fun = None
     return sim
 
 

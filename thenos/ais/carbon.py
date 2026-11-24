@@ -364,13 +364,15 @@ def _suitcase_denial_value(
                 opp_threat += 0.45
             elif t_title == "Date's First Nos" and c_cost <= 1:
                 opp_threat += 0.35
+            elif t_title == "Epic Prank" and c_cost <= 7 and card.definition.base_fun >= 5:
+                opp_threat += 0.35
             else:
                 tc_prof = _beryllium_build_profile(tc)
                 if tc_prof.signed_match_benefit >= 1.5 and (
                     c_tags & tc_prof.target_tags
                 ):
                     opp_threat += 0.25
-        if c_title in {"Colouring", "Euchre Awards Ceremony", "Butter Tarts"}:
+        if c_title in {"Euchre Awards Ceremony", "Butter Tarts"}:
             opp_threat += 0.25
         bonus += min(opp_threat, 0.75)
 
@@ -590,15 +592,17 @@ _QUICK_BRANCH_TITLES: frozenset[str] = frozenset(
 _QUICK_PENALTY_BY_TITLE: dict[str, float] = {
     "High-End White": 0.55,
     "Euchre": 0.30,
-    "Solo": 0.70,
 }
 _TERMINAL_AWAKE_OPP_TITLES: frozenset[str] = frozenset(
     {
+        "7 Wonders",
+        "Epic Prank",
         "Fit to Print",
         "Play With the Kids",
         "Puerto Rico",
         "Scout Other Cottages",
         "San Juan",
+        "Solo",
         "Cheesy Phone Game",
     }
 )
@@ -1125,6 +1129,38 @@ def _carbon_hand_keep_value(
     elif cost <= player.energy:
         val += 0.45
     return val
+
+
+def _projected_opponent_day_fun(game: Game, opp_index: int) -> float:
+    """Project an opponent's end-of-day Fun scored today from observable state only."""
+    opp = game.players[opp_index]
+    start_fun = (
+        game._fun_at_start_of_day[opp_index]
+        if game._fun_at_start_of_day is not None
+        else opp.fun
+    )
+    cur_day_fun = float(opp.fun - start_fun)
+    for pc in opp.played_today:
+        cur_day_fun += float(game.card_fun(opp_index, pc))
+    if opp.asleep:
+        return cur_day_fun
+    hand_cnt = len(opp.hand)
+    if hand_cnt == 0:
+        return cur_day_fun
+    eff_e = min(float(opp.energy), hand_cnt * 3.5 + 1.5)
+    vis_buff = 0.0
+    for tc in opp.tomorrow_cards:
+        tt = _effective_card_title(tc)
+        if tt == "Date's First Nos":
+            vis_buff += min(hand_cnt, 3) * 1.5
+        elif tt == "Epic Prank" and not opp.played_today:
+            vis_buff += 3.5
+    for pc in opp.played_today:
+        if _effective_card_title(pc) == "Bring a Friend":
+            vis_buff += min(hand_cnt, 2) * 2.5
+    if opp.played_today and _effective_card_title(opp.played_today[-1]) == "Work Call":
+        vis_buff += 3.0
+    return cur_day_fun + eff_e * 1.30 + min(hand_cnt, 4) * 0.45 + vis_buff
 
 
 class _CarbonEvalAI:
@@ -1672,6 +1708,19 @@ class _CarbonEvalAI:
     ) -> int:
         if not eligible_player_indices:
             raise ValueError("No eligible player was supplied")
+        played_today = game.players[player_index].played_today
+        last_played = (
+            _effective_card_title(played_today[-1]) if played_today else ""
+        )
+        if last_played == "Epic Prank":
+            return min(
+                eligible_player_indices,
+                key=lambda p_idx: (
+                    _projected_opponent_day_fun(game, p_idx),
+                    not game.players[p_idx].asleep,
+                    p_idx,
+                ),
+            )
         best_p = eligible_player_indices[0]
         best_score = -999.0
         for p_idx in eligible_player_indices:
@@ -2388,6 +2437,7 @@ def _get_carbon_sim_game_cls() -> type:
             c_beh: CardBehavior,
             cost: int,
         ) -> CardInstance:
+            self._capture_day_start_fun()
             player.energy -= cost
             player.hand.pop(hand_index)
             rm = raw_card.markers
@@ -2923,15 +2973,18 @@ def _get_carbon_sim_game_cls() -> type:
                         ]
                 self._cow_acting_idx = -1
             players = self.players
-            self._fun_at_start_of_scoring = (
+            start_of_scoring = (
                 players[0].fun,
                 players[1].fun,
                 players[2].fun,
                 players[3].fun,
             )
+            self._fun_at_start_of_scoring = start_of_scoring
+            scored_card_fun: dict[int, int] = {}
+            self._scored_card_fun = scored_card_fun
             for p_i, player in enumerate(players):
                 if player.played_today:
-                    has_on_score = False
+                    needs_per_card = False
                     for card in player.played_today:
                         m = card.markers
                         c_beh = (
@@ -2939,17 +2992,45 @@ def _get_carbon_sim_game_cls() -> type:
                             if (not m or "_copied_definition" not in m)
                             else card.effective_behavior
                         )
-                        if type(c_beh).on_score is not CardBehavior.on_score:
-                            has_on_score = True
+                        b_type = type(c_beh)
+                        if (
+                            b_type.on_score is not CardBehavior.on_score
+                            or b_type.on_after_end_day
+                            is not CardBehavior.on_after_end_day
+                        ):
+                            needs_per_card = True
                             break
-                    if not has_on_score:
+                    if not needs_per_card:
                         scored, _ = self.score_played_today_fast(p_i)
                         player.fun += scored
                     else:
                         for card in player.played_today:
-                            player.fun += self.card_fun(p_i, card)
+                            scored = self.card_fun(p_i, card)
+                            scored_card_fun[id(card)] = scored
+                            player.fun += scored
                             card.effective_behavior.on_score(self, player, card)
             self._fun_at_start_of_scoring = None
+            baseline = (
+                self._fun_at_start_of_day
+                if self._fun_at_start_of_day is not None
+                else start_of_scoring
+            )
+            self._fun_scored_today = (
+                players[0].fun - baseline[0],
+                players[1].fun - baseline[1],
+                players[2].fun - baseline[2],
+                players[3].fun - baseline[3],
+            )
+            for player in players:
+                if player.played_today:
+                    self._sync_played_today_tags(player)
+            self._end_day_played_tags = tuple(
+                tuple(
+                    card.definition.tags if not card.markers else card.tags
+                    for card in player.played_today
+                )
+                for player in players
+            )
 
             order = self.player_order()
             for p_idx in order:
@@ -3008,6 +3089,10 @@ def _get_carbon_sim_game_cls() -> type:
                     player.played_today = []
             self._has_card_ref = False
             self._has_opp_suitcase_ref = False
+            self._fun_at_start_of_day = None
+            self._fun_scored_today = None
+            self._end_day_played_tags = None
+            self._scored_card_fun = None
 
     _CARBON_SIM_GAME_CLS = _CarbonSimGame
     return _CarbonSimGame
@@ -3226,6 +3311,10 @@ def _carbon_copy_game(src: Game) -> Game:
         if src._fun_at_start_of_scoring is None
         else list(src._fun_at_start_of_scoring)
     )
+    sim._fun_at_start_of_day = src._fun_at_start_of_day
+    sim._fun_scored_today = src._fun_scored_today
+    sim._end_day_played_tags = src._end_day_played_tags
+    sim._scored_card_fun = None
     return sim
 
 
@@ -3338,6 +3427,10 @@ def _carbon_copy_game_for_play(src: Game, player_index: int) -> Game:
     sim._is_setup = src._is_setup
     sim.stats = src.stats
     sim._fun_at_start_of_scoring = src._fun_at_start_of_scoring
+    sim._fun_at_start_of_day = src._fun_at_start_of_day
+    sim._fun_scored_today = src._fun_scored_today
+    sim._end_day_played_tags = src._end_day_played_tags
+    sim._scored_card_fun = None
     return sim
 
 

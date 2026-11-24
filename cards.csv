@@ -1,10 +1,11 @@
 Title,Tags,Cost,Effect,Flavor text
-7 WONDERS,BOARDGAME,2,(fun)(fun)(fun),I hope nobody notices I'm the only one going for science...
+7 WONDERS,BOARDGAME,2,"(fun)
+If you you played more (BOARDGAME_card) than both neighbours at END OF DAY, +(fun)(fun)(fun)(fun)",I hope nobody notices I'm the only one going for science...
 ADDRESS THE FOOD,"FOOD, SOCIAL",2,"Pick a (FOOD_card) from (suitcase), then immediately play it for free","If you use the word ""gourmet"", it means it's better"
 ADVENTURE RACE,"EXERCISE, OUTDOORS",12,"(fun)(fun)(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)(fun)(fun)(fun)",Should we sign up for the 24-hour one next year?
-AFTER DINNER ENTERTAINMENT,SOCIAL,2,Your next (SOCIAL_card) costs -(energy)(energy) and scores +(fun)(fun),"""But where, where do they make balloons?"" - Matt, Marc-André"
+AFTER DINNER ENTERTAINMENT,SOCIAL,2,"If you have played a (before)(FOOD_card), your next (EXERCISE_card)(after) scores double points","""But where, where do they make balloons?"" - Matt, Marc-André"
 AFTERNOON COFFEE,FOOD,1,"(energy)(energy)(energy)
 Must be your 3rd or later card today",Gotta make bringing that coffee machine worth it!
 AGRICOLA,BOARDGAME,5,"(fun)(fun)(fun)
@@ -41,7 +42,7 @@ CANOE,"EXERCISE, OUTDOORS",3,"(fun)(fun)(fun)
 Your next (ITEM_card)(after) scores +(fun) equal to its written (energy) cost",Do you even know how to J-stroke?
 CARCASSONNE,BOARDGAME,2,"(fun)
 If the adjacent (before)(card)(after) are both (BOARDGAME_card), +(fun)(fun)(fun)(fun)",No points for longest road?
-CHALK ART,"RELAX, OUTDOORS",0,(fun),
+CHALK ART,"RELAX, OUTDOORS",0,(fun),Hopefully this artwork can avoid defacement by the geese
 CHARCUTERIE,FOOD,2,"(fun)(fun)
 (energy)",zThis cheese smells like Chris' socks after a triathlon
 CHEAP RED,FOOD,2,"(fun)(fun)
@@ -53,9 +54,8 @@ CHRISTMAS NAME DRAW,SOCIAL,3,"Choose an opponent's card. Each (card)(after) that
 (cubes)",CLOTHES
 CHUCK A FRISBEE,"EXERCISE, OUTDOORS",3,"(fun)(fun)(fun)
 After END OF DAY scoring is completed, return to your hand",Hammer toss - go long
-CITIES AND KNIGHTS,BOARDGAME,4,"(fun)(fun)(fun)
-Optionally discard 1 card for +(fun)(fun)(fun)(fun)
-(cubes)","Don't trade with him, he's winning!"
+CITIES AND KNIGHTS,BOARDGAME,3,"(fun)(fun)(fun)
+If by END OF DAY you've played 3 of one tag, and 2 of another, pick 2 (suitcase)","Don't trade with him, he's winning!"
 CIVILIZATION THE BOARDGAME,"BOARDGAME, INDOORS",10,"(fun)(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)(fun)",It's no Campaign for North Africa
@@ -63,11 +63,11 @@ CLASSIC BOOK,RELAX,2,"(fun)(fun)
 Costs -(energy) per (before)(RELAX_card)","""Call me Ishmael."" - Moby Dick"
 CLIFF CLIMBING,"EXERCISE, OUTDOORS",4,"(fun)(fun)
 (before)(OUTDOORS_card) score +(fun)(fun)","If you're going to fall, PUSH OFF"
-COLOURING,RELAX,5,"Mark one (before)(card)
-(card)(after) gain its tags
-(cubes)",
+COLOURING,RELAX,2,"(fun)
+(card)(after) gain (RELAX) tag",
 COUCH TUBE,"EXERCISE, OUTDOORS",3,"(fun)(fun) If you finished today with only one other (card) down, +(fun)(fun)(fun)(fun)","""It's good to try new things, and bad things"" - Nola on trying tubing"
-DATE'S FIRST NOS,SOCIAL,7,TOMORROW: Each (card) you play scores +(fun)(fun),Keep em away from the uncles
+DATE'S FIRST NOS,SOCIAL,7,"If you score less than 3 (fun) today, discard this card at END OF DAY.
+TOMORROW: Each (card) you play scores +(fun)(fun)",Keep em away from the uncles
 DECAF,FOOD,0,"At END OF DAY, each leftover (energy) is worth +(fun)","Well, if it's decaf..."
 DISHWASHING,FOOD,1,TOMORROW: (FOOD_card) cost -(energy),"Turns out, dishwashing soap is different from dishwashing detergent"
 DOCK FISHING,"RELAX, OUTDOORS",1,(fun)(fun),A valuable lesson in disappointment
@@ -82,9 +82,8 @@ TOMORROW: (energy)(energy)(energy)","We're on vacation, we should rest"
 EPIC DUELS,"BOARDGAME, INDOORS",2,"(fun)(fun)
 You may play as many cards as you wish this turn, paying and resolving effects as normal","Oh no, Darth Maul has 10 cards"
 EPIC PLAYLIST,ITEM,1,(SOCIAL_card)(after) score +(fun),"""Give it two years, and Justin Bieber will be gone!"" - JP, 2011"
-EPIC PRANK,SOCIAL,4,"(fun)(fun)
-Optionally discard an (ITEM_card) for +(fun)(fun)(fun)(fun)(fun)
-(cubes)",Sponsored by SC Johnson
+EPIC PRANK,SOCIAL,3,"Pick an opponent. If you score less (fun) than them today, discard this card at END OF DAY
+TOMORROW: the first card you play scores double (fun)",Sponsored by SC Johnson
 EUCHRE,"BOARDGAME, INDOORS",2,"(fun)(fun)
 (SOCIAL_card)(after) score +(fun)","""Lose the lead as fast as you can"" - Gord "
 EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",4,"When playing (FOOD_card)(BOARDGAME_card)(after), pick (suitcase)","""But I say it is the Mount Everest of competition"" - Scott"
@@ -106,7 +105,7 @@ FISHING EVENING,"RELAX, OUTDOORS",3,"(fun)(fun)(fun)(fun)(fun)
 Must be your 4th or later card today",When trolling had a different meaning
 FISHING MORNING,"RELAX, OUTDOORS",3,"(fun)(fun)(fun)(fun)(fun)
 Must be your 1st card today",That seaweed really gave a good fight
-FIT TO PRINT,"BOARDGAME, INDOORS",2,"If you have played the most cards (including ties) by END OF DAY, +(fun)(fun)(fun)(fun)",Your green articles are touching
+FIT TO PRINT,"BOARDGAME, INDOORS",2,"If you have played the most cards (including ties) by END OF DAY, +(fun)(fun)(fun)(fun)(fun)",Your green articles are touching
 FLOATING,"RELAX, OUTDOORS",1,"(energy)(energy)(energy)
 TOMORROW: -(energy)","""I keep floating to the surface?"" - Darcy"
 FORCED FAMILY FUN,"BOARDGAME, INDOORS",2,Your next (BOARDGAME_card) costs half (energy) (rounded down),"If you play this card during an actual FFF, you get to choose what the fam is playing next"
@@ -134,7 +133,7 @@ KEEPER,FOOD,2,"(fun)
 (energy) for each (before)(OUTDOORS_card)",I caught you a delicious bass
 KNEEBOARD,"EXERCISE, OUTDOORS",4,(fun)(fun)(fun)(fun)(fun),Try not to traumatize the children by putting them in too tight
 LAST YEAR'S SHIRT,ITEM,0,Pick any number of (suitcase) but replenish any taken from your own hand,"Hmmm, what else is behind some furniture?"
-LEFTOVERS,FOOD,2,"Copy the effects (but not tags or cost) of a (before)(FOOD_card)
+LEFTOVERS,FOOD,3,"Copy the effects (but not tags or cost) of a (before)(FOOD_card)
 (cubes)","""I haven't been full for 3 years since I got filled up at a hockey banquet"" - Chris"
 LONG DISTANCE VISITORS,SOCIAL,4,"Pick 2 (suitcase)
 (SOCIAL_card)(after) score +(fun)","""I want to live in Canada forever because it's always warm"" - Henry"
@@ -163,11 +162,14 @@ NEWFANGLED TRÈS FUTÉ,BOARDGAME,3,"(fun)
 +(fun) for each unique tag you played by END OF DAY","So, your teal dice can convert to foxes, or you can reroll them for a yellow-white combo"
 NON-FICTION BOOK,RELAX,1,(fun)(fun),"""If you want to gather honey, don't kick over the beehive."" - How to Win Friends and Influence People"
 NOS BOOK,ITEM,4,(before)(card) score +(fun),"""The Starra Clan Book of 'Nos-isms' and other Nos happenings"""
-NOS SHIRT,ITEM,3,(fun)(fun)(fun)(fun),"""My nos shirt is losing its lustre"" - Grandpa, 2006"
+NOS SHIRT,ITEM,1,"(fun)
+If you scored more than 7 (fun) by END OF DAY, return to your hand.","""My nos shirt is losing its lustre"" - Grandpa, 2006"
 OUTDOOR MOVIE,"RELAX, OUTDOORS",2,"(fun)
 (before)(RELAX_card) score +(fun)(fun)","Tina, you fat lard!"
-PADDLEBOARD,"EXERCISE, OUTDOORS",3,"(fun)(fun)
-Discard your hand, then pick that many (suitcase)",You're going to fall in at some point
+PADDLEBOARD,"EXERCISE, OUTDOORS",3,"(fun)(fun)(fun)(fun)
+(fun)(fun)(fun)
+When played, scores -(fun) per card in your hand
+(cubes)",You're going to fall in at some point
 PADDLEBOAT,"EXERCISE, OUTDOORS",3,"+(fun)(fun) for each card acquired from (trunk) or (suitcase) after this
 (cubes)",A lot of work for how slow you go
 PAINT,RELAX,3,"(fun)(fun)(fun)(fun)
@@ -195,7 +197,7 @@ QUACKS,BOARDGAME,1,"Reveal and discard (trunk), stopping any time. +(fun)(fun) f
 READ THE RADAR,RELAX,1,Privately view the top 5 (trunk). Arrange them in any order and re-place them,"Accuweather says we're in trouble, but the weather network says we're good"
 RISK,BOARDGAME,7,"(fun)(fun)(fun)(fun)
 (fun)(fun)(fun)(fun)",Don't let him get Australia!
-ROULADEN,FOOD,4,(card)(after) cost -(energy),Pickles or no pickles?
+ROULADEN,FOOD,5,(card)(after) cost -(energy),Pickles or no pickles?
 SAN JUAN,BOARDGAME,3,"(fun)(fun)
 Choose a player who has 2 or fewer cards played. If they do not play a (BOARDGAME_card) today, +(fun)(fun)(fun)
 (cubes)",zHope I can snag a Guild Hall
@@ -219,8 +221,7 @@ SLEEP IN,"RELAX, INDOORS",0,"(energy)(energy)
 You do not gain additional (energy) from any other source today
 Must be your 1st card today","""I may be sleepy, but I'm still sensitive"" - Sally"
 SOLO,BOARDGAME,3,"(fun)(fun)(fun)
-If none of your opponents have played a (BOARDGAME_card) yet today, +(fun)(fun)
-(cubes)",zEuchre but I can actually play on the same team as my spouse
+After END OF DAY, if you scored the most (fun) today (including ties), score this card again.",zEuchre but I can actually play on the same team as my spouse
 SPA DAY,"RELAX, SOCIAL",2,"(fun)(fun)
 (RELAX_card)(after) score +(fun)","I brought 18 shades of pink nail polish - would you like Amaranth, Taffy, Flamingo, Bubblegum, Cerise..."
 SPIKEBALL,"EXERCISE, OUTDOORS",6,"(fun)(fun)(fun)(fun)

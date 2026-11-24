@@ -46,6 +46,11 @@ def fractional_wins(scores: Sequence[int]) -> tuple[float, ...]:
 
 
 class Game:
+    _fun_at_start_of_day: tuple[int, ...] | None = None
+    _fun_scored_today: tuple[int, ...] | None = None
+    _end_day_played_tags: tuple[tuple[frozenset[str], ...], ...] | None = None
+    _scored_card_fun: dict[int, int] | None = None
+
     def __init__(
         self,
         deck: list[CardInstance],
@@ -74,6 +79,10 @@ class Game:
         self.starting_player = 0
         self._is_setup = False
         self._fun_at_start_of_scoring: tuple[int, ...] | None = None
+        self._fun_at_start_of_day = None
+        self._fun_scored_today = None
+        self._end_day_played_tags = None
+        self._scored_card_fun = None
 
     def copy_for_simulation(self) -> Game:
         """Return an exact, independent copy optimized for AI search.
@@ -201,6 +210,18 @@ class Game:
         simulation.starting_player = self.starting_player
         simulation._is_setup = self._is_setup
         simulation._fun_at_start_of_scoring = self._fun_at_start_of_scoring
+        simulation._fun_at_start_of_day = self._fun_at_start_of_day
+        simulation._fun_scored_today = self._fun_scored_today
+        simulation._end_day_played_tags = self._end_day_played_tags
+        simulation._scored_card_fun = (
+            {
+                id(card_copies[cid]): val
+                for cid, val in self._scored_card_fun.items()
+                if cid in card_copies
+            }
+            if self._scored_card_fun is not None
+            else None
+        )
         return simulation
 
     @classmethod
@@ -318,7 +339,19 @@ class Game:
             for offset in range(PLAYER_COUNT)
         ]
 
+    def _capture_day_start_fun(self) -> None:
+        if self._fun_at_start_of_day is None:
+            self._fun_at_start_of_day = tuple(
+                player.fun for player in self.players
+            )
+
     def start_day(self) -> None:
+        self._fun_at_start_of_day = tuple(
+            player.fun for player in self.players
+        )
+        self._fun_scored_today = None
+        self._end_day_played_tags = None
+        self._scored_card_fun = None
         if self.daily_conditions:
             self.daily_condition = self._condition_deck.pop()
             self.revealed_conditions.append(self.daily_condition)
@@ -413,7 +446,19 @@ class Game:
         """End a player's remaining turns in the current playing phase."""
         self.players[player_index].asleep = True
 
+    def next_starting_player(self) -> int:
+        """Return the player with the fewest cards in hand.
+
+        Ties go to the first player clockwise starting from the current
+        ``starting_player`` (Player 1 on Day 1).
+        """
+        return min(
+            self.player_order(),
+            key=lambda index: len(self.players[index].hand),
+        )
+
     def draw_phase(self) -> None:
+        self.starting_player = self.next_starting_player()
         for _ in range(DAILY_PICKS):
             for player_index in self.player_order():
                 uses_extra_pick = self._uses_extra_suitcase_pick(player_index)
@@ -541,6 +586,7 @@ class Game:
         The standard action passes the default ``-1``. Card effects that alter
         the reward can pass their printed value instead.
         """
+        self._capture_day_start_fun()
         self.players[player_index].fun += fun_delta
         old_suitcase = self.suitcase
         self.suitcase = []
@@ -597,6 +643,30 @@ class Game:
         if self._fun_at_start_of_scoring is None:
             return player.fun
         return self._fun_at_start_of_scoring[self.players.index(player)]
+
+    def fun_scored_today(self, player: PlayerState) -> int:
+        """Return net Fun scored today (from day start through end-day scoring)."""
+        player_index = self.players.index(player)
+        if self._fun_scored_today is not None:
+            return self._fun_scored_today[player_index]
+        if self._fun_at_start_of_day is not None:
+            return player.fun - self._fun_at_start_of_day[player_index]
+        return player.fun
+
+    def end_day_played_tags(
+        self, player: PlayerState
+    ) -> tuple[frozenset[str], ...]:
+        """Return synced tag sets for cards played today before end-day removals."""
+        if self._end_day_played_tags is not None:
+            return self._end_day_played_tags[self.players.index(player)]
+        self._sync_played_today_tags(player)
+        return tuple(card.tags for card in player.played_today)
+
+    def scored_card_fun(self, player_index: int, card: CardInstance) -> int:
+        """Return the Fun ``card`` scored during end-day scoring."""
+        if self._scored_card_fun is not None and id(card) in self._scored_card_fun:
+            return self._scored_card_fun[id(card)]
+        return self.card_fun(player_index, card)
 
     def discard_from_hand(self, player_index: int, hand_index: int) -> CardInstance:
         """Remove one card from a player's hand and discard that copy."""
@@ -864,6 +934,7 @@ class Game:
         if cost > player.energy:
             raise ValueError(f"Not enough Energy to play {card.title}")
 
+        self._capture_day_start_fun()
         player.energy -= cost
         player.hand.pop(hand_index)
         player.played_today.append(card)
@@ -934,6 +1005,7 @@ class Game:
             return card
 
         acquired_from_effect = card not in player.hand
+        self._capture_day_start_fun()
         if card in player.hand:
             player.hand.remove(card)
         player.energy -= cost
@@ -989,7 +1061,6 @@ class Game:
         source.definition.behavior.on_play(self, player, destination)
 
     def playing_phase(self) -> None:
-        first_to_bed: int | None = None
         order = self.player_order()
 
         while any(not player.asleep for player in self.players):
@@ -1003,16 +1074,12 @@ class Game:
                 playable = self.playable_hand_indices(player_index)
                 if not playable:
                     self.go_to_bed(player_index)
-                    if first_to_bed is None:
-                        first_to_bed = player_index
                     continue
 
                 if self.ais[player_index].choose_to_go_to_bed(
                     self, player_index, tuple(playable)
                 ):
                     self.go_to_bed(player_index)
-                    if first_to_bed is None:
-                        first_to_bed = player_index
                     continue
 
                 choice = self.ais[player_index].choose_card_to_play(
@@ -1024,8 +1091,6 @@ class Game:
                 self.play_card(player_index, choice)
 
                 if player.asleep:
-                    if first_to_bed is None:
-                        first_to_bed = player_index
                     continue
 
                 # A normal turn ends after one card.  Some cards explicitly
@@ -1052,13 +1117,7 @@ class Game:
                         )
                     self.play_card(player_index, choice)
                     if player.asleep:
-                        if first_to_bed is None:
-                            first_to_bed = player_index
                         break
-
-        if first_to_bed is None:
-            raise RuntimeError("Playing phase ended without a first player going to bed")
-        self.starting_player = first_to_bed
 
     def card_fun(self, player_index: int, target: CardInstance) -> int:
         # Active Tomorrow cards apply only their Tomorrow text. Their printed
@@ -1086,16 +1145,34 @@ class Game:
         return value
 
     def end_day(self) -> None:
-        self._fun_at_start_of_scoring = tuple(
-            player.fun for player in self.players
-        )
+        start_of_scoring = tuple(player.fun for player in self.players)
+        self._fun_at_start_of_scoring = start_of_scoring
+        scored_card_fun: dict[int, int] = {}
+        self._scored_card_fun = scored_card_fun
         for player_index, player in enumerate(self.players):
             # Active Tomorrow cards remain visible as sources for their
             # Tomorrow modifiers, but only cards played today score.
             for card in player.played_today:
-                player.fun += self.card_fun(player_index, card)
+                scored = self.card_fun(player_index, card)
+                scored_card_fun[id(card)] = scored
+                player.fun += scored
                 card.effective_behavior.on_score(self, player, card)
         self._fun_at_start_of_scoring = None
+        baseline = (
+            self._fun_at_start_of_day
+            if self._fun_at_start_of_day is not None
+            else start_of_scoring
+        )
+        self._fun_scored_today = tuple(
+            player.fun - base
+            for player, base in zip(self.players, baseline, strict=True)
+        )
+        for player in self.players:
+            self._sync_played_today_tags(player)
+        self._end_day_played_tags = tuple(
+            tuple(card.tags for card in player.played_today)
+            for player in self.players
+        )
 
         for player_index in self.player_order():
             player = self.players[player_index]
@@ -1126,6 +1203,10 @@ class Game:
                 else:
                     self.discard_card(card)
             player.played_today = []
+        self._fun_at_start_of_day = None
+        self._fun_scored_today = None
+        self._end_day_played_tags = None
+        self._scored_card_fun = None
 
     def run_day(self) -> None:
         if not self._is_setup:
