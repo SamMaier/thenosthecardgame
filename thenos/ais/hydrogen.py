@@ -64,6 +64,7 @@ from thenos.ais.carbon import (
 )
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
 from thenos.cards.basic import cities_and_knights_condition_met
+from thenos.cards.copy_effects import NosShirtBehavior
 from thenos.cards.energy_effects import (
     EnergyForAllCardsAfterBehavior,
     EnergyForNextTagBehavior,
@@ -228,6 +229,7 @@ _MF_NEXT_TAG_COST_ADD = 10
 _MF_NEXT_TAG_MUL2 = 11
 _MF_NTH_TAG_MUL2 = 12
 _MF_NOS_BOOK = 13
+_MF_NEXT_CARD_ADD = 14
 
 # Resolved active today_mod opcodes during score_played_today_fast
 _RMF_GENERIC = 1
@@ -395,7 +397,7 @@ _ISTANBUL_OPP_SENSITIVE_SLUGS: frozenset[str] = frozenset(
     }
 )
 _SUITCASE_TOUCH_TITLES: frozenset[str] = frozenset(
-    {"Scout Other Cottages", "Last Year's Shirt", "Puerto Rico"}
+    {"Scout Other Cottages", "Puerto Rico"}
 )
 _BLIND_TRUNK_STEP_TITLES: frozenset[str] = frozenset(
     {"Assorted Cutlery", "Poker", "Quacks"}
@@ -407,6 +409,7 @@ _TRUNK_CONSUMER_TITLES: frozenset[str] = frozenset(
         "Poker",
         "Bougie Coffee Machine",
         "Booby Prize",
+        "Last Year's Shirt",
     }
 )
 
@@ -437,6 +440,8 @@ _OQ_SHADY_SPOT = 22
 _OQ_AFTER_DINNER_ENTERTAINMENT = 23
 _OQ_DATES_FIRST_NOS = 24
 _OQ_EPIC_PRANK = 25
+_OQ_NOS_SHIRT = 26
+_OQ_LAST_YEARS_SHIRT = 27
 
 _OQ_BY_TITLE: dict[str, int] = {
     "Colouring": _OQ_COLOURING,
@@ -455,7 +460,7 @@ _OQ_BY_TITLE: dict[str, int] = {
     "Assorted Cutlery": _OQ_ASSORTED_CUTLERY,
     "Quacks": _OQ_QUACKS,
     "Poker": _OQ_POKER,
-    "Last Year's Shirt": _OQ_SHIRT_SCRABBLE,
+    "Last Year's Shirt": _OQ_LAST_YEARS_SHIRT,
     "Scrabble": _OQ_SHIRT_SCRABBLE,
     "Solo": _OQ_SOLO,
     "San Juan": _OQ_SAN_JUAN,
@@ -469,6 +474,7 @@ _OQ_BY_TITLE: dict[str, int] = {
     "After Dinner Entertainment": _OQ_AFTER_DINNER_ENTERTAINMENT,
     "Date's First Nos": _OQ_DATES_FIRST_NOS,
     "Epic Prank": _OQ_EPIC_PRANK,
+    "Nos Shirt": _OQ_NOS_SHIRT,
 }
 
 # Quick desirability synergy / global mode codes
@@ -725,6 +731,8 @@ def _compile_mod_fun(
         return (_MF_OTHER_TAGS_ADD, "", beh.tags, beh.bonus, 0)  # type: ignore[attr-defined]
     if bt is FunForNextCardBehavior:
         return (_MF_NEXT_CARD_MUL, "", frozenset(), beh.multiplier, 0)  # type: ignore[attr-defined]
+    if bt is NosShirtBehavior:
+        return (_MF_NEXT_CARD_ADD, "", frozenset(), 2, 0)
     if bt is FunForNextTagBehavior:
         return (_MF_NEXT_TAG_ADD, beh.tag, frozenset(), beh.bonus, 0)  # type: ignore[attr-defined]
     if bt is FunForNextTagWrittenCostBehavior or bt is FancyCraftBehavior:
@@ -937,6 +945,7 @@ def _build_defn_meta(
             "Date's First Nos",
             "Cities and Knights",
             "Epic Prank",
+            "Nos Shirt",
         }
     ):
         played_flags |= _PF_HAS_CONT_AFTER
@@ -1000,8 +1009,10 @@ def _build_defn_meta(
     else:
         col_extra = 0.0
 
-    if title in {"Shady Spot", "Butter Tarts", "Istanbul"}:
+    if title in {"Shady Spot", "Istanbul"}:
         adv_sup = 4
+    elif title == "Butter Tarts":
+        adv_sup = 2
     elif title == "Würstchen":
         adv_sup = 1
     elif prof.immediate_energy_gain > defn.cost:
@@ -2429,7 +2440,7 @@ def _fast_extra_energy_support(
                 if w_gain > 0:
                     support += w_gain
             elif h_title == "Butter Tarts":
-                support += 4
+                support += 2
             elif (
                 include_future_tomorrow
                 and h_prof.tomorrow_start_energy > 0
@@ -3305,7 +3316,7 @@ def _hydrogen_quick_card_desirability(
                         val += 0.65
         elif h_qcode == _HQ_NOS_SHIRT:
             if days_left >= 1 and not is_zeroed:
-                val += 0.55 + 0.15 * (days_left if days_left < 3 else 3)
+                val += 0.85 + 0.25 * (days_left if days_left < 3 else 3)
         elif h_qcode == _HQ_PADDLEBOARD:
             if not is_zeroed:
                 if in_hand is None:
@@ -3645,7 +3656,7 @@ def _hydrogen_hand_keep_value(
                             if (not cm or "_copied_definition" not in cm)
                             else _effective_card_title(c)
                         )
-                        if ct == "Wrestle the Kids" or ct == "Play With the Kids":
+                        if ct == "Wrestle the Kids":
                             has_eod_hand = True
                             break
                     if has_eod_hand:
@@ -4032,13 +4043,6 @@ def _evaluate_istanbul_discards_fast(
     )
     eff_start_energy = orig_energy + pending_post_e
 
-    max_opp_hand = 0
-    for idx_o, opp in enumerate(sim.players):
-        if idx_o != player_index:
-            oh = len(opp.hand)
-            if oh > max_opp_hand:
-                max_opp_hand = oh
-
     baf_positions = [
         idx_p
         for idx_p, pc in enumerate(orig_played)
@@ -4064,7 +4068,6 @@ def _evaluate_istanbul_discards_fast(
     future_mult = float(2 ** len(baf_positions))
     decaf_played = 0.0
     wrestle_played = 0.0
-    pwtk_played = 0.0
     wakesurf_played = 0.0
     slalom_played = 0.0
     paddleboat_played = 0.0
@@ -4077,8 +4080,6 @@ def _evaluate_istanbul_discards_fast(
             decaf_played += _prior_card_mult(pos, pc)
         elif pt == "Wrestle the Kids":
             wrestle_played += _prior_card_mult(pos, pc)
-        elif pt == "Play With the Kids":
-            pwtk_played += _prior_card_mult(pos, pc)
         elif pt == "Wakesurf":
             wakesurf_played += _prior_card_mult(pos, pc)
         elif pt == "Drop a Ski":
@@ -4135,7 +4136,6 @@ def _evaluate_istanbul_discards_fast(
         )
         no_hand_size_played = (
             wrestle_played == 0.0
-            and pwtk_played == 0.0
             and wakesurf_played == 0.0
             and slalom_played == 0.0
         )
@@ -4367,7 +4367,7 @@ def _evaluate_istanbul_discards_fast(
         ce = cur_e - costs[idx_i]
         return ce if ce > 0 else 0
 
-    # Integer codes: 0=other, 1=Kayak, 2=Decaf, 3=Bubly, 4=Wrestle, 5=PWTK, 6=Wakesurf, 7=DropASki, 8=Pudding
+    # Integer codes: 0=other, 1=Kayak, 2=Decaf, 3=Bubly, 4=Wrestle, 6=Wakesurf, 7=DropASki, 8=Pudding
     ist_kinds: list[int] = []
     has_any_kdb = False
     for t in titles:
@@ -4382,8 +4382,6 @@ def _evaluate_istanbul_discards_fast(
             has_any_kdb = True
         elif t == "Wrestle the Kids":
             ist_kinds.append(4)
-        elif t == "Play With the Kids":
-            ist_kinds.append(5)
         elif t == "Wakesurf":
             ist_kinds.append(6)
         elif t == "Drop a Ski":
@@ -4546,7 +4544,6 @@ def _evaluate_istanbul_discards_fast(
     ) -> float:
         decaf_w = decaf_played
         wrestle_w = wrestle_played
-        pwtk_w = pwtk_played
         wakesurf_w = wakesurf_played
         slalom_w = slalom_played
         kayak_w = 0.0
@@ -4569,9 +4566,6 @@ def _evaluate_istanbul_discards_fast(
                 elif ik == 4:
                     if m_rem > 1:
                         proj_sink = (m_rem - 1) * cm
-                elif ik == 5:
-                    if (m_rem - 1) > max_opp_hand:
-                        proj_sink = 3.0 * cm
                 elif ik == 6:
                     if m_rem == 1:
                         proj_sink = 6.0 * cm
@@ -4601,8 +4595,6 @@ def _evaluate_istanbul_discards_fast(
                     decaf_w += cm
                 elif ik == 4:
                     wrestle_w += cm
-                elif ik == 5:
-                    pwtk_w += cm
                 elif ik == 6:
                     wakesurf_w += cm
                 elif ik == 7:
@@ -4620,8 +4612,6 @@ def _evaluate_istanbul_discards_fast(
 
         if wrestle_w > 0.0:
             today_val += wrestle_w * m_rem
-        if pwtk_w > 0.0 and m_rem > max_opp_hand:
-            today_val += pwtk_w * 3.0
         if wakesurf_w > 0.0 and m_rem == 0:
             today_val += wakesurf_w * 6.0
         if slalom_w > 0.0 and m_rem == 1:
@@ -5048,7 +5038,7 @@ class _HydrogenEvalAI(_CarbonEvalAI):
             if player.played_today
             else ""
         )
-        if last_played == "Tell a Story" and len(options) >= 2:
+        if last_played in {"Tell a Story", "Last Year's Shirt"} and len(options) >= 2:
             has_epic_duels = any(
                 _effective_card_title(pc) == "Epic Duels"
                 for pc in player.played_today
@@ -5162,7 +5152,7 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                         if (not cm_z or "_copied_definition" not in cm_z)
                         else _effective_card_title(c_z)
                     )
-                    if ct_z == "Wrestle the Kids" or ct_z == "Play With the Kids":
+                    if ct_z == "Wrestle the Kids":
                         eod_h = True
                         break
                 if eod_h:
@@ -5224,7 +5214,7 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                             if (not cm_z or "_copied_definition" not in cm_z)
                             else _effective_card_title(c_z)
                         )
-                        if ct_z == "Wrestle the Kids" or ct_z == "Play With the Kids":
+                        if ct_z == "Wrestle the Kids":
                             eod_ns = True
                             break
                     if eod_ns:
@@ -5251,7 +5241,7 @@ class _HydrogenEvalAI(_CarbonEvalAI):
             )
             thresh = 4.2 if is_doubled else 2.2
             return tuple(i for i in ranked if vals[i] < thresh)
-        if last_played in {"Scrabble", "Last Year's Shirt"}:
+        if last_played == "Scrabble":
             if not game.suitcase:
                 return ()
             wanted_tags, ctx = _build_wanted_and_ctx(
@@ -5270,12 +5260,12 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                     paddleboat_bonus += 2.0
                 elif ct == "Wakesurf" or ct == "Drop a Ski":
                     want_empty_hand = True
-                elif ct == "Wrestle the Kids" or ct == "Play With the Kids":
+                elif ct == "Wrestle the Kids":
                     has_eod_hand = True
             if not has_eod_hand and game.day >= DAY_COUNT:
                 for c in player.hand:
                     ct = _effective_card_title(c)
-                    if ct == "Wrestle the Kids" or ct == "Play With the Kids":
+                    if ct == "Wrestle the Kids":
                         has_eod_hand = True
                         break
 
@@ -5342,28 +5332,11 @@ class _HydrogenEvalAI(_CarbonEvalAI):
             )
             h_vals = [hand_card_value(opt) for opt in options]
             hand_ranked = sorted(range(len(options)), key=lambda i: h_vals[i])
-            limit = min(
-                len(suitcase_vals),
-                len(game.suitcase) if last_played == "Last Year's Shirt" else 3,
-            )
-            base_margin = (
-                0.20
-                if paddleboat_bonus > 0
-                else (1.10 if last_played == "Last Year's Shirt" else 0.85)
-            )
+            limit = min(len(suitcase_vals), 3)
+            base_margin = 0.20 if paddleboat_bonus > 0 else 0.85
             chosen: list[int] = []
             for k, i in enumerate(hand_ranked[:limit]):
-                h_val = h_vals[i]
-                gift_tax = (
-                    0.35 * max(0.0, h_val - 1.2)
-                    if (
-                        last_played == "Last Year's Shirt"
-                        and paddleboat_bonus == 0.0
-                        and game.day < DAY_COUNT
-                    )
-                    else 0.0
-                )
-                if h_val + gift_tax < suitcase_vals[k] - base_margin:
+                if h_vals[i] < suitcase_vals[k] - base_margin:
                     chosen.append(i)
                 else:
                     break
@@ -7222,6 +7195,9 @@ def _get_hydrogen_sim_game_cls() -> type:
                                     for j in range(n_played):
                                         if j != s_i and (metas_u[j].tag_mask & m_mask):
                                             bonuses_u[j] += param
+                                elif kind == _MF_NEXT_CARD_ADD:
+                                    if s_i + 1 < n_played:
+                                        bonuses_u[s_i + 1] += s_meta.mod_fun_param
                                 elif kind == _MF_NEXT_TAG_ADD:
                                     m_mask = s_meta.mod_fun_mask
                                     param = s_meta.mod_fun_param
@@ -7353,6 +7329,9 @@ def _get_hydrogen_sim_game_cls() -> type:
                                     for j in range(n_played):
                                         if j != s_i and (masks_p2[j] & m_mask):
                                             bonuses[j] += param
+                                elif kind == _MF_NEXT_CARD_ADD:
+                                    if s_i + 1 < n_played:
+                                        bonuses[s_i + 1] += s_meta.mod_fun_param
                                 elif kind == _MF_NEXT_TAG_ADD:
                                     m_mask = s_meta.mod_fun_mask
                                     param = s_meta.mod_fun_param
@@ -7509,6 +7488,9 @@ def _get_hydrogen_sim_game_cls() -> type:
                             elif kind == _MF_NEXT_CARD_MUL:
                                 if s_i + 1 < n_played:
                                     vals_u3[s_i + 1] *= s_meta.mod_fun_param
+                            elif kind == _MF_NEXT_CARD_ADD:
+                                if s_i + 1 < n_played:
+                                    vals_u3[s_i + 1] += s_meta.mod_fun_param
                             elif kind == _MF_NEXT_TAG_ADD:
                                 m_mask = s_meta.mod_fun_mask
                                 param = s_meta.mod_fun_param
@@ -7674,6 +7656,9 @@ def _get_hydrogen_sim_game_cls() -> type:
                         elif kind == _MF_NEXT_CARD_MUL:
                             if s_i + 1 < n_played:
                                 vals_p3[s_i + 1] *= s_meta.mod_fun_param
+                        elif kind == _MF_NEXT_CARD_ADD:
+                            if s_i + 1 < n_played:
+                                vals_p3[s_i + 1] += s_meta.mod_fun_param
                         elif kind == _MF_NEXT_TAG_ADD:
                             m_mask = s_meta.mod_fun_mask
                             param = s_meta.mod_fun_param
@@ -7889,6 +7874,17 @@ def _get_hydrogen_sim_game_cls() -> type:
                             resolved_mods.append(
                                 (
                                     _RMF_EXACT_POS_MUL,
+                                    s_i + 1,
+                                    None,
+                                    s_meta.mod_fun_param,
+                                    None,
+                                )
+                            )
+                    elif kind == _MF_NEXT_CARD_ADD:
+                        if s_i + 1 < n_played:
+                            resolved_mods.append(
+                                (
+                                    _RMF_EXACT_POS_ADD,
                                     s_i + 1,
                                     None,
                                     s_meta.mod_fun_param,
@@ -8595,7 +8591,7 @@ class HydrogenAI(CarbonAI):
         else:
             child.play_card(player_index, hand_idx)
 
-        if card_title == "Tell a Story":
+        if card_title in {"Tell a Story", "Last Year's Shirt"}:
             p_child = child.players[player_index]
             has_epic_duels = any(
                 _effective_card_title(pc) == "Epic Duels"
@@ -9264,10 +9260,12 @@ class HydrogenAI(CarbonAI):
         has_dates_fn: bool,
         has_ck: bool,
         epic_prank_target: int | None,
+        has_unconsumed_nos_shirt: bool = False,
     ) -> float:
         is_early_day = sim.day < DAY_COUNT
         if not (
             has_unconsumed_ade
+            or has_unconsumed_nos_shirt
             or (
                 is_early_day
                 and (
@@ -9304,6 +9302,26 @@ class HydrogenAI(CarbonAI):
             if best_ex_fun >= 3:
                 extra += (10 if best_ex_fun > 10 else best_ex_fun) * 0.85
 
+        if has_unconsumed_nos_shirt:
+            for hc in hand:
+                hm = hc.markers
+                h_tags = hc.definition.tags if not hm else hc.tags
+                if zero_tag and zero_tag in h_tags:
+                    continue
+                h_cost = (
+                    hc.definition.cost
+                    if (not hm or "_copied_definition" not in hm)
+                    else hc.effective_cost
+                )
+                if h_cost <= energy_budget:
+                    hc_meta = _get_card_meta(hc)
+                    if not hc_meta.must_play_first and (
+                        not hc_meta.has_can_play
+                        or hc_meta.beh.can_play(sim, player, hc)
+                    ):
+                        extra += 2.0
+                        break
+
         if is_early_day and (has_dates_fn or epic_prank_target is not None):
             start_f = (
                 sim._fun_at_start_of_day[player_index]
@@ -9316,7 +9334,7 @@ class HydrogenAI(CarbonAI):
                     sim.card_fun(player_index, pc) for pc in player.played_today
                 )
             )
-            if has_dates_fn and cur_day_fun < 3.0 and energy_budget >= 0:
+            if has_dates_fn and cur_day_fun < 2.0 and energy_budget >= 0:
                 for hc in hand:
                     hm = hc.markers
                     h_tags = hc.definition.tags if not hm else hc.tags
@@ -9445,10 +9463,15 @@ class HydrogenAI(CarbonAI):
             has_after_all_tags = False
             has_food_played = False
             has_unconsumed_ade = False
+            has_unconsumed_nos_shirt = False
             has_dates_fn = False
             has_ck = False
             epic_prank_target: int | None = None
             if pf & _PF_HAS_CONT_AFTER:
+                has_unconsumed_nos_shirt = bool(
+                    played_today
+                    and _effective_card_title(played_today[-1]) == "Nos Shirt"
+                )
                 for played in played_today:
                     pm = played.markers
                     meta = (
@@ -9555,6 +9578,7 @@ class HydrogenAI(CarbonAI):
                 has_dates_fn,
                 has_ck,
                 epic_prank_target,
+                has_unconsumed_nos_shirt,
             )
             if not aa_mask and global_after_bonus == 0.0:
                 return (
@@ -9602,10 +9626,15 @@ class HydrogenAI(CarbonAI):
         has_after_all_tags = False
         has_food_played = False
         has_unconsumed_ade = False
+        has_unconsumed_nos_shirt = False
         has_dates_fn = False
         has_ck = False
         epic_prank_target = None
         if not is_hsim or (sim._p_flags[player_index] & _PF_HAS_CONT_AFTER):  # type: ignore[attr-defined]
+            has_unconsumed_nos_shirt = bool(
+                played_today
+                and _effective_card_title(played_today[-1]) == "Nos Shirt"
+            )
             for played in played_today:
                 pm = played.markers
                 p_uncopied = not pm or "_copied_definition" not in pm
@@ -9841,6 +9870,7 @@ class HydrogenAI(CarbonAI):
                 has_dates_fn,
                 has_ck,
                 epic_prank_target,
+                has_unconsumed_nos_shirt,
             )
         )
 
@@ -9907,6 +9937,11 @@ class HydrogenAI(CarbonAI):
             else frozenset()
         )
         known_top = _get_sim_known_trunk_top(sim)
+        zero_tag = (
+            player.character.zero_fun_tag
+            if player.character is not None
+            else ""
+        )
 
         players = sim.players
         awake_opps = (
@@ -10234,9 +10269,41 @@ class HydrogenAI(CarbonAI):
                         bucket = 3 if has_pb_hand else 2
                         if has_pb_played:
                             desirability += 3.5
-                    elif meta.title == "Last Year's Shirt":
-                        bucket = 6
-                        desirability -= 4.0
+                elif oq == _OQ_LAST_YEARS_SHIRT:
+                    has_pb_hand = any(
+                        c.definition.title == "Paddleboat"
+                        and cost + sim.energy_cost(player_index, c) <= player.energy
+                        for c in hand
+                    )
+                    bucket = 3 if has_pb_hand else 2
+                    if has_pb_played:
+                        desirability += 3.5
+                    safe = has_epic_duels_played or awake_opps == 0
+                    if safe and first_cutlery_card is not None:
+                        c_cost = sim.energy_cost(player_index, first_cutlery_card)
+                        if cost + c_cost <= player.energy and any(
+                            other is not card
+                            and other is not first_cutlery_card
+                            and _hydrogen_free_play_value(
+                                sim, player_index, other, wanted_tags
+                            )
+                            >= 4.5
+                            for other in hand
+                        ):
+                            desirability += 5.0
+                    elif safe and first_bcm_card is not None:
+                        b_cost = sim.energy_cost(player_index, first_bcm_card)
+                        if cost + b_cost <= player.energy and any(
+                            other is not card
+                            and other is not first_bcm_card
+                            and "Food" in other.tags
+                            and _hydrogen_free_play_value(
+                                sim, player_index, other, wanted_tags
+                            )
+                            >= 4.0
+                            for other in hand
+                        ):
+                            desirability += 4.5
                 elif oq == _OQ_SOLO:
                     if has_epic_prank_first or has_baf_played or last_title == "Work Call":
                         bucket = 2
@@ -10337,7 +10404,7 @@ class HydrogenAI(CarbonAI):
                                     for pc in played_today
                                 )
                             )
-                        if cur_day_fun_ord < 3.0:
+                        if cur_day_fun_ord < 2.0:
                             has_fun_followup = any(
                                 other is not card
                                 and sim.energy_cost(player_index, other)
@@ -10427,6 +10494,24 @@ class HydrogenAI(CarbonAI):
                         for other in hand
                     )
                     bucket = 3 if has_sunscreen_hand else 2
+                elif oq == _OQ_NOS_SHIRT:
+                    has_followup = any(
+                        other is not card
+                        and not (zero_tag and zero_tag in other.tags)
+                        and sim.energy_cost(player_index, other)
+                        <= player.energy - cost
+                        and not _get_card_meta(other).must_play_first
+                        and other.effective_behavior.can_play(
+                            sim, player, other
+                        )
+                        for other in hand
+                    )
+                    if has_followup:
+                        bucket = 3 if has_epic_prank_first else 2
+                        desirability += 1.5
+                    else:
+                        bucket = 5
+                        desirability -= 2.0
 
             if has_last_check:
                 title = meta.title
@@ -10439,6 +10524,10 @@ class HydrogenAI(CarbonAI):
                         desirability += (
                             eff_base_fun + prof.conditional_fun_bonus
                         ) * 2.0
+                elif last_title == "Nos Shirt" and not (
+                    zero_tag and zero_tag in c_tags
+                ):
+                    desirability += 1.5
                 elif (
                     last_title == "Beach Volleyball"
                     and "Indoors" in c_tags
@@ -11310,12 +11399,14 @@ class HydrogenAI(CarbonAI):
                             4.5 if played_len <= 3 else 2.4
                         )
                 elif eff_title == "Play With the Kids":
-                    if hand_len <= 2 and all(
-                        hand_len > len(players[idx].hand)
+                    if played_len <= 4 and all(
+                        played_len >= len(players[idx].played_today)
                         for idx in range(4)
                         if idx != player_index
                     ):
-                        today_total_fun -= 2.2
+                        today_total_fun -= (
+                            3.6 if played_len <= 3 else 1.9
+                        )
                 elif eff_title == "Puerto Rico":
                     if opp_has_sweeper is None:
                         opp_has_sweeper = any(
@@ -11769,7 +11860,7 @@ class HydrogenAI(CarbonAI):
                 mt = hm.title
                 if mt == "Assorted Cutlery":
                     cutlery_cnt += 1
-                elif mt == "Tell a Story":
+                elif mt in {"Tell a Story", "Last Year's Shirt"}:
                     story_cnt += 1
                 elif mt == "Paddleboat":
                     pb_cnt += 1
@@ -12344,7 +12435,8 @@ class HydrogenAI(CarbonAI):
                             for hc in hand
                         )
                         and any(
-                            hc.definition.title == "Tell a Story"
+                            hc.definition.title
+                            in {"Tell a Story", "Last Year's Shirt"}
                             for hc in hand
                         )
                     ):
@@ -12765,8 +12857,10 @@ class HydrogenAI(CarbonAI):
                             op = _beryllium_build_profile(other)
                         if ot == "Shady Spot":
                             sup += 4
-                        elif ot in {"Butter Tarts", "Istanbul"}:
+                        elif ot == "Istanbul":
                             sup += 4
+                        elif ot == "Butter Tarts":
+                            sup += 2
                         elif ot == "Würstchen":
                             sup += 1
                         elif op.immediate_energy_gain > other.definition.cost:

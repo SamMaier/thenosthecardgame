@@ -199,9 +199,9 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "civilization-the-boardgame": 0.873473,
     "classic-book": 0.215115,
     "cliff-climbing": -0.828539,
-    "colouring": 0.400000,
+    "colouring": 0.150000,
     "couch-tube": 2.521061,
-    "dates-first-nos": 0.450000,
+    "dates-first-nos": 0.600000,
     "decaf": 0.389490,
     "dishwashing": -0.664983,
     "dock-fishing": 0.316217,
@@ -213,7 +213,7 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "early-bedtime": 1.503427,
     "epic-duels": -0.004370,
     "epic-playlist": -1.618146,
-    "epic-prank": 0.250000,
+    "epic-prank": 0.550000,
     "euchre": -1.040411,
     "euchre-awards-ceremony": -1.476773,
     "euchre-tournament": -2.315201,
@@ -236,12 +236,12 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "hold-the-baby": 1.224265,
     "ice-cream-sandwich": 0.192919,
     "ice-wine": 0.698685,
-    "istanbul": 3.871684,
+    "istanbul": 3.150000,
     "johnny-appleseed": -0.721993,
     "kayak": 0.365404,
     "keeper": 0.376220,
     "kneeboard": -0.576329,
-    "last-years-shirt": -0.511820,
+    "last-years-shirt": 0.150000,
     "leftovers": -0.750000,
     "long-distance-visitors": -0.371222,
     "m-ms": -0.680769,
@@ -258,14 +258,14 @@ _OSMIUM_SLUG_WEIGHTS: dict[str, float] = {
     "newfangled-tres-fute": 0.489753,
     "non-fiction-book": -0.577863,
     "nos-book": 0.877031,
-    "nos-shirt": 0.350000,
+    "nos-shirt": 1.300000,
     "outdoor-movie": 1.058520,
     "paddleboard": 1.950000,
     "paddleboat": 0.654633,
     "paint": -0.006023,
     "paint-rocks": 0.041167,
     "photo-shoot": 0.639717,
-    "play-with-the-kids": -1.014027,
+    "play-with-the-kids": -0.300000,
     "poker": -0.779202,
     "ponyback": -0.123043,
     "potato-pancakes": -0.736249,
@@ -405,7 +405,7 @@ _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
     "kayak": 0.023115,
     "keeper": 0.305646,
     "kneeboard": -0.275781,
-    "last-years-shirt": 1.838252,
+    "last-years-shirt": -0.050000,
     "leftovers": -0.250000,
     "long-distance-visitors": -0.118030,
     "m-ms": -0.825724,
@@ -422,14 +422,14 @@ _OSMIUM_SLUG_D1_WEIGHTS: dict[str, float] = {
     "newfangled-tres-fute": 0.511586,
     "non-fiction-book": 0.003836,
     "nos-book": 0.822852,
-    "nos-shirt": -0.450000,
+    "nos-shirt": -0.350000,
     "outdoor-movie": 0.516912,
     "paddleboard": 0.650000,
     "paddleboat": -0.619066,
     "paint": -0.017621,
     "paint-rocks": -0.111405,
     "photo-shoot": -0.194591,
-    "play-with-the-kids": -0.413593,
+    "play-with-the-kids": -0.200000,
     "poker": -0.100519,
     "ponyback": -0.286219,
     "potato-pancakes": 0.268960,
@@ -575,7 +575,7 @@ def _ensure_osmium_caches() -> None:
         if meta.immediate_energy_gain > cost and title != "Sleep In":
             net_e = float(meta.immediate_energy_gain - cost)
         elif title == "Butter Tarts":
-            net_e = 3.0
+            net_e = 1.5
         elif title == "Potato Pancakes" or title == "Istanbul":
             net_e = 2.0
         elif title == "Shady Spot":
@@ -619,7 +619,7 @@ def _ensure_osmium_caches() -> None:
             pb |= 1 << 40
         if title == "Wakesurf" or title == "Drop a Ski":
             pb |= 1 << 45
-        if title == "Wrestle the Kids" or title == "Play With the Kids":
+        if title == "Wrestle the Kids":
             pb |= 1 << 50
         if title == "Epic Duels":
             pb |= 1 << 55
@@ -1239,7 +1239,7 @@ def _osmium_reserve_score(
             if meta.immediate_energy_gain > cost and title != "Sleep In":
                 net_e_pos += float(meta.immediate_energy_gain - cost)
             elif title == "Butter Tarts":
-                net_e_pos += 3.0
+                net_e_pos += 1.5
             elif title in {"Potato Pancakes", "Istanbul"}:
                 net_e_pos += 2.0
             elif title == "Shady Spot":
@@ -1281,7 +1281,7 @@ def _osmium_reserve_score(
         if meta.immediate_energy_gain > cost and title != "Sleep In":
             net_e_pos += float(meta.immediate_energy_gain - cost)
         elif title == "Butter Tarts":
-            net_e_pos += 3.0
+            net_e_pos += 1.5
         elif title in {"Potato Pancakes", "Istanbul"}:
             net_e_pos += 2.0
         elif title == "Shady Spot":
@@ -1334,7 +1334,7 @@ def _osmium_reserve_score(
             trunk_setter_cnt += 1
         if title in {"Wakesurf", "Drop a Ski"}:
             empty_hand_cnt += 1
-        if title in {"Wrestle the Kids", "Play With the Kids"}:
+        if title == "Wrestle the Kids":
             wrestle_pwtk_cnt += 1
 
         slug = hc.definition.slug
@@ -2145,12 +2145,14 @@ class OsmiumAI(HydrogenAI):
                             4.5 if played_len <= 3 else 2.4
                         )
                 elif eff_title == "Play With the Kids":
-                    if hand_len <= 2 and all(
-                        hand_len > len(players[idx].hand)
+                    if played_len <= 4 and all(
+                        played_len >= len(players[idx].played_today)
                         for idx in range(4)
                         if idx != player_index
                     ):
-                        today_total_fun -= 2.2
+                        today_total_fun -= (
+                            3.6 if played_len <= 3 else 1.9
+                        )
                 elif eff_title == "Puerto Rico":
                     if opp_has_sweeper is None:
                         opp_has_sweeper = any(
@@ -2296,15 +2298,24 @@ class OsmiumAI(HydrogenAI):
         players = term_sim.players
         played_today = players[player_index].played_today
         played_len = len(played_today)
-        if played_len <= 4 and any(
-            _effective_card_title(c) == "Fit to Print" for c in played_today
-        ):
-            if all(
+        if played_len <= 4:
+            ftp_cnt = 0
+            pwtk_cnt = 0
+            for c in played_today:
+                eff_t = _effective_card_title(c)
+                if eff_t == "Fit to Print":
+                    ftp_cnt += 1
+                elif eff_t == "Play With the Kids":
+                    pwtk_cnt += 1
+            if (ftp_cnt or pwtk_cnt) and all(
                 played_len >= len(players[idx].played_today)
                 for idx in range(len(players))
                 if idx != player_index
             ):
-                adj -= 4.5 if played_len <= 3 else 2.4
+                if ftp_cnt:
+                    adj -= float(ftp_cnt) * (4.5 if played_len <= 3 else 2.4)
+                if pwtk_cnt:
+                    adj -= float(pwtk_cnt) * (3.6 if played_len <= 3 else 1.9)
         adj += _awake_opp_new_cards_adjustment(
             term_sim,
             player_index,
@@ -3129,7 +3140,7 @@ class OsmiumAI(HydrogenAI):
                     continue
                 if not c.effective_behavior.has_tomorrow_action:
                     continue
-                if eff_t == "Date's First Nos" and today_fun < 3:
+                if eff_t == "Date's First Nos" and today_fun < 2:
                     continue
                 if eff_t == "Epic Prank":
                     t_idx = (
@@ -3453,7 +3464,7 @@ class OsmiumAI(HydrogenAI):
             len(options) <= 1
             or self._evaluation_depth >= 1
             or game.stats is _get_shared_sim_stats()
-            or last_played == "Tell a Story"
+            or last_played in {"Tell a Story", "Last Year's Shirt"}
             or len(player.played_today) >= 9
         ):
             return _HYDROGEN_EVAL_AI_SINGLETON.choose_card_to_discard(

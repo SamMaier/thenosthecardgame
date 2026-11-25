@@ -462,9 +462,9 @@ class OsmiumAITests(unittest.TestCase):
             idx = game.ais[0].choose_card_to_play(game, 0, playable)
             play_order.append(p.hand[idx].title)
             game.play_card(0, idx)
-        # Optimal: Sweet Lawn Chair (0) -> Colouring (1+2=3) -> Tres Fute (1+2=3) => 6 Fun.
+        # Optimal: Sweet Lawn Chair (0) -> Colouring (0+2=2) -> Tres Fute (1+2=3) => 5 Fun.
         self.assertEqual(play_order, ["Sweet Lawn Chair", "Colouring", "Tres Fute"])
-        self.assertEqual(sum(game.card_fun(0, c) for c in p.played_today), 6)
+        self.assertEqual(sum(game.card_fun(0, c) for c in p.played_today), 5)
 
     def test_after_dinner_entertainment_orders_food_then_ade_then_exercise(self):
         game = _osmium_game(seed=102)
@@ -553,8 +553,25 @@ class OsmiumAITests(unittest.TestCase):
             game.ais[0].choose_to_go_to_bed(game, 0, tuple(game.playable_hand_indices(0)))
         )
 
-        # When able to play Date's First Nos AND Waterski (>= 3 Fun), Osmium plays them.
+        # 1 Fun (< 2 threshold) still strands Date's First Nos -> plays Splendor, not Date's First Nos.
+        p.energy = 7
+        p.played_today = [make_card("tres-fute")]
+        p.hand = [make_card("dates-first-nos"), make_card("nap"), make_card("splendor")]
+        playable_1 = tuple(game.playable_hand_indices(0))
+        if not game.ais[0].choose_to_go_to_bed(game, 0, playable_1):
+            self.assertNotEqual(game.ais[0].choose_card_to_play(game, 0, playable_1), 0)
+
+        # Exact 2 Fun threshold (Biography already played) keeps Tomorrow -> plays Date's First Nos.
+        p.energy = 7
+        p.played_today = [make_card("biography")]
+        p.hand = [make_card("dates-first-nos"), make_card("nap"), make_card("splendor")]
+        playable_2 = tuple(game.playable_hand_indices(0))
+        self.assertFalse(game.ais[0].choose_to_go_to_bed(game, 0, playable_2))
+        self.assertEqual(game.ais[0].choose_card_to_play(game, 0, playable_2), 0)
+
+        # When able to play Date's First Nos AND Waterski (>= 2 Fun), Osmium plays them.
         p.energy = 12
+        p.played_today = []
         p.hand = [make_card("dates-first-nos"), make_card("waterski")]
         self.assertFalse(
             game.ais[0].choose_to_go_to_bed(game, 0, tuple(game.playable_hand_indices(0)))
@@ -672,6 +689,8 @@ class OsmiumAITests(unittest.TestCase):
         changed_slugs = [
             "istanbul",
             "colouring",
+            "butter-tarts",
+            "play-with-the-kids",
             "nos-book",
             "fancy-craft",
             "assorted-cutlery",
@@ -842,8 +861,12 @@ class OsmiumAITests(unittest.TestCase):
         game2.day = 3
         game2._is_setup = True
         game2.players[0].played_today = [make_card("nos-shirt"), make_card("fit-to-print")]
-        # 1 + 5 = 6 <= 7, so Nos Shirt does not return to hand.
+        # 0 + (5 + 2) = 7 <= 7, so Nos Shirt does not return to hand.
         self.assertEqual(_projected_end_hand_size(game2, 0), 0)
+
+        game2.players[0].played_today = [make_card("nos-shirt"), make_card("waterski")]
+        # 0 + (6 + 2) = 8 > 7, so Nos Shirt returns to hand.
+        self.assertEqual(_projected_end_hand_size(game2, 0), 1)
 
     def test_solo_awake_opp_discount_requires_actual_solo_rescore(self):
         game_solo = _osmium_game(seed=115)
@@ -953,6 +976,208 @@ class OsmiumAITests(unittest.TestCase):
             marked_nap.markers,
             {"_puerto_rico_target": 1, "energy_cube": 10},
         )
+
+    def test_nos_shirt_played_before_followup_for_plus_two_and_returns_to_hand(self):
+        game = _osmium_game(seed=119)
+        game.day = 3
+        p = game.players[0]
+        p.energy = 7
+        p.hand = [make_card("waterski"), make_card("nos-shirt")]
+        game.suitcase = [make_card("nap") for _ in range(4)]
+        game.trunk = [_dummy_card(930 + i, f"Trunk {i}", 2, 1) for i in range(12)]
+        game._is_setup = True
+
+        play_order: list[str] = []
+        while game.playable_hand_indices(0):
+            playable = tuple(game.playable_hand_indices(0))
+            if game.ais[0].choose_to_go_to_bed(game, 0, playable):
+                break
+            idx = game.ais[0].choose_card_to_play(game, 0, playable)
+            play_order.append(p.hand[idx].title)
+            game.play_card(0, idx)
+        self.assertEqual(play_order, ["Nos Shirt", "Waterski"])
+        self.assertEqual(sum(game.card_fun(0, c) for c in p.played_today), 8)
+
+        # With Epic Prank active Tomorrow, Waterski must still be played FIRST (doubled 6->12),
+        # before Nos Shirt -> Nap.
+        g_ep = _osmium_game(seed=120)
+        g_ep.day = 3
+        p_ep = g_ep.players[0]
+        p_ep.energy = 7
+        ep = make_card("epic-prank")
+        ep.is_tomorrow = True
+        p_ep.tomorrow_cards = [ep]
+        p_ep.hand = [make_card("nos-shirt"), make_card("waterski"), make_card("nap")]
+        g_ep.suitcase = [make_card("movie") for _ in range(4)]
+        g_ep.trunk = [_dummy_card(960 + i, f"Trunk {i}", 2, 1) for i in range(12)]
+        g_ep._is_setup = True
+
+        first_idx = g_ep.ais[0].choose_card_to_play(g_ep, 0, g_ep.playable_hand_indices(0))
+        self.assertEqual(p_ep.hand[first_idx].title, "Waterski")
+
+    def test_play_with_the_kids_terminal_eval_discounts_awake_opponents_by_played_count(
+        self,
+    ):
+        game = _osmium_game(seed=121)
+        game.day = 6
+        p = game.players[0]
+        p.played_today = [make_card("play-with-the-kids")]
+        for idx in (1, 2, 3):
+            game.players[idx].hand = [make_card("nap") for _ in range(4)]
+            game.players[idx].energy = 7
+            game.players[idx].played_today = [make_card("nap")]
+
+        # Tied on 1 played card with awake opponents -> discounted.
+        v_awake = game.ais[0]._evaluate_terminal_day(game, 0)
+        for idx in (1, 2, 3):
+            game.players[idx].asleep = True
+        v_asleep = game.ais[0]._evaluate_terminal_day(game, 0)
+        self.assertGreater(v_asleep, v_awake + 1.0)
+
+        # With 5+ cards played today and small hand, awake opponents trigger no phantom discount.
+        g_five = _osmium_game(seed=122)
+        g_five.day = 6
+        p5 = g_five.players[0]
+        p5.hand = []
+        p5.played_today = [make_card("play-with-the-kids")] + [
+            make_card("nap") for _ in range(4)
+        ]
+        for idx in (1, 2, 3):
+            g_five.players[idx].hand = [make_card("nap")]
+            g_five.players[idx].energy = 7
+        v_five_awake = g_five.ais[0]._evaluate_terminal_day(g_five, 0)
+        for idx in (1, 2, 3):
+            g_five.players[idx].asleep = True
+        v_five_asleep = g_five.ais[0]._evaluate_terminal_day(g_five, 0)
+        self.assertAlmostEqual(v_five_awake, v_five_asleep, places=9)
+
+    def test_canonical_fast_path_2_next_tag_parity(self):
+        cases = (
+            ("water-volleyball", "waterski", 12),
+            ("cheap-red", "beaver-burgers", 9),
+            ("johnny-appleseed", "beaver-burgers", 8),
+            ("canoe", "ponyback", 6),
+            ("fancy-craft", "ponyback", 7),
+        )
+        for first_slug, second_slug, expected in cases:
+            with self.subTest(pair=(first_slug, second_slug)):
+                g = _osmium_game(seed=123)
+                g.players[0].energy = 20
+                g.players[0].hand = [make_card(first_slug), make_card(second_slug)]
+                g.suitcase = [make_card("nap") for _ in range(4)]
+                g.trunk = [make_card("nap") for _ in range(12)]
+                g._is_setup = True
+
+                sim_live = g.ais[0]._prepare_observable_game(g, 0)
+                self.assertTrue(sim_live._all_canonical_defs)
+                g.play_card(0, 0)
+                g.play_card(0, 0)
+                sim_live.play_card(0, 0)
+                sim_live.play_card(0, 0)
+
+                exact = sum(g.card_fun(0, c) for c in g.players[0].played_today)
+                self.assertEqual(exact, expected)
+                self.assertEqual(sim_live.score_played_today_fast(0)[0], exact)
+
+                sim_post = g.ais[0]._prepare_observable_game(g, 0)
+                self.assertTrue(sim_post._all_canonical_defs)
+                self.assertEqual(sim_post.score_played_today_fast(0)[0], exact)
+
+    def test_hydrogen_reserve_plain_vs_fallback_parity_butter_tarts(self):
+        import dataclasses
+        from thenos.ais.hydrogen import HydrogenAI
+        from thenos.models import CardInstance
+
+        hai = HydrogenAI()
+
+        g_plain = _osmium_game(seed=124)
+        g_plain.day = 5
+        g_plain.players[0].hand = [
+            make_card("adventure-race"),
+            make_card("butter-tarts"),
+        ]
+        g_plain.suitcase = [make_card("nap") for _ in range(4)]
+        g_plain.trunk = [make_card("nap") for _ in range(12)]
+        g_plain._is_setup = True
+
+        sim_plain = hai._prepare_observable_game(g_plain, 0)
+        self.assertTrue(sim_plain._all_canonical_defs)
+        self.assertFalse(sim_plain._has_nonplain_hand)
+        plain_val = hai._evaluate_tomorrow_and_reserve_fast(
+            sim_plain, 0, (), days_left=1
+        )
+
+        g_fb = _osmium_game(seed=124)
+        g_fb.day = 5
+        adv = make_card("adventure-race")
+        adv_noncanon = CardInstance(
+            instance_id=adv.instance_id,
+            definition=dataclasses.replace(adv.definition),
+        )
+        g_fb.players[0].hand = [adv_noncanon, make_card("butter-tarts")]
+        g_fb.suitcase = [make_card("nap") for _ in range(4)]
+        g_fb.trunk = [make_card("nap") for _ in range(12)]
+        g_fb._is_setup = True
+
+        sim_fb = hai._prepare_observable_game(g_fb, 0)
+        self.assertFalse(sim_fb._all_canonical_defs)
+        fallback_val = hai._evaluate_tomorrow_and_reserve_fast(
+            sim_fb, 0, (), days_left=1
+        )
+
+        self.assertAlmostEqual(plain_val, fallback_val, places=9)
+
+    def test_last_years_shirt_sets_trunk_top_and_plays_before_cutlery(self):
+        # After Last Year's Shirt with Assorted Cutlery in hand, place high-payoff Adventure Race on Trunk.
+        cutlery_game = _osmium_game(seed=125)
+        cutlery_game.day = 3
+        cp = cutlery_game.players[0]
+        cp.energy = 1
+        cp.played_today = [make_card("epic-duels"), make_card("last-years-shirt")]
+        cp.hand = [
+            make_card("assorted-cutlery"),
+            make_card("adventure-race"),
+            make_card("nap"),
+        ]
+        c_idx = cutlery_game.ais[0].choose_card_to_discard(
+            cutlery_game, 0, tuple(cp.hand)
+        )
+        self.assertEqual(cp.hand[c_idx].definition.slug, "adventure-race")
+
+        # After Last Year's Shirt with Bougie Coffee Machine in hand, place Rouladen on Trunk.
+        bcm_game = _osmium_game(seed=126)
+        bcm_game.day = 3
+        bp = bcm_game.players[0]
+        bp.energy = 5
+        bp.played_today = [make_card("epic-duels"), make_card("last-years-shirt")]
+        bp.hand = [
+            make_card("bougie-coffee-machine"),
+            make_card("rouladen"),
+            make_card("zumba"),
+        ]
+        b_idx = bcm_game.ais[0].choose_card_to_discard(
+            bcm_game, 0, tuple(bp.hand)
+        )
+        self.assertEqual(bp.hand[b_idx].definition.slug, "rouladen")
+
+        # Live play ordering: play Last Year's Shirt before Assorted Cutlery to set up Adventure Race.
+        play_game = _osmium_game(seed=127)
+        play_game.day = 3
+        pp = play_game.players[0]
+        pp.energy = 1
+        pp.played_today = [make_card("epic-duels")]
+        pp.hand = [
+            make_card("last-years-shirt"),
+            make_card("assorted-cutlery"),
+            make_card("adventure-race"),
+        ]
+        play_game.suitcase = [make_card("nap") for _ in range(4)]
+        play_game.trunk = [make_card("nap") for _ in range(12)]
+        play_game._is_setup = True
+        play_idx = play_game.ais[0].choose_card_to_play(
+            play_game, 0, play_game.playable_hand_indices(0)
+        )
+        self.assertEqual(play_idx, 0)
 
 
 if __name__ == "__main__":

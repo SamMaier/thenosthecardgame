@@ -30,12 +30,13 @@ class EpicPrankTests(unittest.TestCase):
         card = game.play_card(0, 0)
 
         self.assertEqual(card.title, "Epic Prank")
-        self.assertEqual(card.definition.cost, 3)
+        self.assertEqual(card.definition.cost, 2)
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Social"}))
         self.assertTrue(card.effective_behavior.has_tomorrow_action)
-        self.assertEqual(player.energy, 4)
+        self.assertEqual(player.energy, 5)
         self.assertEqual(ai.seen_eligible, (1, 2, 3))
+        self.assertTrue(card.markers["energy_cube"])
         self.assertEqual(card.markers["target_player_index"], 2)
         self.assertEqual(game.card_fun(0, card), 0)
 

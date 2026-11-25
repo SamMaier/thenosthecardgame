@@ -5,17 +5,15 @@ from thenos.cards import make_card
 from tests.helpers import empty_game
 
 
-class ShirtChoiceAI(RandomAI):
-    def __init__(self, discard_indices, suitcase_indices, rng) -> None:
+class TrunkChoiceAI(RandomAI):
+    def __init__(self, discard_index: int, rng) -> None:
         super().__init__(rng)
-        self.discard_indices = tuple(discard_indices)
-        self.suitcase_indices = list(suitcase_indices)
+        self.discard_index = discard_index
+        self.seen_options = None
 
-    def choose_cards_to_discard(self, game, player_index, cards):
-        return self.discard_indices
-
-    def choose_suitcase_card(self, game, player_index, suitcase):
-        return self.suitcase_indices.pop(0)
+    def choose_card_to_discard(self, game, player_index, cards):
+        self.seen_options = tuple(cards)
+        return self.discard_index
 
 
 class LastYearsShirtTests(unittest.TestCase):
@@ -27,99 +25,101 @@ class LastYearsShirtTests(unittest.TestCase):
         self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Item"}))
 
-    def test_picks_multiple_suitcase_cards_and_replenishes_slots_from_hand(self) -> None:
+    def test_draws_from_trunk_then_places_chosen_hand_card_on_top_of_trunk(
+        self,
+    ) -> None:
         game = empty_game()
-        game.ais[0] = ShirtChoiceAI((0, 2), [1, 1], game.rng)
-        player = game.players[0]
-        player.energy = 7
-        shirt = make_card("last-years-shirt")
-        give_one = make_card("fajitas")
-        keep_card = make_card("nap")
-        give_two = make_card("waterski")
-        player.hand.extend([shirt, give_one, keep_card, give_two])
-
-        slot0 = make_card("solo")
-        slot1 = make_card("wingspan")
-        slot2 = make_card("azul")
-        slot3 = make_card("splendor")
-        game.suitcase = [slot0, slot1, slot2, slot3]
-        trunk_card = make_card("risk")
-        game.trunk = [trunk_card]
-
-        game.play_card(0, 0)
-
-        self.assertEqual(player.energy, 7)
-        self.assertEqual(player.hand, [keep_card, slot1, slot2])
-        self.assertEqual(game.suitcase, [slot0, give_one, give_two, slot3])
-        self.assertEqual(game.trunk, [trunk_card])
-        self.assertEqual(player.picked_cards["Wingspan"], 1)
-        self.assertEqual(player.picked_cards["Azul"], 1)
-        self.assertEqual(game.stats.suitcase_picks["Wingspan"], 1)
-        self.assertEqual(game.stats.suitcase_picks["Azul"], 1)
-
-    def test_choosing_zero_cards_leaves_suitcase_and_hand_unchanged(self) -> None:
-        game = empty_game()
-        game.ais[0] = ShirtChoiceAI((), [], game.rng)
+        ai = TrunkChoiceAI(1, game.rng)
+        game.ais[0] = ai
         player = game.players[0]
         player.energy = 7
         shirt = make_card("last-years-shirt")
         keep_card = make_card("fajitas")
-        player.hand.extend([shirt, keep_card])
+        to_trunk = make_card("waterski")
+        to_trunk.is_tomorrow = True
+        to_trunk.markers["energy_cube"] = True
+        player.hand.extend([shirt, keep_card, to_trunk])
+
+        bottom_trunk = make_card("risk")
+        drawn_card = make_card("wingspan")
+        game.trunk = [bottom_trunk, drawn_card]
         suitcase_cards = [
             make_card("solo"),
-            make_card("wingspan"),
             make_card("azul"),
             make_card("splendor"),
+            make_card("nap"),
         ]
         game.suitcase = list(suitcase_cards)
 
         game.play_card(0, 0)
 
         self.assertEqual(player.energy, 7)
-        self.assertEqual(player.hand, [keep_card])
+        self.assertEqual(ai.seen_options, (keep_card, to_trunk, drawn_card))
+        self.assertEqual(player.hand, [keep_card, drawn_card])
         self.assertEqual(game.suitcase, suitcase_cards)
-        self.assertEqual(sum(game.stats.suitcase_picks.values()), 0)
+        self.assertEqual(game.trunk, [bottom_trunk, to_trunk])
+        self.assertIs(game.trunk[-1], to_trunk)
+        self.assertFalse(to_trunk.is_tomorrow)
+        self.assertEqual(to_trunk.markers, {})
+        self.assertEqual(player.acquired_cards[drawn_card.title], 1)
+        self.assertEqual(game.stats.card_acquisitions[drawn_card.title], 1)
 
-    def test_empty_hand_does_nothing(self) -> None:
+    def test_can_place_newly_drawn_card_back_on_top_of_trunk_including_from_empty_hand(
+        self,
+    ) -> None:
         game = empty_game()
+        game.ais[0] = TrunkChoiceAI(0, game.rng)
         player = game.players[0]
         player.energy = 7
-        player.hand.append(make_card("last-years-shirt"))
-        suitcase_cards = [
-            make_card("solo"),
-            make_card("wingspan"),
-            make_card("azul"),
-            make_card("splendor"),
-        ]
-        game.suitcase = list(suitcase_cards)
+        shirt = make_card("last-years-shirt")
+        player.hand.append(shirt)
+        bottom_trunk = make_card("solo")
+        drawn_card = make_card("biography")
+        game.trunk = [bottom_trunk, drawn_card]
 
         game.play_card(0, 0)
 
         self.assertEqual(player.energy, 7)
         self.assertEqual(player.hand, [])
-        self.assertEqual(game.suitcase, suitcase_cards)
+        self.assertEqual(game.trunk, [bottom_trunk, drawn_card])
+        self.assertEqual(player.acquired_cards[drawn_card.title], 1)
+        self.assertEqual(game.stats.card_acquisitions[drawn_card.title], 1)
 
-    def test_picking_marked_suitcase_card_clears_suitcase_markers(self) -> None:
+    def test_reshuffles_discard_when_trunk_is_empty(self) -> None:
         game = empty_game()
-        game.ais[0] = ShirtChoiceAI((0,), [0], game.rng)
+        game.ais[0] = TrunkChoiceAI(0, game.rng)
         player = game.players[0]
-        player.energy = 7
-        give_one = make_card("fajitas")
-        player.hand.extend([make_card("last-years-shirt"), give_one])
-        marked = make_card("solo")
-        marked.markers["energy_cube"] = True
-        marked.markers["_scout_energy_cube_99"] = True
-        game.suitcase = [
-            marked,
-            make_card("wingspan"),
-            make_card("azul"),
-            make_card("splendor"),
-        ]
+        player.energy = 2
+        keep_card = make_card("fajitas")
+        player.hand.extend([make_card("last-years-shirt"), keep_card])
+        recycled = make_card("biography")
+        game.trunk = []
+        game.discard = [recycled]
 
         game.play_card(0, 0)
 
-        self.assertEqual(player.hand, [marked])
-        self.assertEqual(marked.markers, {})
+        self.assertEqual(player.hand, [recycled])
+        self.assertEqual(game.trunk, [keep_card])
+        self.assertEqual(game.discard, [])
+
+    def test_triggers_paddleboat_for_drawn_card(self) -> None:
+        game = empty_game()
+        game.ais[0] = TrunkChoiceAI(0, game.rng)
+        player = game.players[0]
+        player.energy = 7
+        paddleboat = make_card("paddleboat")
+        shirt = make_card("last-years-shirt")
+        keep_card = make_card("fajitas")
+        drawn_card = make_card("biography")
+        player.hand.extend([paddleboat, shirt, keep_card])
+        game.trunk = [drawn_card]
+
+        game.play_card(0, 0)
+        game.play_card(0, 0)
+
+        self.assertEqual(game.card_fun(0, paddleboat), 2)
+        self.assertEqual(player.hand, [drawn_card])
+        self.assertEqual(game.trunk, [keep_card])
 
 
 if __name__ == "__main__":

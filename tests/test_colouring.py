@@ -9,8 +9,8 @@ class ColouringTests(unittest.TestCase):
         card = make_card("colouring")
 
         self.assertEqual(card.title, "Colouring")
-        self.assertEqual(card.definition.cost, 2)
-        self.assertEqual(card.definition.base_fun, 1)
+        self.assertEqual(card.definition.cost, 3)
+        self.assertEqual(card.definition.base_fun, 0)
         self.assertEqual(card.definition.tags, frozenset({"Relax"}))
 
     def test_cards_played_after_gain_relax_tag_and_no_energy_cube(self) -> None:
@@ -76,6 +76,7 @@ class ColouringTests(unittest.TestCase):
         game.play_card(0, 1)  # Tres Fute gains Relax from Colouring and +2 from SLC!
 
         exact_total = sum(game.card_fun(0, c) for c in player.played_today)
+        self.assertEqual(game.card_fun(0, colouring), 2)
         self.assertEqual(game.card_fun(0, tres), 3)
 
         hsim = _hydrogen_copy_game(game)

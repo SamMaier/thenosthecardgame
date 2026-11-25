@@ -498,7 +498,7 @@ def _carbon_extra_energy_support(
                 ) + (1 if extra_fodder >= 2 else 0)
                 support += max(0, prior_cnt - h_cost)
             elif h_title == "Butter Tarts":
-                support += 4
+                support += 2
             elif (
                 include_future_tomorrow
                 and h_prof.tomorrow_start_energy > 0
@@ -1117,7 +1117,7 @@ def _carbon_hand_keep_value(
             return -5.0
         extra_e = _carbon_extra_energy_support(game, player_index, card)
         if cost > player.energy + extra_e and not any(
-            _effective_card_title(c) in {"Wrestle the Kids", "Play With the Kids"}
+            _effective_card_title(c) == "Wrestle the Kids"
             for c in (*player.played_today, *player.hand)
         ):
             return -4.0
@@ -1158,8 +1158,12 @@ def _projected_opponent_day_fun(game: Game, opp_index: int) -> float:
     for pc in opp.played_today:
         if _effective_card_title(pc) == "Bring a Friend":
             vis_buff += min(hand_cnt, 2) * 2.5
-    if opp.played_today and _effective_card_title(opp.played_today[-1]) == "Work Call":
-        vis_buff += 3.0
+    if opp.played_today:
+        last_opp_title = _effective_card_title(opp.played_today[-1])
+        if last_opp_title == "Work Call":
+            vis_buff += 3.0
+        elif last_opp_title == "Nos Shirt":
+            vis_buff += 1.5
     return cur_day_fun + eff_e * 1.30 + min(hand_cnt, 4) * 0.45 + vis_buff
 
 
@@ -1288,7 +1292,7 @@ class _CarbonEvalAI:
             if player.played_today
             else ""
         )
-        if last_played == "Tell a Story" and len(options) >= 2:
+        if last_played in {"Tell a Story", "Last Year's Shirt"} and len(options) >= 2:
             # Only set up Trunk top for Assorted Cutlery / Bougie Coffee Machine when safe from opponent theft
             has_epic_duels = any(
                 _effective_card_title(pc) == "Epic Duels"
@@ -1435,7 +1439,7 @@ class _CarbonEvalAI:
                 )
                 < thresh
             )
-        if last_played in {"Scrabble", "Last Year's Shirt"}:
+        if last_played == "Scrabble":
             if not game.suitcase:
                 return ()
             wanted_tags = _wanted_tags_for_player(player)
@@ -1483,7 +1487,7 @@ class _CarbonEvalAI:
                 if can_play_now:
                     v += 0.55 + (1.8 if want_empty_hand else 0.0)
                 elif game.day >= DAY_COUNT and not any(
-                    _effective_card_title(c) in {"Wrestle the Kids", "Play With the Kids"}
+                    _effective_card_title(c) == "Wrestle the Kids"
                     for c in (*player.played_today, *player.hand)
                 ):
                     v = -1.8
@@ -1497,28 +1501,12 @@ class _CarbonEvalAI:
                 range(len(options)),
                 key=lambda i: hand_card_value(options[i]),
             )
-            limit = min(
-                len(suitcase_vals),
-                len(game.suitcase) if last_played == "Last Year's Shirt" else 3,
-            )
-            base_margin = (
-                0.20
-                if paddleboat_bonus > 0
-                else (1.10 if last_played == "Last Year's Shirt" else 0.85)
-            )
+            limit = min(len(suitcase_vals), 3)
+            base_margin = 0.20 if paddleboat_bonus > 0 else 0.85
             chosen: list[int] = []
             for k, i in enumerate(hand_ranked[:limit]):
                 h_val = hand_card_value(options[i])
-                gift_tax = (
-                    0.35 * max(0.0, h_val - 1.2)
-                    if (
-                        last_played == "Last Year's Shirt"
-                        and paddleboat_bonus == 0.0
-                        and game.day < DAY_COUNT
-                    )
-                    else 0.0
-                )
-                if h_val + gift_tax < suitcase_vals[k] - base_margin:
+                if h_val < suitcase_vals[k] - base_margin:
                     chosen.append(i)
                 else:
                     break
@@ -3642,9 +3630,9 @@ class CarbonAI(BerylliumBrain):
         else:
             child.play_card(player_index, hand_idx)
 
-        # If Tell a Story placed a card on Trunk while >= 2 opponents are awake
-        # without Epic Duels, opponents may draw/disrupt the Trunk before our next turn.
-        if card_title == "Tell a Story":
+        # If Tell a Story / Last Year's Shirt placed a card on Trunk while >= 2 opponents
+        # are awake without Epic Duels, opponents may draw/disrupt the Trunk before our next turn.
+        if card_title in {"Tell a Story", "Last Year's Shirt"}:
             p_child = child.players[player_index]
             has_epic_duels = any(
                 _effective_card_title(pc) == "Epic Duels"
@@ -3922,7 +3910,10 @@ class CarbonAI(BerylliumBrain):
         if card.effective_cost >= 8 and cost > player.energy:
             if not (
                 any(c.title == "Assorted Cutlery" for c in player.hand)
-                and any(c.title == "Tell a Story" for c in player.hand)
+                and any(
+                    c.title in {"Tell a Story", "Last Year's Shirt"}
+                    for c in player.hand
+                )
             ):
                 from thenos.ais.argonbrain import _extra_energy_support_for_card
 
@@ -4488,6 +4479,7 @@ class CarbonAI(BerylliumBrain):
                 "Poker",
                 "Bougie Coffee Machine",
                 "Booby Prize",
+                "Last Year's Shirt",
             }:
                 has_trunk_consumer = True
             if ct in _TRUNK_REORDER_TITLES:
@@ -4687,7 +4679,7 @@ class CarbonAI(BerylliumBrain):
             elif title == "Poker" and known_top and known_top[0].tags:
                 bucket = 2
                 desirability += 3.5
-            elif title in {"Last Year's Shirt", "Scrabble"}:
+            elif title == "Scrabble":
                 has_pb_played = any(
                     _effective_card_title(c) == "Paddleboat"
                     for c in player.played_today
@@ -4701,9 +4693,55 @@ class CarbonAI(BerylliumBrain):
                     bucket = 3 if has_pb_hand else 2
                     if has_pb_played:
                         desirability += 3.5
-                elif title == "Last Year's Shirt":
-                    bucket = 6
-                    desirability -= 4.0
+            elif title == "Last Year's Shirt":
+                has_pb_played = any(
+                    _effective_card_title(c) == "Paddleboat"
+                    for c in player.played_today
+                )
+                has_pb_hand = any(
+                    c.definition.title == "Paddleboat"
+                    and cost + sim.energy_cost(player_index, c) <= player.energy
+                    for c in player.hand
+                )
+                bucket = 3 if has_pb_hand else 2
+                if has_pb_played:
+                    desirability += 3.5
+                safe = has_epic_duels_played or awake_opps == 0
+                cutlery_cards = [
+                    c
+                    for c in player.hand
+                    if c.definition.title == "Assorted Cutlery"
+                ]
+                bcm_cards = [
+                    c
+                    for c in player.hand
+                    if c.definition.title == "Bougie Coffee Machine"
+                ]
+                if safe and cutlery_cards:
+                    c_cost = sim.energy_cost(player_index, cutlery_cards[0])
+                    if cost + c_cost <= player.energy and any(
+                        other is not card
+                        and other is not cutlery_cards[0]
+                        and _carbon_free_play_value(
+                            sim, player_index, other, wanted_tags
+                        )
+                        >= 4.5
+                        for other in player.hand
+                    ):
+                        desirability += 5.0
+                elif safe and bcm_cards:
+                    b_cost = sim.energy_cost(player_index, bcm_cards[0])
+                    if cost + b_cost <= player.energy and any(
+                        other is not card
+                        and other is not bcm_cards[0]
+                        and "Food" in other.tags
+                        and _carbon_free_play_value(
+                            sim, player_index, other, wanted_tags
+                        )
+                        >= 4.0
+                        for other in player.hand
+                    ):
+                        desirability += 4.5
             elif title == "Solo":
                 opp_played_bg = any(
                     "Board Game" in oc.tags
@@ -5491,12 +5529,14 @@ class CarbonAI(BerylliumBrain):
                             3.6 if played_len <= 3 else 1.9
                         )
                 elif eff_title == "Play With the Kids":
-                    if hand_len <= 2 and all(
-                        hand_len > len(players[idx].hand)
+                    if played_len <= 4 and all(
+                        played_len >= len(players[idx].played_today)
                         for idx in range(4)
                         if idx != player_index
                     ):
-                        today_total_fun -= 2.2
+                        today_total_fun -= (
+                            3.6 if played_len <= 3 else 1.9
+                        )
                 elif eff_title == "Puerto Rico":
                     if opp_has_sweeper is None:
                         opp_has_sweeper = any(
@@ -5867,7 +5907,8 @@ class CarbonAI(BerylliumBrain):
                                 for hc in hand
                             )
                             and any(
-                                hc.definition.title == "Tell a Story"
+                                hc.definition.title
+                                in {"Tell a Story", "Last Year's Shirt"}
                                 for hc in hand
                             )
                         ):
@@ -6302,8 +6343,10 @@ class CarbonAI(BerylliumBrain):
                             op = _beryllium_build_profile(other)
                         if ot == "Shady Spot":
                             sup += 4
-                        elif ot in {"Butter Tarts", "Istanbul"}:
+                        elif ot == "Istanbul":
                             sup += 4
+                        elif ot == "Butter Tarts":
+                            sup += 2
                         elif ot == "Würstchen":
                             sup += 1
                         elif op.immediate_energy_gain > other.definition.cost:

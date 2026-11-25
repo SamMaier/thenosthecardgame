@@ -288,28 +288,31 @@ class GameTests(unittest.TestCase):
         game.ais[0] = SwapFirstAI()
         game.pick_from_suitcase(0)
 
-        # Player 0 plays Last Year's Shirt, choosing over original_suitcase (marking
-        # unseen_flip as already evaluated) and placing hand_dump into slot 1.
-        class PickSecondAI(SwapFirstAI):
-            def choose_suitcase_card(self, game, player_index, suitcase):
-                return 1
-
-        game.ais[0] = PickSecondAI()
+        # Player 0 plays Last Year's Shirt: draws shirt_draw (recorded via give_card)
+        # and places hand_dump on top of the Trunk (recorded in seen_suitcase_ids).
+        shirt_draw = make_card("high-end-red")
+        game.trunk.append(shirt_draw)
         game.players[0].energy = 10
         game.players[0].hand = [hand_dump, shirt]
         game.play_card(0, 1)
         self.assertIs(game.suitcase[0], unseen_flip)
-        self.assertIs(game.suitcase[1], hand_dump)
+        self.assertEqual(game.players[0].hand, [shirt_draw])
+        self.assertIs(game.trunk[-1], hand_dump)
 
-        # Neither the passed Last Year's Shirt card nor hand_dump is newly first-seen.
+        # Player 0 sees unseen_flip and flips hand_dump into slot 0.
+        game.pick_from_suitcase(0)
+        self.assertIs(game.suitcase[0], hand_dump)
+
+        # Neither the drawn shirt card nor hand_dump is newly first-seen by Player 1;
+        # picking hand_dump flips genuine unseen after_pick into slot 0.
         after_pick = make_card("carcassonne")
         game.trunk.append(after_pick)
         game.ais[1] = SwapFirstAI()
         game.pick_from_suitcase(1)
         self.assertEqual(game.stats.first_seen_by_player[1], Counter())
 
-        # Tell a Story puts a hand card on top of the Trunk; flipping it into the
-        # Suitcase does not count as a fresh first-seen Trunk card.
+        # Tell a Story puts story_dump on top of the Trunk; picking after_pick
+        # counts only after_pick as newly first-seen for Player 2.
         story_dump = make_card("wurstchen")
         tell_story = make_card("tell-a-story")
         game.players[0].hand = [story_dump, tell_story]

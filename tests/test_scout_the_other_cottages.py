@@ -132,14 +132,29 @@ class ScoutTheOtherCottagesTests(unittest.TestCase):
         self.assertEqual(player.fun, 3)
 
     def test_acquires_marked_cards_only_after_every_player_scores(self) -> None:
+        from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
+
+        class _CheckEmptyOpponentHandBehavior(CardBehavior):
+            def fun_value(self, game, player, card) -> int:
+                return 6 if len(game.players[0].hand) == 0 else 0
+
         game = empty_game()
         scout_player = game.players[0]
         hand_size_player = game.players[1]
         scout = make_card("scout-the-other-cottages")
-        hand_size_card = make_card("play-with-the-kids")
+        hand_size_card = CardInstance(
+            999,
+            CardDefinition(
+                slug="empty-opp-hand-check",
+                title="Empty Opp Hand Check",
+                tags=frozenset({"Exercise"}),
+                cost=0,
+                base_fun=0,
+                behavior=_CheckEmptyOpponentHandBehavior(),
+            ),
+        )
         scout_player.played_today.append(scout)
         hand_size_player.played_today.append(hand_size_card)
-        hand_size_player.hand.append(make_card("biography"))
         game.suitcase = [make_card("fajitas") for _ in range(4)]
         game.trunk = [make_card("biography") for _ in range(4)]
         scout.effective_behavior.on_play(game, scout_player, scout)

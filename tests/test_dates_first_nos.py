@@ -49,20 +49,20 @@ class DatesFirstNosTests(unittest.TestCase):
         self.assertEqual(sum(player.picked_cards.values()), 0)
         self.assertEqual(game.card_fun(0, date), 0)
 
-    def test_discarded_when_scoring_less_than_three_fun_today(self) -> None:
+    def test_discarded_when_scoring_less_than_two_fun_today(self) -> None:
         game = empty_game()
         player = game.players[0]
         player.energy = 10
-        player.hand.extend([make_card("dates-first-nos"), make_card("biography")])
+        player.hand.extend([make_card("dates-first-nos"), make_card("tres-fute")])
 
         date = game.play_card(0, 0)
-        game.play_card(0, 0)  # scores 2 Fun today (< 3)
+        game.play_card(0, 0)  # scores 1 Fun today (< 2)
         game.end_day()
 
         self.assertNotIn(date, player.tomorrow_cards)
         self.assertIn(date, game.discard)
 
-    def test_keeps_tomorrow_effect_when_scoring_at_least_three_fun_today(
+    def test_keeps_tomorrow_effect_when_scoring_at_least_two_fun_today(
         self,
     ) -> None:
         game = empty_game()
@@ -72,13 +72,11 @@ class DatesFirstNosTests(unittest.TestCase):
             [
                 make_card("dates-first-nos"),
                 make_card("biography"),
-                make_card("tres-fute"),
             ]
         )
 
         date = game.play_card(0, 0)
-        game.play_card(0, 0)
-        game.play_card(0, 0)  # 2 + 1 = 3 Fun today (>= 3)
+        game.play_card(0, 0)  # 2 Fun today (>= 2)
         game.end_day()
         self.assertIn(date, player.tomorrow_cards)
 
@@ -89,7 +87,7 @@ class DatesFirstNosTests(unittest.TestCase):
         self.assertEqual(game.card_fun(0, date), 0)
         self.assertEqual(game.card_fun(0, played_tomorrow), 4)
 
-    def test_counts_fit_to_print_and_old_fogey_toward_three_fun_today(
+    def test_counts_fit_to_print_and_old_fogey_toward_two_fun_today(
         self,
     ) -> None:
         from thenos.characters import CHARACTERS
@@ -102,10 +100,9 @@ class DatesFirstNosTests(unittest.TestCase):
         player.fun = 10
         game.start_day()  # Old Fogey +2 -> 12, fun_at_start_of_day == 10
         player.energy = 10
-        player.hand.extend([make_card("dates-first-nos"), make_card("tres-fute")])
+        player.hand.append(make_card("dates-first-nos"))
 
-        date = game.play_card(0, 0)
-        game.play_card(0, 0)  # 2 + 1 = 3 Fun today
+        date = game.play_card(0, 0)  # 2 Fun today from Old Fogey (>= 2)
         game.end_day()
         self.assertIn(date, player.tomorrow_cards)
 

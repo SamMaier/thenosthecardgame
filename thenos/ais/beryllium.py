@@ -831,7 +831,7 @@ def _contextual_hand_keep_value(
                     game, player_index, card
                 )
         if cost > player.energy + extra_e and not any(
-            c.title in {"Wrestle the Kids", "Play With the Kids"}
+            c.title == "Wrestle the Kids"
             for c in (*player.played_today, *player.hand)
         ):
             return -4.0
@@ -1229,14 +1229,6 @@ def _evaluate_istanbul_discards(
     )
     eff_start_energy = orig_energy + pending_post_e
 
-    max_opp_hand = max(
-        (
-            len(opp.hand)
-            for idx, opp in enumerate(sim.players)
-            if idx != player_index
-        ),
-        default=0,
-    )
     baf_positions = [
         idx_p
         for idx_p, pc in enumerate(orig_played)
@@ -1269,11 +1261,6 @@ def _evaluate_istanbul_discards(
         _prior_card_mult(pos, c)
         for pos, c in enumerate(orig_played)
         if _effective_card_title(c) == "Wrestle the Kids"
-    )
-    pwtk_played = sum(
-        _prior_card_mult(pos, c)
-        for pos, c in enumerate(orig_played)
-        if _effective_card_title(c) == "Play With the Kids"
     )
     wakesurf_played = sum(
         _prior_card_mult(pos, c)
@@ -1565,7 +1552,6 @@ def _evaluate_istanbul_discards(
             today_val = 0.0
             decaf_w = decaf_played
             wrestle_w = wrestle_played
-            pwtk_w = pwtk_played
             wakesurf_w = wakesurf_played
             slalom_w = slalom_played
             kayak_w = 0.0
@@ -1657,8 +1643,6 @@ def _evaluate_istanbul_discards(
                     proj_sink = max(0, cur_e - costs[idx]) * cm
                 elif t == "Wrestle the Kids":
                     proj_sink = max(0, len(unplayed) - 1) * cm
-                elif t == "Play With the Kids" and (len(unplayed) - 1) > max_opp_hand:
-                    proj_sink = 3.0 * cm
                 elif t == "Wakesurf" and (len(unplayed) - 1) == 0:
                     proj_sink = 6.0 * cm
                 elif t == "Drop a Ski" and (len(unplayed) - 1) == 1:
@@ -1688,8 +1672,6 @@ def _evaluate_istanbul_discards(
                     decaf_w += cm
                 elif t == "Wrestle the Kids":
                     wrestle_w += cm
-                elif t == "Play With the Kids":
-                    pwtk_w += cm
                 elif t == "Wakesurf":
                     wakesurf_w += cm
                 elif t == "Drop a Ski":
@@ -1709,8 +1691,6 @@ def _evaluate_istanbul_discards(
             m_rem = len(unplayed)
             if wrestle_w > 0:
                 today_val += wrestle_w * m_rem
-            if pwtk_w > 0 and m_rem > max_opp_hand:
-                today_val += pwtk_w * 3.0
             if wakesurf_w > 0 and m_rem == 0:
                 today_val += wakesurf_w * 6.0
             if slalom_w > 0 and m_rem == 1:
@@ -1764,7 +1744,7 @@ class _BerylliumEvalAI(_EvalPlayerAI):
             if player.played_today
             else ""
         )
-        if last_played == "Tell a Story" and len(options) >= 2:
+        if last_played in {"Tell a Story", "Last Year's Shirt"} and len(options) >= 2:
             cutlery_cards = [
                 c for c in options if c.title == "Assorted Cutlery"
             ]
@@ -3279,6 +3259,7 @@ class BerylliumBrain(ArgonBrain):
                 "Poker",
                 "Bougie Coffee Machine",
                 "Booby Prize",
+                "Last Year's Shirt",
             }
             for c in player.hand
         )
@@ -3414,7 +3395,7 @@ class BerylliumBrain(ArgonBrain):
             elif title == "Poker" and known_top and known_top[0].tags:
                 bucket = 2
                 desirability += 3.5
-            elif title in {"Last Year's Shirt", "Scrabble"}:
+            elif title == "Scrabble":
                 has_pb_played = any(
                     _effective_card_title(c) == "Paddleboat"
                     for c in player.played_today
@@ -3428,9 +3409,54 @@ class BerylliumBrain(ArgonBrain):
                     bucket = 3 if has_pb_hand else 2
                     if has_pb_played:
                         desirability += 3.5
-                elif title == "Last Year's Shirt":
-                    bucket = 6
-                    desirability -= 4.0
+            elif title == "Last Year's Shirt":
+                has_pb_played = any(
+                    _effective_card_title(c) == "Paddleboat"
+                    for c in player.played_today
+                )
+                has_pb_hand = any(
+                    c.definition.title == "Paddleboat"
+                    and cost + sim.energy_cost(player_index, c) <= player.energy
+                    for c in player.hand
+                )
+                bucket = 3 if has_pb_hand else 2
+                if has_pb_played:
+                    desirability += 3.5
+                cutlery_cards = [
+                    c
+                    for c in player.hand
+                    if c.definition.title == "Assorted Cutlery"
+                ]
+                bcm_cards = [
+                    c
+                    for c in player.hand
+                    if c.definition.title == "Bougie Coffee Machine"
+                ]
+                if cutlery_cards:
+                    c_cost = sim.energy_cost(player_index, cutlery_cards[0])
+                    if cost + c_cost <= player.energy and any(
+                        other is not card
+                        and other is not cutlery_cards[0]
+                        and _beryllium_free_play_value(
+                            sim, player_index, other, wanted_tags
+                        )
+                        >= 4.0
+                        for other in player.hand
+                    ):
+                        desirability += 5.0
+                elif bcm_cards:
+                    b_cost = sim.energy_cost(player_index, bcm_cards[0])
+                    if cost + b_cost <= player.energy and any(
+                        other is not card
+                        and other is not bcm_cards[0]
+                        and "Food" in other.tags
+                        and _beryllium_free_play_value(
+                            sim, player_index, other, wanted_tags
+                        )
+                        >= 3.5
+                        for other in player.hand
+                    ):
+                        desirability += 4.5
             elif title == "Solo":
                 opp_played_bg = any(
                     "Board Game" in oc.tags
@@ -4126,14 +4152,17 @@ class BerylliumBrain(ArgonBrain):
                             3.5 if len(player.played_today) <= 3 else 1.8
                         )
                 elif (
-                    eff_title == "Play With the Kids" and len(player.hand) <= 2
+                    eff_title == "Play With the Kids"
+                    and len(player.played_today) <= 4
                 ):
                     if all(
-                        len(player.hand) > len(opp.hand)
+                        len(player.played_today) >= len(opp.played_today)
                         for idx, opp in enumerate(players)
                         if idx != player_index
                     ):
-                        today_total_fun -= 2.2
+                        today_total_fun -= (
+                            3.6 if len(player.played_today) <= 3 else 1.9
+                        )
                 elif eff_title == "Puerto Rico":
                     today_total_fun -= 1.2
                 elif eff_title == "San Juan":
@@ -4357,7 +4386,8 @@ class BerylliumBrain(ArgonBrain):
                                 for hc in hand
                             )
                             and any(
-                                hc.definition.title == "Tell a Story"
+                                hc.definition.title
+                                in {"Tell a Story", "Last Year's Shirt"}
                                 for hc in hand
                             )
                         ):

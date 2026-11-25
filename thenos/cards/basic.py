@@ -279,6 +279,7 @@ class EpicPrankBehavior(CardBehavior):
         target_player_index = game.choose_player(
             player_index, eligible_player_indices
         )
+        card.markers["energy_cube"] = True
         card.markers["target_player_index"] = target_player_index
 
     def on_end_day(
@@ -506,7 +507,7 @@ EPIC_PRANK = CardDefinition(
     slug="epic-prank",
     title="Epic Prank",
     tags=frozenset({"Social"}),
-    cost=3,
+    cost=2,
     base_fun=0,
     behavior=EpicPrankBehavior(),
 )

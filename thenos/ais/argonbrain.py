@@ -140,6 +140,7 @@ _TRUNK_REORDER_TITLES: frozenset[str] = frozenset(
     {
         "Read the Radar",
         "Tell a Story",
+        "Last Year's Shirt",
         "Grocery Store Run",
         "Fishing Boat",
         "Ski Boat",
@@ -595,6 +596,8 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
         fun_bonus = -1
     elif "FunForNextCardBehavior" in cls_name:
         fun_bonus = 4
+    elif "NosShirt" in cls_name:
+        fun_bonus = 2
 
     can_0 = _probe_can_play_at(defn, 0)
     can_1 = _probe_can_play_at(defn, 1)
@@ -687,6 +690,7 @@ def _build_profile(card: CardInstance) -> CardSynergyProfile:
             or "WaterTrampoline" in cls_name
             or "FancyCraft" in cls_name
             or "AfterDinnerEntertainment" in cls_name
+            or "NosShirt" in cls_name
         )
     )
     is_tomorrow_scaler = bool(
@@ -1060,7 +1064,7 @@ class _EvalPlayerAI(RandomAI):
             else ""
         )
 
-        if last_played == "Tell a Story" and len(options) >= 2:
+        if last_played in {"Tell a Story", "Last Year's Shirt"} and len(options) >= 2:
             # If we hold Assorted Cutlery and can afford it today, put the best free-play card on the Trunk!
             cutlery_cards = [
                 c for c in options if c.title == "Assorted Cutlery"
@@ -1167,7 +1171,7 @@ class _EvalPlayerAI(RandomAI):
                 )
                 < 2.2
             )
-        if last_played in {"Scrabble", "Last Year's Shirt"}:
+        if last_played == "Scrabble":
             if not game.suitcase:
                 return ()
             own_markers = _own_suitcase_markers(player)
@@ -1202,7 +1206,7 @@ class _EvalPlayerAI(RandomAI):
                 if can_play_now:
                     v += 0.55 + (1.8 if want_empty_hand else 0.0)
                 elif game.day >= DAY_COUNT and not any(
-                    c.title in {"Wrestle the Kids", "Play With the Kids"}
+                    c.title == "Wrestle the Kids"
                     for c in (*player.played_today, *player.hand)
                 ):
                     v = -1.8
@@ -1216,28 +1220,12 @@ class _EvalPlayerAI(RandomAI):
                 range(len(options)),
                 key=lambda i: hand_card_value(options[i]),
             )
-            limit = min(
-                len(suitcase_vals),
-                len(game.suitcase) if last_played == "Last Year's Shirt" else 3,
-            )
-            base_margin = (
-                0.20
-                if paddleboat_bonus > 0
-                else (1.05 if last_played == "Last Year's Shirt" else 0.80)
-            )
+            limit = min(len(suitcase_vals), 3)
+            base_margin = 0.20 if paddleboat_bonus > 0 else 0.80
             chosen: list[int] = []
             for k, i in enumerate(hand_ranked[:limit]):
                 h_val = hand_card_value(options[i])
-                gift_tax = (
-                    0.30 * max(0.0, h_val - 1.4)
-                    if (
-                        last_played == "Last Year's Shirt"
-                        and paddleboat_bonus == 0.0
-                        and game.day < DAY_COUNT
-                    )
-                    else 0.0
-                )
-                if h_val + gift_tax < suitcase_vals[k] - base_margin:
+                if h_val < suitcase_vals[k] - base_margin:
                     chosen.append(i)
                 else:
                     break
@@ -1805,7 +1793,7 @@ def _extra_energy_support_for_card(
         elif h_prof.tomorrow_start_energy > 0:
             support += max(0, h_prof.tomorrow_start_energy - 1)
         elif hc.title == "Butter Tarts":
-            support += 3
+            support += 2
         if (
             h_prof.energy_delta < 0
             and (not h_prof.target_tags or (card.tags & h_prof.target_tags))
@@ -2479,7 +2467,7 @@ class ArgonBrain(GreedyAI):
                 c.title == "Paddleboat"
                 for c in (*player.hand, *player.played_today)
             )
-            bonus += 1.40 if has_pb else -0.60
+            bonus += 1.40 if has_pb else 0.10
         elif card.title in {"Quacks", "Poker"}:
             has_trunk_manip = any(
                 c.title in _TRUNK_REORDER_TITLES for c in player.hand
@@ -2512,7 +2500,10 @@ class ArgonBrain(GreedyAI):
         if card.effective_cost >= 8 and cost > player.energy:
             if not any(
                 c.title == "Assorted Cutlery" for c in player.hand
-            ) or not any(c.title == "Tell a Story" for c in player.hand):
+            ) or not any(
+                c.title in {"Tell a Story", "Last Year's Shirt"}
+                for c in player.hand
+            ):
                 support = _extra_energy_support_for_card(player, card)
                 unfunded = max(0, card.effective_cost - (6 + support))
                 if unfunded > 0:
@@ -2652,6 +2643,7 @@ class ArgonBrain(GreedyAI):
                 "Poker",
                 "Bougie Coffee Machine",
                 "Booby Prize",
+                "Last Year's Shirt",
             }
             for c in player.hand
         )
@@ -2740,7 +2732,7 @@ class ArgonBrain(GreedyAI):
             elif card.title == "Poker" and known_top and known_top[0].tags:
                 bucket = 2
                 desirability += 3.5
-            elif card.title in {"Last Year's Shirt", "Scrabble"}:
+            elif card.title == "Scrabble":
                 has_pb_played = any(
                     c.title == "Paddleboat" for c in player.played_today
                 )
@@ -2753,9 +2745,33 @@ class ArgonBrain(GreedyAI):
                     bucket = 3 if has_pb_hand else 2
                     if has_pb_played:
                         desirability += 3.5
-                elif card.title == "Last Year's Shirt":
-                    bucket = 6
-                    desirability -= 4.0
+            elif card.title == "Last Year's Shirt":
+                has_pb_played = any(
+                    c.title == "Paddleboat" for c in player.played_today
+                )
+                has_pb_hand = any(
+                    c.title == "Paddleboat"
+                    and cost + sim.energy_cost(player_index, c) <= player.energy
+                    for c in player.hand
+                )
+                bucket = 3 if has_pb_hand else 2
+                if has_pb_played:
+                    desirability += 3.5
+                cutlery_cards = [
+                    c for c in player.hand if c.title == "Assorted Cutlery"
+                ]
+                if cutlery_cards:
+                    c_cost = sim.energy_cost(player_index, cutlery_cards[0])
+                    if cost + c_cost <= player.energy and any(
+                        other is not card
+                        and other is not cutlery_cards[0]
+                        and _free_play_card_value(
+                            sim, player_index, other, wanted_tags
+                        )
+                        >= 4.0
+                        for other in player.hand
+                    ):
+                        desirability += 5.0
             elif card.title == "Solo":
                 opp_played_bg = any(
                     "Board Game" in oc.tags
@@ -3236,13 +3252,15 @@ class ArgonBrain(GreedyAI):
                         today_total_fun -= (
                             3.5 if len(player.played_today) <= 3 else 1.8
                         )
-                elif c.title == "Play With the Kids" and len(player.hand) <= 2:
+                elif c.title == "Play With the Kids" and len(player.played_today) <= 4:
                     if all(
-                        len(player.hand) > len(opp.hand)
+                        len(player.played_today) >= len(opp.played_today)
                         for idx, opp in enumerate(terminal_sim.players)
                         if idx != player_index
                     ):
-                        today_total_fun -= 2.2
+                        today_total_fun -= (
+                            3.6 if len(player.played_today) <= 3 else 1.9
+                        )
                 elif c.title == "Puerto Rico":
                     today_total_fun -= 1.2
                 elif c.title == "San Juan":
@@ -3384,7 +3402,8 @@ class ArgonBrain(GreedyAI):
                             for hc in player.hand
                         )
                         and any(
-                            hc.title == "Tell a Story" for hc in player.hand
+                            hc.title in {"Tell a Story", "Last Year's Shirt"}
+                            for hc in player.hand
                         )
                     ):
                         continue

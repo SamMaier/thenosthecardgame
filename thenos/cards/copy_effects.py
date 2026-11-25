@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
+from thenos.cards.fun_effects import _is_next_card
 
 if TYPE_CHECKING:
     from thenos.game import Game
@@ -51,7 +52,19 @@ WEDDING_ANNIVERSARY = CardDefinition(
 )
 
 class NosShirtBehavior(CardBehavior):
-    """Return this card to its owner's hand when more than 7 Fun was scored today."""
+    """Boost the next card played today and return to hand after >7 Fun."""
+
+    def modify_fun(
+        self,
+        game: Game,
+        player: PlayerState,
+        source: CardInstance,
+        target: CardInstance,
+        current_fun: int,
+    ) -> int:
+        if _is_next_card(player, source, target):
+            return current_fun + 2
+        return current_fun
 
     def on_end_day(
         self,
@@ -73,13 +86,13 @@ NOS_SHIRT = CardDefinition(
     title="Nos Shirt",
     tags=frozenset({"Item"}),
     cost=1,
-    base_fun=1,
+    base_fun=0,
     behavior=NosShirtBehavior(),
 )
 
 
 class LastYearsShirtBehavior(CardBehavior):
-    """Pick any number of Suitcase cards and replenish taken slots from hand."""
+    """Draw one card from the Trunk, then place one hand card on top of the Trunk."""
 
     def on_play(
         self,
@@ -87,71 +100,22 @@ class LastYearsShirtBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> None:
-        if not player.hand or not game.suitcase:
-            return
         player_index = game.players.index(player)
-        hand = tuple(player.hand)
-        raw_choices = tuple(
-            game.ais[player_index].choose_cards_to_discard(
-                game, player_index, hand
-            )
-        )
-        if len(set(raw_choices)) != len(raw_choices):
-            raise ValueError("Cannot select the same hand card more than once")
-        if any(index < 0 or index >= len(hand) for index in raw_choices):
-            raise ValueError("Invalid hand index in selection")
-        if len(raw_choices) > len(game.suitcase):
-            raw_choices = tuple(
-                sorted(
-                    raw_choices,
-                    key=lambda index: (
-                        hand[index].effective_base_fun,
-                        -hand[index].effective_cost,
-                        index,
-                    ),
-                )[: len(game.suitcase)]
-            )
-        choices = raw_choices
-        if not choices:
+        drawn_card = game.draw_from_trunk(player_index, 1)[0]
+        game.give_card(player_index, drawn_card)
+        if not player.hand:
             return
-        original_suitcase = list(game.suitcase)
-        game.stats.suitcase_offers.update(c.title for c in original_suitcase)
-        game.stats.seen_suitcase_ids.update(
-            c.instance_id for c in original_suitcase
+        hand = tuple(player.hand)
+        choice = game.ais[player_index].choose_card_to_discard(
+            game, player_index, hand
         )
-        replacements = [hand[index] for index in choices]
-        for replacement in replacements:
-            player.hand.remove(replacement)
-            replacement.is_tomorrow = False
-            replacement.markers.clear()
-            game.stats.seen_suitcase_ids.add(replacement.instance_id)
-        taken_slot_to_replacement: dict[int, CardInstance] = {}
-        try:
-            for replacement in replacements:
-                chosen_index = game.ais[player_index].choose_suitcase_card(
-                    game, player_index, tuple(game.suitcase)
-                )
-                if chosen_index < 0 or chosen_index >= len(game.suitcase):
-                    raise ValueError(
-                        f"AI returned invalid Suitcase index: {chosen_index}"
-                    )
-                picked = game.suitcase.pop(chosen_index)
-                picked.markers.clear()
-                slot_index = next(
-                    index
-                    for index, candidate in enumerate(original_suitcase)
-                    if candidate is picked
-                )
-                taken_slot_to_replacement[slot_index] = replacement
-                game.give_card(player_index, picked)
-                game.record_card_pick_or_draw(player_index, picked)
-                player.picked_cards[picked.title] += 1
-                game.stats.suitcase_picks[picked.title] += 1
-        finally:
-            game.suitcase = [
-                taken_slot_to_replacement.get(index, original_card)
-                for index, original_card in enumerate(original_suitcase)
-            ]
+        if choice < 0 or choice >= len(hand):
+            raise ValueError(f"AI returned invalid hand index: {choice}")
+        target = player.hand.pop(choice)
+        target.is_tomorrow = False
+        target.markers.clear()
+        game.stats.seen_suitcase_ids.add(target.instance_id)
+        game.return_cards_to_trunk_top(player_index, (target,))
 
 
 LAST_YEARS_SHIRT = CardDefinition(

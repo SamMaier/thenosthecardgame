@@ -28,7 +28,7 @@ BUTTER_TARTS = CardDefinition(
     slug="butter-tarts",
     title="Butter Tarts",
     tags=frozenset({"Food"}),
-    cost=3,
+    cost=4,
     behavior=ButterTartsBehavior(),
 )
 

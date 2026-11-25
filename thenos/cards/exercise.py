@@ -92,7 +92,7 @@ class ZumbaBehavior(CardBehavior):
 
 
 class PlayWithTheKidsBehavior(CardBehavior):
-    """Score a bonus when this player has the largest hand at day's end."""
+    """Score a bonus when this player tied or led in cards played today."""
 
     def fun_value(
         self,
@@ -100,12 +100,13 @@ class PlayWithTheKidsBehavior(CardBehavior):
         player: PlayerState,
         card: CardInstance,
     ) -> int:
-        has_more_cards = all(
-            len(player.hand) > len(opponent.hand)
+        player_card_count = len(player.played_today)
+        played_most_cards = all(
+            player_card_count >= len(opponent.played_today)
             for opponent in game.players
             if opponent is not player
         )
-        bonus = 3 if has_more_cards else 0
+        bonus = 4 if played_most_cards else 0
         return card.effective_base_fun + bonus
 
 

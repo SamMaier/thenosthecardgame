@@ -32,7 +32,7 @@ Your next (SOCIAL_card) scores +(fun)(fun)(fun)(fun)",It is mandatory to drop th
 BRING A FRIEND,SOCIAL,1,(card)(after) cost double (energy) and score double (fun),"""This has got to be the most competitive family I've ever seen!"" Marc-André"
 BUBLY,FOOD,0,"If any (before)(card) has given you (energy), +(fun)(fun)","Really, you bought lime?"
 BUG SPRAY,"ITEM, OUTDOORS",1,(OUTDOORS_card)(after) score +(fun),"""I would rather ingest deet and live a short, bug-free life"" - Jorja"
-BUTTER TARTS,FOOD,3,Double your current (energy),Never disappoints
+BUTTER TARTS,FOOD,4,Double your current (energy),Never disappoints
 CALZONES,FOOD,3,"(fun)(fun)
 (energy)(energy)(energy)
 TOMORROW: (EXERCISE_card) cost +(energy)","The winner of ""fave meal"" of 2009"
@@ -63,10 +63,9 @@ CLASSIC BOOK,RELAX,2,"(fun)(fun)
 Costs -(energy) per (before)(RELAX_card)","""Call me Ishmael."" - Moby Dick"
 CLIFF CLIMBING,"EXERCISE, OUTDOORS",4,"(fun)(fun)
 (before)(OUTDOORS_card) score +(fun)(fun)","If you're going to fall, PUSH OFF"
-COLOURING,RELAX,2,"(fun)
-(card)(after) gain (RELAX) tag",
+COLOURING,RELAX,3,(card)(after) gain (RELAX) tag,
 COUCH TUBE,"EXERCISE, OUTDOORS",3,"(fun)(fun) If you finished today with only one other (card) down, +(fun)(fun)(fun)(fun)","""It's good to try new things, and bad things"" - Nola on trying tubing"
-DATE'S FIRST NOS,SOCIAL,7,"If you score less than 3 (fun) today, discard this card at END OF DAY.
+DATE'S FIRST NOS,SOCIAL,7,"If you score less than 2 (fun) today, discard this card at END OF DAY.
 TOMORROW: Each (card) you play scores +(fun)(fun)",Keep em away from the uncles
 DECAF,FOOD,0,"At END OF DAY, each leftover (energy) is worth +(fun)","Well, if it's decaf..."
 DISHWASHING,FOOD,1,TOMORROW: (FOOD_card) cost -(energy),"Turns out, dishwashing soap is different from dishwashing detergent"
@@ -82,8 +81,9 @@ TOMORROW: (energy)(energy)(energy)","We're on vacation, we should rest"
 EPIC DUELS,"BOARDGAME, INDOORS",2,"(fun)(fun)
 You may play as many cards as you wish this turn, paying and resolving effects as normal","Oh no, Darth Maul has 10 cards"
 EPIC PLAYLIST,ITEM,1,(SOCIAL_card)(after) score +(fun),"""Give it two years, and Justin Bieber will be gone!"" - JP, 2011"
-EPIC PRANK,SOCIAL,3,"Pick an opponent. If you score less (fun) than them today, discard this card at END OF DAY
-TOMORROW: the first card you play scores double (fun)",Sponsored by SC Johnson
+EPIC PRANK,SOCIAL,2,"Pick an opponent. If at END OF DAY you score less (fun) than them, discard this card
+TOMORROW: the first card you play scores double (fun)
+(cubes)",Sponsored by SC Johnson
 EUCHRE,"BOARDGAME, INDOORS",2,"(fun)(fun)
 (SOCIAL_card)(after) score +(fun)","""Lose the lead as fast as you can"" - Gord "
 EUCHRE AWARDS CEREMONY,"SOCIAL, OUTDOORS",4,"When playing (FOOD_card)(BOARDGAME_card)(after), pick (suitcase)","""But I say it is the Mount Everest of competition"" - Scott"
@@ -122,8 +122,7 @@ ICE CREAM SANDWICH,FOOD,2,"(fun)
 If you have played a (before)(FOOD_card), (energy)(energy)(energy)",How did we go through a 20 pack by the second day?
 ICE WINE,FOOD,3,"(fun)
 (before)(FOOD_card) score +(fun)(fun)",Basically expensive juice
-ISTANBUL,BOARDGAME,3,"(fun)
-Discard any number of cards. (energy)(energy) for each card discarded",Gotta dump this load at the Large Market
+ISTANBUL,BOARDGAME,3,Discard any number of cards. (energy)(energy) for each card discarded,Gotta dump this load at the Large Market
 JOHNNY APPLESEED,SOCIAL,1,"(fun)
 Your next (FOOD_card) scores +(fun)(fun)",Amen Amen Amen
 KAYAK,"EXERCISE, OUTDOORS",2,"(fun)(fun)
@@ -132,7 +131,7 @@ You may choose to spend any number of additional (energy), score that much +(fun
 KEEPER,FOOD,2,"(fun)
 (energy) for each (before)(OUTDOORS_card)",I caught you a delicious bass
 KNEEBOARD,"EXERCISE, OUTDOORS",4,(fun)(fun)(fun)(fun)(fun),Try not to traumatize the children by putting them in too tight
-LAST YEAR'S SHIRT,ITEM,0,Pick any number of (suitcase) but replenish any taken from your own hand,"Hmmm, what else is behind some furniture?"
+LAST YEAR'S SHIRT,ITEM,0,"Draw (trunk), then place 1 (card) on top of the (trunk)","Hmmm, what else is behind some furniture?"
 LEFTOVERS,FOOD,3,"Copy the effects (but not tags or cost) of a (before)(FOOD_card)
 (cubes)","""I haven't been full for 3 years since I got filled up at a hockey banquet"" - Chris"
 LONG DISTANCE VISITORS,SOCIAL,4,"Pick 2 (suitcase)
@@ -162,7 +161,7 @@ NEWFANGLED TRÈS FUTÉ,BOARDGAME,3,"(fun)
 +(fun) for each unique tag you played by END OF DAY","So, your teal dice can convert to foxes, or you can reroll them for a yellow-white combo"
 NON-FICTION BOOK,RELAX,1,(fun)(fun),"""If you want to gather honey, don't kick over the beehive."" - How to Win Friends and Influence People"
 NOS BOOK,ITEM,4,(before)(card) score +(fun),"""The Starra Clan Book of 'Nos-isms' and other Nos happenings"""
-NOS SHIRT,ITEM,1,"(fun)
+NOS SHIRT,ITEM,1,"Your next (card)(after) scores +(fun)(fun)
 If you scored more than 7 (fun) by END OF DAY, return to your hand.","""My nos shirt is losing its lustre"" - Grandpa, 2006"
 OUTDOOR MOVIE,"RELAX, OUTDOORS",2,"(fun)
 (before)(RELAX_card) score +(fun)(fun)","Tina, you fat lard!"
@@ -179,7 +178,7 @@ If you have played at least 2 (before)(OUTDOORS_card), +(fun)(fun)","A ladybug, 
 PHOTO SHOOT,"SOCIAL, OUTDOORS",3,"-(fun)
 TOMORROW: When playing (SOCIAL_card)(RELAX_card), pick (suitcase)",The closest thing to being taken hostage most men will experience
 PLAY WITH THE KIDS,EXERCISE,4,"(fun)(fun)(fun)
-If you have more (card) in your hand at END OF DAY than all opponents, +(fun)(fun)(fun)","""Are you the star player on the team?""
+If you have played the most (card) by END OF DAY (including ties), +(fun)(fun)(fun)(fun)","""Are you the star player on the team?""
 ""No, I am the team"" - Ben"
 POKER,BOARDGAME,2,"(fun)
 Say a card tag, then reveal and discard 1 (trunk). If that card had the tag, +(fun)(fun)(fun)(fun)",I'm all in
@@ -216,7 +215,7 @@ SKI ON SHOULDERS,"EXERCISE, OUTDOORS",5,"(fun)(fun)(fun)
 If your current (fun) total is lower than at least half of your opponents' scores, +(fun)(fun)(fun)(fun)(fun)
 (cubes)",What's next? A kneeboarding human pyramid?
 DROP A SKI,"EXERCISE, OUTDOORS",3,"(fun)(fun)
-If you have exactly 1 (card) in your hand at END OF DAY, +(fun)(fun)(fun)(fun)(fun)",HIT IT
+If you have exactly 1 (card) in your hand at END OF DAY, +(fun)(fun)(fun)(fun)(fun)",Do remember where she dropped it?
 SLEEP IN,"RELAX, INDOORS",0,"(energy)(energy)
 You do not gain additional (energy) from any other source today
 Must be your 1st card today","""I may be sleepy, but I'm still sensitive"" - Sally"
