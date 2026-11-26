@@ -63,17 +63,28 @@ from thenos.ais.carbon import (
     _wanted_tags_for_player,
 )
 from thenos.cards.base import CardBehavior, CardDefinition, CardInstance
-from thenos.cards.basic import cities_and_knights_condition_met
+from thenos.cards.basic import (
+    EpicPrankBehavior,
+    EuchreTournamentAwardsCeremonyBehavior,
+    SettlersCitiesAndKnightsBehavior,
+    SoloBehavior,
+    cities_and_knights_condition_met,
+)
 from thenos.cards.copy_effects import NosShirtBehavior
 from thenos.cards.energy_effects import (
+    AfterDinnerEntertainmentBehavior,
     EnergyForAllCardsAfterBehavior,
     EnergyForNextTagBehavior,
     EnergyForTagAfterBehavior,
+    GainEnergyForNextTagBehavior,
     HalfEnergyForNextTagBehavior,
     MedicalAdviceBehavior,
     SetEnergyForNextTagBehavior,
     TomorrowEnergyForTagBehavior,
 )
+from thenos.cards.events import PhotoShootBehavior, SingSongBehavior
+from thenos.cards.exercise import ChuckAFrisbeeBehavior
+from thenos.cards.food import BublyBehavior
 from thenos.cards.fun_effects import (
     FunAndEnergyForAllCardsAfterBehavior,
     FunAndEnergyForTagAfterBehavior,
@@ -91,7 +102,10 @@ from thenos.cards.fun_effects import (
     WaterTrampolineBehavior,
 )
 from thenos.cards.items import FancyFloatieBehavior
+from thenos.cards.new_cards import BohnanzaBehavior
 from thenos.cards.relax import (
+    CheesyPhoneGameBehavior,
+    ClassicBookBehavior,
     FancyCraftBehavior,
     TanningBehavior,
     WildlifeSpottingBehavior,
@@ -184,6 +198,21 @@ _PF_HAS_TOM_ACTION = 1 << 15
 _PF_HAS_COPIED = 1 << 16
 _PF_HAS_SIG_MARKER = 1 << 17
 _PF_HAS_CUSTOM_TOM_FUN_MOD = 1 << 18
+_PF_HAS_COMPLEX_END_DAY = 1 << 19
+_PF_HAS_NEXT_TAG_MOD = 1 << 20
+_PF_GAVE_ENERGY = 1 << 21
+_PF_MAY_HAVE_TAG_MARKERS = 1 << 22
+_PF_HAS_FIRST_CARD_TOM = 1 << 23
+_PF_HAS_SCOUT_END_DAY = 1 << 24
+_PF_HAS_PLAYED_IS_TOM = 1 << 25
+_PF_HAS_NEW_AWAKE_OPP = 1 << 26
+_PF_HAS_CK_END_DAY = 1 << 27
+_PF_HAS_BUBLY = 1 << 28
+_PF_HAS_EUCHRE_AWARDS = 1 << 29
+_PF_HAS_GENERIC_CARD_PLAY = 1 << 30
+_PF_HAS_FUN_VAL = 1 << 31
+_PF_HAS_PHOTO_SHOOT = 1 << 32
+_PF_HAS_GENERIC_TOM_PLAY = 1 << 33
 
 _MASK_TO_PACKED_CNT: tuple[int, ...] = tuple(
     sum(1 << (b << 3) for b in range(8) if (m & (1 << b))) for m in range(256)
@@ -196,6 +225,24 @@ _TMF_GENERIC = 1
 _TMF_TAG_ADD = 2
 _TMF_FIRST_OUTDOORS = 3
 _TMF_ALL_ADD = 4
+_TMF_FIRST_MUL2 = 5
+
+# Compiled fun_value opcodes for score_played_today_fast
+_FV_NONE = 0
+_FV_BUBLY = 1
+_FV_CHEESY_PHONE = 2
+_FV_GENERIC = 3
+
+# Compiled modify_own_energy_cost opcodes
+_OCM_NONE = 0
+_OCM_CLASSIC_BOOK = 1
+_OCM_SING_SONG = 2
+_OCM_GENERIC = 3
+
+# Compiled commutativity opcodes for search-tree deduplication
+_COMM_NONE = 0
+_COMM_PLAIN = 1
+_COMM_GAIN_E = 2
 
 # Compiled modify_energy_cost / modify_tomorrow_energy_cost opcodes
 _CM_NONE = 0
@@ -230,6 +277,7 @@ _MF_NEXT_TAG_MUL2 = 11
 _MF_NTH_TAG_MUL2 = 12
 _MF_NOS_BOOK = 13
 _MF_NEXT_CARD_ADD = 14
+_MF_ADE = 15
 
 # Resolved active today_mod opcodes during score_played_today_fast
 _RMF_GENERIC = 1
@@ -384,6 +432,52 @@ _ISTANBUL_SINK_HAND_TITLES: frozenset[str] = frozenset(
 _ISTANBUL_SIMPLE_MARKER_KEYS: frozenset[str] = frozenset(
     {"_gave_energy", "_all_tags"}
 )
+_ISTANBUL_TOM_SIMPLE_MARKER_KEYS: frozenset[str] = frozenset({"_gave_energy"})
+_SIG_MARKER_KEYS: frozenset[str] = frozenset(
+    {
+        "_copied_definition",
+        "energy_cubes",
+        "_ski_on_shoulders_energy_cube",
+        "discarded_card",
+        "discarded_item",
+        "target_card",
+        "target_player_index",
+    }
+)
+_COMM_PLAIN_EXTRA_SLUGS: frozenset[str] = frozenset(
+    {
+        "7-wonders",
+        "campfire",
+        "cheesy-phone-game",
+        "chuck-a-frisbee",
+        "cities-and-knights",
+        "classic-book",
+        "dates-first-nos",
+        "decaf",
+        "drop-a-ski",
+        "family-baseball-game",
+        "fishing-evening",
+        "fit-to-print",
+        "newfangled-tres-fute",
+        "play-with-the-kids",
+        "sing-song",
+        "solo",
+        "trekking-through-history",
+        "wakesurf",
+        "wrestle-the-kids",
+    }
+)
+_COMM_GAIN_E_BY_SLUG: dict[str, int] = {
+    "nap": 1,
+    "m-ms": 1,
+    "charcuterie": 1,
+    "stay-up-late": 2,
+    "weird-chip-flavour": 2,
+    "calzones": 3,
+    "floating": 3,
+    "afternoon-coffee": 3,
+    "fajitas": 4,
+}
 _ISTANBUL_OPP_SENSITIVE_SLUGS: frozenset[str] = frozenset(
     {
         "cheesy-phone-game",
@@ -696,6 +790,17 @@ class _HydrogenDefnMeta:
     q_imm_e_term: float
     q_early_flags: bool
     q_late_flags: bool
+    is_pure_comm: bool
+    comm_kind: int
+    comm_e_gain: int
+    is_adj_next_tail: bool
+    is_adj_prev_hand: bool
+    fun_val_kind: int
+    own_cost_mod_kind: int
+    q_const_eligible: bool
+    q_pre_base: float
+    q_post_d1: tuple[float, ...]
+    q_post_d0: tuple[float, ...]
 
 
 _HYDROGEN_META_BY_DEFN_ID: dict[int, _HydrogenDefnMeta] = {}
@@ -741,6 +846,8 @@ def _compile_mod_fun(
         return (_MF_NEXT_TAG_MUL2, "Relax", frozenset(), 2, 0)
     if bt is FunForNthTagDoubleBehavior:
         return (_MF_NTH_TAG_MUL2, beh.tag, frozenset(), 2, beh.ordinal)  # type: ignore[attr-defined]
+    if bt is AfterDinnerEntertainmentBehavior:
+        return (_MF_ADE, "", frozenset(), 2, 0)
     return (_MF_GENERIC, "", frozenset(), 0, 0)
 
 
@@ -763,6 +870,8 @@ def _compile_tom_mod_fun(
         return (_TMF_FIRST_OUTDOORS, _MASK_OUTDOORS, 2)
     if bt is DatesFirstNosBehavior:
         return (_TMF_ALL_ADD, 0, 2)
+    if bt is EpicPrankBehavior:
+        return (_TMF_FIRST_MUL2, 0, 2)
     return (_TMF_GENERIC, 0, 0)
 
 
@@ -820,6 +929,8 @@ def _build_defn_meta(
     defn: CardDefinition,
     prof: CardSynergyProfile,
     eff_title: str | None = None,
+    *,
+    is_catalog_defn: bool = False,
 ) -> _HydrogenDefnMeta:
     beh = defn.behavior
     bt = type(beh)
@@ -897,9 +1008,13 @@ def _build_defn_meta(
 
     played_flags = 0
     if after_all_tags or has_granted_after_tags:
-        played_flags |= _PF_ALL_TAGS
+        played_flags |= _PF_ALL_TAGS | _PF_MAY_HAVE_TAG_MARKERS
     if has_on_card_play:
         played_flags |= _PF_HAS_CARD_PLAY
+        if bt is EuchreTournamentAwardsCeremonyBehavior:
+            played_flags |= _PF_HAS_EUCHRE_AWARDS
+        elif bt is not GainEnergyForNextTagBehavior:
+            played_flags |= _PF_HAS_GENERIC_CARD_PLAY
     if has_on_acquire:
         played_flags |= _PF_HAS_ACQUIRE | _PF_HAS_SIG_MARKER
     if has_tomorrow_action:
@@ -912,10 +1027,38 @@ def _build_defn_meta(
         played_flags |= _PF_HAS_PLAYED_COST_MOD
     if has_end_day_any:
         played_flags |= _PF_HAS_END_DAY
+        if bt is ScoutTheOtherCottagesBehavior:
+            played_flags |= _PF_HAS_SCOUT_END_DAY
+        elif bt is SettlersCitiesAndKnightsBehavior:
+            played_flags |= _PF_HAS_CK_END_DAY
+        if (
+            bt.on_score is not CardBehavior.on_score
+            or (
+                bt.on_end_day is not CardBehavior.on_end_day
+                and bt
+                not in (
+                    ChuckAFrisbeeBehavior,
+                    NosShirtBehavior,
+                    DatesFirstNosBehavior,
+                    EpicPrankBehavior,
+                    ScoutTheOtherCottagesBehavior,
+                    SettlersCitiesAndKnightsBehavior,
+                )
+            )
+            or (
+                bt.on_after_end_day is not CardBehavior.on_after_end_day
+                and bt is not SoloBehavior
+            )
+        ):
+            played_flags |= _PF_HAS_COMPLEX_END_DAY
     if eff_t == "Group Dinner":
         played_flags |= _PF_HAS_LOOP2
     if eff_t in _TERMINAL_AWAKE_OPP_TITLES:
         played_flags |= _PF_HAS_AWAKE_OPP_TERM
+        if eff_t in ("7 Wonders", "Solo", "Epic Prank"):
+            played_flags |= _PF_HAS_NEW_AWAKE_OPP
+    if has_fun_val:
+        played_flags |= _PF_HAS_FUN_VAL
     if has_fun_mod:
         played_flags |= _PF_HAS_FUN_MOD
         if (
@@ -926,6 +1069,7 @@ def _build_defn_meta(
                 _MF_NEXT_CARD_MUL,
                 _MF_NEXT_TAG_MUL2,
                 _MF_NTH_TAG_MUL2,
+                _MF_ADE,
             )
             or not mf_mask_ok
         ):
@@ -952,18 +1096,47 @@ def _build_defn_meta(
 
     tom_flags = 0
     if tomorrow_all_tags:
-        tom_flags |= _PF_ALL_TAGS
+        tom_flags |= _PF_ALL_TAGS | _PF_MAY_HAVE_TAG_MARKERS
     if has_on_tom_card_play:
         tom_flags |= _PF_HAS_TOM_PLAY
+        if bt is PhotoShootBehavior:
+            tom_flags |= _PF_HAS_PHOTO_SHOOT
+        else:
+            tom_flags |= _PF_HAS_GENERIC_TOM_PLAY
     if has_tom_cost_mod:
         tom_flags |= _PF_HAS_TOM_COST_MOD
     tmf_kind, tmf_mask, tmf_param = _compile_tom_mod_fun(beh, has_tom_fun_mod)
+    cm_kind, cm_mask, cm_param = _compile_cost_mod(beh, has_cost_mod)
+    tcm_kind, tcm_mask, tcm_param = _compile_tom_cost_mod(beh, has_tom_cost_mod)
     if has_tom_fun_mod:
         tom_flags |= _PF_HAS_TOM_FUN_MOD
         if tmf_kind == _TMF_GENERIC:
             tom_flags |= _PF_HAS_CUSTOM_TOM_FUN_MOD
-    cm_kind, cm_mask, cm_param = _compile_cost_mod(beh, has_cost_mod)
-    tcm_kind, tcm_mask, tcm_param = _compile_tom_cost_mod(beh, has_tom_cost_mod)
+    if (
+        tmf_kind in (_TMF_FIRST_OUTDOORS, _TMF_FIRST_MUL2, _TMF_GENERIC)
+        or tcm_kind == _CM_GENERIC
+        or has_on_tom_card_play
+    ):
+        tom_flags |= _PF_HAS_FIRST_CARD_TOM
+    if (
+        mf_kind
+        in (
+            _MF_NEXT_TAG_ADD,
+            _MF_NEXT_TAG_COST_ADD,
+            _MF_NEXT_TAG_MUL2,
+            _MF_NTH_TAG_MUL2,
+            _MF_ADE,
+            _MF_GENERIC,
+        )
+        or cm_kind
+        in (
+            _CM_NEXT_TAG_ADD,
+            _CM_NEXT_TAG_SET,
+            _CM_NEXT_TAG_HALF,
+            _CM_GENERIC,
+        )
+    ):
+        played_flags |= _PF_HAS_NEXT_TAG_MOD
     tag_packed_cnt = _MASK_TO_PACKED_CNT[tag_mask]
     sorted_tag_bits = tuple(_TAG_BIT[t] for t in sorted_tags if t in _TAG_BIT)
 
@@ -1185,6 +1358,163 @@ def _build_defn_meta(
         else 0
     )
 
+    if not has_fun_val:
+        fv_kind = _FV_NONE
+    elif bt is BublyBehavior:
+        fv_kind = _FV_BUBLY
+        played_flags |= _PF_HAS_BUBLY
+    elif bt is CheesyPhoneGameBehavior:
+        fv_kind = _FV_CHEESY_PHONE
+    else:
+        fv_kind = _FV_GENERIC
+
+    if not has_own_cost_mod:
+        ocm_kind = _OCM_NONE
+    elif bt is ClassicBookBehavior:
+        ocm_kind = _OCM_CLASSIC_BOOK
+    elif bt is SingSongBehavior:
+        ocm_kind = _OCM_SING_SONG
+    else:
+        ocm_kind = _OCM_GENERIC
+
+    c_qc = _CQ_BY_TITLE.get(title, _CQ_NONE)
+    h_qc = _HQ_BY_TITLE.get(title, _HQ_NONE)
+    q_pen_v = _QUICK_PENALTY_BY_TITLE.get(title, 0.0)
+    q_const_ok = bool(
+        tags_canonical
+        and title != "Istanbul"
+        and q_sleep_late != 2
+        and defn.cost < 8
+        and prof.conditional_energy_gain <= 0
+        and c_qc
+        in (
+            _CQ_NONE,
+            _CQ_GROUP_DINNER,
+            _CQ_BOUGIE_COFFEE_MACHINE,
+            _CQ_CHEESY_PHONE_GAME,
+        )
+        and q_syn in (_QSYN_NONE, _QSYN_NEG_SMB)
+        and q_glob in (_QGLOB_NONE, _QGLOB_DOCK, _QGLOB_COUCH_TUBE)
+        and h_qc
+        in (
+            _HQ_NONE,
+            _HQ_JOHNNY_APPLESEED,
+            _HQ_DOXOLOGY,
+            _HQ_SUNRISE,
+            _HQ_EVENING_CHAT,
+            _HQ_PAINT,
+            _HQ_FLOATING,
+        )
+    )
+    if q_const_ok:
+        q_pre_v = (
+            (float(defn.base_fun) + prof.immediate_fun_gain * 1.15)
+            - defn.cost * 0.78
+        ) + prof.immediate_energy_gain * 1.30
+        if has_q_draw:
+            q_pre_v += q_draw_cheap if defn.cost <= 2 else q_draw_exp
+        if q_sleep_late == 1:
+            q_pre_v -= 1.6
+        if c_qc == _CQ_GROUP_DINNER:
+            q_pre_v -= 1.85
+        elif c_qc == _CQ_BOUGIE_COFFEE_MACHINE:
+            q_pre_v += 1.35
+        elif c_qc == _CQ_CHEESY_PHONE_GAME:
+            q_pre_v += 1.05
+        elif (
+            c_qc == _CQ_NONE
+            and prof.conditional_fun_bonus > 0
+            and not prof.is_multi_scaler
+        ):
+            cfb_v = prof.conditional_fun_bonus
+            q_pre_v += (cfb_v if cfb_v < 5 else 5) * 0.55
+        if q_pen_v != 0.0:
+            q_pre_v -= q_pen_v
+
+        post_d1: list[float] = []
+        post_d0: list[float] = []
+        if q_syn == _QSYN_NEG_SMB:
+            post_d1.append(q_neg_smb)
+            post_d0.append(q_neg_smb)
+        if q_glob == _QGLOB_DOCK:
+            post_d1.append(3.5)
+            post_d0.append(3.5)
+        elif q_glob == _QGLOB_COUCH_TUBE:
+            post_d1.append(3.1)
+            post_d0.append(3.1)
+        if prof.goes_to_tomorrow:
+            post_d1.append(q_tom_base)
+            if q_tom_extra != 0.0:
+                post_d1.append(q_tom_extra)
+        if defn.cost == 0 and defn.base_fun >= 0:
+            post_d1.append(0.65)
+            post_d0.append(0.65)
+        elif defn.cost == 1 and defn.base_fun >= 0:
+            post_d1.append(0.25)
+            post_d0.append(0.25)
+        if h_qc == _HQ_FLOATING:
+            post_d1.append(0.60)
+        elif h_qc == _HQ_JOHNNY_APPLESEED:
+            post_d1.append(-0.55)
+            post_d0.append(-0.55)
+        elif h_qc in (_HQ_DOXOLOGY, _HQ_SUNRISE, _HQ_EVENING_CHAT):
+            post_d1.append(-0.45)
+            post_d0.append(-0.45)
+        elif h_qc == _HQ_PAINT:
+            post_d1.append(-0.40)
+            post_d0.append(-0.40)
+        q_post_d1_t = tuple(post_d1)
+        q_post_d0_t = tuple(post_d0)
+    else:
+        q_pre_v = 0.0
+        q_post_d1_t = ()
+        q_post_d0_t = ()
+
+    is_pure_comm_val = bool(
+        tags_canonical
+        and target_canonical
+        and not has_on_play
+        and not has_can_play
+        and not has_own_cost_mod
+        and not has_allows_extra
+        and not has_fun_val
+        and not (
+            played_flags
+            & (
+                _PF_ALL_TAGS
+                | _PF_HAS_FUN_MOD
+                | _PF_HAS_PLAYED_COST_MOD
+                | _PF_HAS_CARD_PLAY
+                | _PF_HAS_ACQUIRE
+                | _PF_HAS_PICK
+                | _PF_HAS_ALLOWS_E
+                | _PF_HAS_END_DAY
+            )
+        )
+    )
+    if is_pure_comm_val:
+        comm_kind_val = _COMM_PLAIN
+        comm_e_gain_val = 0
+    elif (
+        is_catalog_defn
+        and tags_canonical
+        and target_canonical
+        and defn.slug in _COMM_PLAIN_EXTRA_SLUGS
+    ):
+        comm_kind_val = _COMM_PLAIN
+        comm_e_gain_val = 0
+    elif (
+        is_catalog_defn
+        and tags_canonical
+        and target_canonical
+        and defn.slug in _COMM_GAIN_E_BY_SLUG
+    ):
+        comm_kind_val = _COMM_GAIN_E
+        comm_e_gain_val = _COMM_GAIN_E_BY_SLUG[defn.slug]
+    else:
+        comm_kind_val = _COMM_NONE
+        comm_e_gain_val = 0
+
     return _HydrogenDefnMeta(
         defn=defn,
         prof=prof,
@@ -1344,6 +1674,23 @@ def _build_defn_meta(
             or q_glob != _QGLOB_NONE
             or prof.goes_to_tomorrow
         ),
+        is_pure_comm=is_pure_comm_val,
+        comm_kind=comm_kind_val,
+        comm_e_gain=comm_e_gain_val,
+        is_adj_next_tail=defn.slug
+        in (
+            "work-call",
+            "nos-shirt",
+            "beach-volleyball",
+            "carcassonne",
+        ),
+        is_adj_prev_hand=defn.slug in ("beach-conversation", "swimming", "carcassonne"),
+        fun_val_kind=fv_kind,
+        own_cost_mod_kind=ocm_kind,
+        q_const_eligible=q_const_ok,
+        q_pre_base=q_pre_v,
+        q_post_d1=q_post_d1_t,
+        q_post_d0=q_post_d0_t,
     )
 
 
@@ -1372,7 +1719,11 @@ def _ensure_hydrogen_caches() -> None:
         did = id(defn)
         if did not in _HYDROGEN_META_BY_DEFN_ID:
             prof = _CARBON_PROFILE_BY_DEFN_ID[did]
-            meta = _build_defn_meta(defn, prof)
+            meta = _build_defn_meta(
+                defn,
+                prof,
+                is_catalog_defn=(CARD_REGISTRY.get(defn.slug) is defn),
+            )
             if not meta.tags_canonical or not meta.target_canonical:
                 all_ok = False
             _HYDROGEN_META_BY_DEFN_ID[did] = meta
@@ -1600,9 +1951,36 @@ class _QuickZoneCtx:
         return pm
 
 
+_EMPTY_WANTED_SENTINEL: dict[str, float] = {}
+
+
+def _build_w_arr_only(player: PlayerState) -> tuple[list[float], int]:
+    """Compute `(w_arr, w_mask)` for canonical unmarked boards without dict allocation."""
+    meta_by_slug = _HYDROGEN_META_BY_SLUG
+    if not meta_by_slug:
+        _ensure_hydrogen_caches()
+    w_arr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    w_mask = 0
+    for tc in player.tomorrow_cards:
+        for b, d in meta_by_slug[tc.definition.slug].wanted_idx_tom_deltas:
+            w_arr[b] += d
+            w_mask |= 1 << b
+    for pc in player.played_today:
+        for b, d in meta_by_slug[pc.definition.slug].wanted_idx_played_deltas:
+            w_arr[b] += d
+            w_mask |= 1 << b
+    for hc in player.hand:
+        for b, d in meta_by_slug[hc.definition.slug].wanted_idx_hand_deltas:
+            w_arr[b] += d
+            w_mask |= 1 << b
+    return w_arr, w_mask
+
+
 def _build_wanted_and_ctx(
     player: PlayerState,
     is_canon: bool = False,
+    *,
+    _build_dict: bool = True,
 ) -> tuple[dict[str, float], _QuickZoneCtx]:
     """Fused single-pass `_wanted_tags_for_player_fast` + `_build_quick_zone_ctx`."""
     meta_by_slug = _HYDROGEN_META_BY_SLUG
@@ -1702,8 +2080,8 @@ def _build_wanted_and_ctx(
                     arr_ok = False
                     break
         if arr_ok:
-            if w_mask == 0:
-                weights_fast: dict[str, float] = {}
+            if not _build_dict or w_mask == 0:
+                weights_fast: dict[str, float] = _EMPTY_WANTED_SENTINEL if not _build_dict else {}
             else:
                 weights_fast = {}
                 if w_mask & 1:
@@ -2476,6 +2854,36 @@ def _fast_extra_energy_support(
     return support
 
 
+def _eval_q_const_with_arr(
+    meta: _HydrogenDefnMeta,
+    w_arr: list[float],
+    w_mask: int,
+    is_day6: bool,
+) -> float:
+    """Evaluate precomputed quick-desirability terms for constant canonical cards."""
+    val_q = meta.q_pre_base
+    if w_mask & meta.tag_mask:
+        tm_q = 0.0
+        if meta.cost <= 1:
+            for b_q in meta.sorted_tag_bits:
+                wq = w_arr[b_q]
+                if wq != 0.0:
+                    tm_q += wq * 0.78
+                    if wq > 0.0:
+                        tm_q += 0.38 * (wq if wq < 2.5 else 2.5)
+        else:
+            for b_q in meta.sorted_tag_bits:
+                wq = w_arr[b_q]
+                if wq != 0.0:
+                    tm_q += wq * 0.78
+        if meta.must_play_first and tm_q > 0.0:
+            tm_q *= 0.30
+        val_q += tm_q
+    for pt in (meta.q_post_d0 if is_day6 else meta.q_post_d1):
+        val_q += pt
+    return val_q
+
+
 def _hydrogen_quick_card_desirability(
     game: Game,
     player_index: int,
@@ -2510,7 +2918,7 @@ def _hydrogen_quick_card_desirability(
     if cost is None:
         cost = game.energy_cost(player_index, card)
 
-    # Ultra-fast path for plain canonical cards with no special early/late/HQ branches
+    # Ultra-fast path for plain canonical cards without character/condition/tag markers
     if (
         meta is not None
         and (prof is None or prof is meta.prof)
@@ -2524,52 +2932,77 @@ def _hydrogen_quick_card_desirability(
         )
         and player.character is None
         and game.daily_condition is None
-        and not meta.q_early_flags
-        and not meta.q_late_flags
-        and meta.h_qcode == _HQ_NONE
     ):
-        val_q = (meta.q_fun_term - cost * 0.78) + meta.q_imm_e_term
-        if _ctx is not None and wanted_tags is _ctx.wanted_ref:
-            if _ctx.w_mask & meta.tag_mask:
-                w_arr_q = _ctx.w_arr  # type: ignore[assignment]
+        is_day6 = game.day >= DAY_COUNT
+        if meta.q_const_eligible and cost == meta.cost:
+            if _ctx is not None and wanted_tags is _ctx.wanted_ref and _ctx.w_arr is not None:
+                return _eval_q_const_with_arr(meta, _ctx.w_arr, _ctx.w_mask, is_day6)
+            val_q = meta.q_pre_base
+            if wanted_tags:
                 tm_q = 0.0
                 if cost <= 1:
-                    for b_q in meta.sorted_tag_bits:
-                        wq = w_arr_q[b_q]  # type: ignore[index]
-                        if wq != 0.0:
-                            tm_q += wq * 0.78
-                            if wq > 0.0:
-                                tm_q += 0.38 * (wq if wq < 2.5 else 2.5)
+                    for t_q in meta.sorted_tags:
+                        if t_q in wanted_tags:
+                            wq = wanted_tags[t_q]
+                            if wq != 0.0:
+                                tm_q += wq * 0.78
+                                if wq > 0.0:
+                                    tm_q += 0.38 * (wq if wq < 2.5 else 2.5)
                 else:
-                    for b_q in meta.sorted_tag_bits:
-                        wq = w_arr_q[b_q]  # type: ignore[index]
-                        if wq != 0.0:
-                            tm_q += wq * 0.78
+                    for t_q in meta.sorted_tags:
+                        if t_q in wanted_tags:
+                            wq = wanted_tags[t_q]
+                            if wq != 0.0:
+                                tm_q += wq * 0.78
                 if meta.must_play_first and tm_q > 0.0:
                     tm_q *= 0.30
                 val_q += tm_q
-        elif wanted_tags:
-            tm_q = 0.0
-            if cost <= 1:
-                for t_q in meta.sorted_tags:
-                    if t_q in wanted_tags:
-                        wq = wanted_tags[t_q]
-                        if wq != 0.0:
-                            tm_q += wq * 0.78
-                            if wq > 0.0:
-                                tm_q += 0.38 * (wq if wq < 2.5 else 2.5)
-            else:
-                for t_q in meta.sorted_tags:
-                    if t_q in wanted_tags:
-                        wq = wanted_tags[t_q]
-                        if wq != 0.0:
-                            tm_q += wq * 0.78
-            if meta.must_play_first and tm_q > 0.0:
-                tm_q *= 0.30
-            val_q += tm_q
-        if cost <= 1 and meta.base_fun >= 0:
-            val_q += 0.65 if cost == 0 else 0.25
-        return val_q
+            for pt in (meta.q_post_d0 if is_day6 else meta.q_post_d1):
+                val_q += pt
+            return val_q
+        if not meta.q_early_flags and not meta.q_late_flags and meta.h_qcode == _HQ_NONE:
+            val_q = (meta.q_fun_term - cost * 0.78) + meta.q_imm_e_term
+            if _ctx is not None and wanted_tags is _ctx.wanted_ref:
+                if _ctx.w_mask & meta.tag_mask:
+                    w_arr_q = _ctx.w_arr  # type: ignore[assignment]
+                    tm_q = 0.0
+                    if cost <= 1:
+                        for b_q in meta.sorted_tag_bits:
+                            wq = w_arr_q[b_q]  # type: ignore[index]
+                            if wq != 0.0:
+                                tm_q += wq * 0.78
+                                if wq > 0.0:
+                                    tm_q += 0.38 * (wq if wq < 2.5 else 2.5)
+                    else:
+                        for b_q in meta.sorted_tag_bits:
+                            wq = w_arr_q[b_q]  # type: ignore[index]
+                            if wq != 0.0:
+                                tm_q += wq * 0.78
+                    if meta.must_play_first and tm_q > 0.0:
+                        tm_q *= 0.30
+                    val_q += tm_q
+            elif wanted_tags:
+                tm_q = 0.0
+                if cost <= 1:
+                    for t_q in meta.sorted_tags:
+                        if t_q in wanted_tags:
+                            wq = wanted_tags[t_q]
+                            if wq != 0.0:
+                                tm_q += wq * 0.78
+                                if wq > 0.0:
+                                    tm_q += 0.38 * (wq if wq < 2.5 else 2.5)
+                else:
+                    for t_q in meta.sorted_tags:
+                        if t_q in wanted_tags:
+                            wq = wanted_tags[t_q]
+                            if wq != 0.0:
+                                tm_q += wq * 0.78
+                if meta.must_play_first and tm_q > 0.0:
+                    tm_q *= 0.30
+                val_q += tm_q
+            if cost <= 1 and meta.base_fun >= 0:
+                val_q += 0.65 if cost == 0 else 0.25
+            return val_q
 
     hand = player.hand
     played_today = player.played_today
@@ -3285,7 +3718,20 @@ def _hydrogen_quick_card_desirability(
         if h_qcode == _HQ_CHUCK_A_FRISBEE:
             if days_left >= 1 and not is_zeroed:
                 val += 0.80 + 0.20 * (days_left if days_left < 3 else 3)
-                if wanted_tags:
+                if (
+                    _ctx is not None
+                    and wanted_tags is _ctx.wanted_ref
+                    and meta is not None
+                    and uncopied
+                    and not has_mod_tags
+                ):
+                    if _ctx.w_mask & cmask:
+                        w_arr_h = _ctx.w_arr  # type: ignore[assignment]
+                        for b in meta.sorted_tag_bits:
+                            w = w_arr_h[b]  # type: ignore[index]
+                            if w > 0.0:
+                                val += 0.20 * (w if w < 3.0 else 3.0)
+                elif wanted_tags:
                     iter_tags_h = (
                         meta.sorted_tags
                         if (meta is not None and not has_mod_tags)
@@ -3642,29 +4088,30 @@ def _hydrogen_hand_keep_value(
     if game.day >= DAY_COUNT:
         if not can_play_now:
             return -5.0
-        extra_e = _fast_extra_energy_support(
-            game, player_index, card, _ctx=_ctx, _in_hand=_in_hand
-        )
-        if cost > player.energy + extra_e:
-            if _has_eod_hand is None:
-                has_eod_hand = False
-                for zone in (player.played_today, player.hand):
-                    for c in zone:
-                        cm = c.markers
-                        ct = (
-                            c.definition.title
-                            if (not cm or "_copied_definition" not in cm)
-                            else _effective_card_title(c)
-                        )
-                        if ct == "Wrestle the Kids":
-                            has_eod_hand = True
+        if cost > player.energy:
+            extra_e = _fast_extra_energy_support(
+                game, player_index, card, _ctx=_ctx, _in_hand=_in_hand
+            )
+            if cost > player.energy + extra_e:
+                if _has_eod_hand is None:
+                    has_eod_hand = False
+                    for zone in (player.played_today, player.hand):
+                        for c in zone:
+                            cm = c.markers
+                            ct = (
+                                c.definition.title
+                                if (not cm or "_copied_definition" not in cm)
+                                else _effective_card_title(c)
+                            )
+                            if ct == "Wrestle the Kids":
+                                has_eod_hand = True
+                                break
+                        if has_eod_hand:
                             break
-                    if has_eod_hand:
-                        break
-            else:
-                has_eod_hand = _has_eod_hand
-            if not has_eod_hand:
-                return -4.0
+                else:
+                    has_eod_hand = _has_eod_hand
+                if not has_eod_hand:
+                    return -4.0
     val = _hydrogen_quick_card_desirability(
         game,
         player_index,
@@ -3908,7 +4355,10 @@ def _evaluate_istanbul_discards_fast(
     if can_cache:
         for tc in live_player.tomorrow_cards:
             d_t = tc.definition
-            if tc.markers or (
+            if (
+                tc.markers
+                and not (tc.markers.keys() <= _ISTANBUL_TOM_SIMPLE_MARKER_KEYS)
+            ) or (
                 not is_can_sim
                 and (
                     (m_t := meta_by_slug.get(d_t.slug)) is None
@@ -3979,6 +4429,40 @@ def _evaluate_istanbul_discards_fast(
                 )
             else:
                 opp_key = ()
+            if (
+                type(game) is _HYDROGEN_SIM_GAME_CLS
+                and not (
+                    game._p_flags[player_index]  # type: ignore[attr-defined]
+                    & (
+                        _PF_ALL_TAGS
+                        | _PF_HAS_NONADD_FUN_MOD
+                        | _PF_HAS_NEXT_TAG_MOD
+                        | _PF_HAS_COPIED
+                    )
+                )
+                and live_player.played_today
+                and live_player.played_today[-1].definition.slug == "istanbul"
+            ):
+                prior_played = [
+                    (pc.definition.slug, bool(pc.markers.get("_gave_energy")))
+                    if pc.markers
+                    else (pc.definition.slug, False)
+                    for pc in live_player.played_today[:-1]
+                ]
+                prior_played.sort()
+                prev_bv = (
+                    len(live_player.played_today) >= 2
+                    and live_player.played_today[-2].definition.slug
+                    == "beach-volleyball"
+                )
+                played_key: tuple = (prev_bv, tuple(prior_played))
+            else:
+                played_key = tuple(
+                    (pc.definition.slug, bool(pc.markers.get("_gave_energy")))
+                    if pc.markers
+                    else pc.definition.slug
+                    for pc in live_player.played_today
+                )
             cache_key = (
                 game.day,
                 game.daily_condition,
@@ -3987,12 +4471,7 @@ def _evaluate_istanbul_discards_fast(
                 live_player.asleep,
                 opp_key,
                 tuple(tc.definition.slug for tc in live_player.tomorrow_cards),
-                tuple(
-                    (pc.definition.slug, bool(pc.markers.get("_gave_energy")))
-                    if pc.markers
-                    else pc.definition.slug
-                    for pc in live_player.played_today
-                ),
+                played_key,
                 tuple(c.definition.slug for c in options),
             )
             cached = _HYDROGEN_ISTANBUL_CACHE.get(cache_key)
@@ -4029,7 +4508,11 @@ def _evaluate_istanbul_discards_fast(
         for c in options
     ]
 
-    sim._sync_played_today_tags(player)
+    is_hsim = type(sim) is _HYDROGEN_SIM_GAME_CLS
+    if not is_hsim or (
+        sim._p_flags[player_index] & (_PF_ALL_TAGS | _PF_MAY_HAVE_TAG_MARKERS)
+    ):
+        sim._sync_played_today_tags(player)
     orig_played = tuple(player.played_today)
     pending_post_e = (
         2
@@ -4114,7 +4597,6 @@ def _evaluate_istanbul_discards_fast(
 
     orig_hand = player.hand
     sim_hand = list(sim_opts)
-    is_hsim = type(sim) is _HYDROGEN_SIM_GAME_CLS
     if is_hsim:
         sim._recompute_player_flags(player_index)  # type: ignore[attr-defined]
     try:
@@ -4130,7 +4612,7 @@ def _evaluate_istanbul_discards_fast(
         player.hand = sim_hand
         player.energy = eff_start_energy
         batch_costs = (
-            sim.cards_energy_costs(player_index, sim_opts)  # type: ignore[attr-defined]
+            sim.cards_energy_costs(player_index, sim_opts, _not_in_played=True)  # type: ignore[attr-defined]
             if is_hsim
             else None
         )
@@ -4891,9 +5373,8 @@ class _HydrogenEvalAI(_CarbonEvalAI):
         if not options:
             raise ValueError("No suitcase card option was supplied")
         player = game.players[player_index]
-        wanted_tags, ctx = _build_wanted_and_ctx(
-            player, getattr(game, "_all_canonical_defs", False)
-        )
+        is_hsim = type(game) is _HYDROGEN_SIM_GAME_CLS
+        is_can_sim = is_hsim and game._all_canonical_defs  # type: ignore[attr-defined]
         has_any_markers = False
         for opt in options:
             if opt.markers:
@@ -4909,16 +5390,104 @@ class _HydrogenEvalAI(_CarbonEvalAI):
             pr_markers = None
             scout_markers = None
 
-        is_hsim = type(game) is _HYDROGEN_SIM_GAME_CLS
-        is_can_sim = is_hsim and game._all_canonical_defs  # type: ignore[attr-defined]
-        costs = (
-            game.cards_energy_costs(player_index, options)  # type: ignore[attr-defined]
-            if is_hsim
-            else None
+        fast_sc_plain = (
+            is_can_sim
+            and not has_any_markers
+            and player.character is None
+            and game.daily_condition is None
+            and _ALL_CANONICAL_META_TAGS_OK
         )
+        meta_by_slug = _HYDROGEN_META_BY_SLUG
+        opt_metas_pre: list[_HydrogenDefnMeta] | None = None
+        if fast_sc_plain and not (game._p_flags[player_index] & _PF_HAS_COST_MOD):  # type: ignore[attr-defined]
+            opt_metas_pre = [meta_by_slug[c.definition.slug] for c in options]
+            costs: Sequence[int] | None = [
+                (
+                    game.energy_cost(player_index, c)
+                    if m_o.has_own_cost_mod
+                    else (m_o.cost if m_o.cost >= 0 else 0)
+                )
+                for c, m_o in zip(options, opt_metas_pre)
+            ]
+        elif is_hsim:
+            all_in_sc = (
+                len(options) == len(game.suitcase)
+                and all(a is b for a, b in zip(options, game.suitcase))
+            )
+            costs = game.cards_energy_costs(player_index, options, _not_in_played=all_in_sc)  # type: ignore[attr-defined]
+        else:
+            costs = None
         has_played = bool(player.played_today)
         p_energy = player.energy
-        meta_by_slug = _HYDROGEN_META_BY_SLUG
+        is_day6_sc = game.day >= DAY_COUNT
+
+        if (
+            fast_sc_plain
+            and costs is not None
+            and not game._has_nonplain_hand  # type: ignore[attr-defined]
+            and not (
+                game._p_flags[player_index]  # type: ignore[attr-defined]
+                & (_PF_HAS_COPIED | _PF_ALL_TAGS | _PF_MAY_HAVE_TAG_MARKERS)
+            )
+            and len(player.hand) < 250
+            and len(player.played_today) < 250
+            and all(not tc.markers for tc in player.tomorrow_cards)
+        ):
+            if opt_metas_pre is not None:
+                opt_metas = opt_metas_pre
+                all_q_const = True
+                for idx, m_opt in enumerate(opt_metas):
+                    if not m_opt.q_const_eligible or costs[idx] != m_opt.cost:
+                        all_q_const = False
+                        break
+            else:
+                opt_metas = []
+                all_q_const = True
+                for idx, card in enumerate(options):
+                    m_opt = meta_by_slug[card.definition.slug]
+                    if not m_opt.q_const_eligible or costs[idx] != m_opt.cost:
+                        all_q_const = False
+                        break
+                    opt_metas.append(m_opt)
+            if all_q_const:
+                sc_w_arr, sc_w_mask = _build_w_arr_only(player)
+                best_idx = 0
+                best_score = float("-inf")
+                for idx, card in enumerate(options):
+                    m_opt = opt_metas[idx]
+                    score = _eval_q_const_with_arr(
+                        m_opt, sc_w_arr, sc_w_mask, is_day6_sc
+                    )
+                    if has_played and m_opt.cost <= p_energy:
+                        can_p = (
+                            m_opt.beh.can_play(game, player, card)
+                            if m_opt.has_can_play
+                            else True
+                        )
+                        if can_p:
+                            score += 0.65
+                        elif is_day6_sc:
+                            score -= 3.0
+                    elif not has_played:
+                        score += _fast_morning_denial_value(
+                            game, player_index, card, m_opt
+                        )
+                    if score > best_score:
+                        best_score = score
+                        best_idx = idx
+                return best_idx
+
+        wanted_tags, ctx = _build_wanted_and_ctx(
+            player, is_can_sim, _build_dict=not fast_sc_plain
+        )
+        use_sc_const = (
+            fast_sc_plain
+            and costs is not None
+            and ctx.w_arr is not None
+            and ctx.wanted_ref is wanted_tags
+        )
+        sc_w_arr = ctx.w_arr if use_sc_const else None
+        sc_w_mask = ctx.w_mask if use_sc_const else 0
         best_idx = 0
         best_score = float("-inf")
         for idx, card in enumerate(options):
@@ -4938,17 +5507,27 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                 if costs is not None
                 else game.energy_cost(player_index, card)
             )
-            score = _hydrogen_quick_card_desirability(
-                game,
-                player_index,
-                card,
-                wanted_tags,
-                cost=cost,
-                prof=meta.prof if meta is not None else None,
-                _ctx=ctx,
-                _in_hand=False if not cm else None,
-                _meta=meta,
-            )
+            if (
+                use_sc_const
+                and meta is not None
+                and meta.q_const_eligible
+                and cost == meta.cost
+            ):
+                score = _eval_q_const_with_arr(
+                    meta, sc_w_arr, sc_w_mask, is_day6_sc  # type: ignore[arg-type]
+                )
+            else:
+                score = _hydrogen_quick_card_desirability(
+                    game,
+                    player_index,
+                    card,
+                    wanted_tags,
+                    cost=cost,
+                    prof=meta.prof if meta is not None else None,
+                    _ctx=ctx,
+                    _in_hand=False if not cm else None,
+                    _meta=meta,
+                )
             if has_played and cost <= p_energy:
                 can_p = (
                     (
@@ -5029,16 +5608,35 @@ class _HydrogenEvalAI(_CarbonEvalAI):
     ) -> int:
         if not options:
             raise ValueError("No discard option was supplied")
+        if len(options) == 1:
+            return 0
         player = game.players[player_index]
-        wanted_tags, ctx = _build_wanted_and_ctx(
-            player, getattr(game, "_all_canonical_defs", False)
-        )
         last_played = (
             _effective_card_title(player.played_today[-1])
             if player.played_today
             else ""
         )
-        if last_played in {"Tell a Story", "Last Year's Shirt"} and len(options) >= 2:
+        is_trunk_setup = (
+            last_played in {"Tell a Story", "Last Year's Shirt"}
+            and len(options) >= 2
+        )
+        has_trunk_payoff = is_trunk_setup and any(
+            c.title in ("Assorted Cutlery", "Bougie Coffee Machine")
+            for c in options
+        )
+        is_hsim_d = type(game) is _HYDROGEN_SIM_GAME_CLS
+        is_canon_d = is_hsim_d and game._all_canonical_defs  # type: ignore[attr-defined]
+        p_hand = player.hand
+        all_in_hand = len(options) == len(p_hand) and all(
+            a is b for a, b in zip(options, p_hand)
+        )
+        plain_opts = is_canon_d and all_in_hand and not game._has_nonplain_hand  # type: ignore[attr-defined]
+        wanted_tags, ctx = _build_wanted_and_ctx(
+            player,
+            is_canon_d,
+            _build_dict=(has_trunk_payoff or not plain_opts),
+        )
+        if has_trunk_payoff:
             has_epic_duels = any(
                 _effective_card_title(pc) == "Epic Duels"
                 for pc in player.played_today
@@ -5135,9 +5733,8 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                     if best_f_i is not None and best_f_net >= 1.8:
                         return best_f_i
 
-        is_hsim_d = type(game) is _HYDROGEN_SIM_GAME_CLS
         opt_costs = (
-            game.cards_energy_costs(player_index, options)  # type: ignore[attr-defined]
+            game.cards_energy_costs(player_index, options, _not_in_played=all_in_hand)  # type: ignore[attr-defined]
             if is_hsim_d
             else None
         )
@@ -5159,16 +5756,116 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                     break
         best_disc_i = 0
         best_disc_v = float("inf")
+        seen_u_defs: set[int] = set()
+        meta_by_slug = _HYDROGEN_META_BY_SLUG
+        in_hand_arg = True if all_in_hand else None
+        is_day6_d = game.day >= DAY_COUNT
+        fast_plain_keep = (
+            plain_opts
+            and opt_costs is not None
+            and player.character is None
+            and game.daily_condition is None
+            and _ALL_CANONICAL_META_TAGS_OK
+            and ctx.wanted_ref is wanted_tags
+            and ctx.w_arr is not None
+        )
+        w_arr = ctx.w_arr if fast_plain_keep else None
+        w_mask = ctx.w_mask if fast_plain_keep else 0
+        p_e = player.energy
         for i, opt_c in enumerate(options):
-            v = _hydrogen_hand_keep_value(
-                game,
-                player_index,
-                opt_c,
-                wanted_tags,
-                cost=opt_costs[i] if opt_costs is not None else None,
-                _ctx=ctx,
-                _has_eod_hand=eod_h,
-            )
+            if all_in_hand and not opt_c.markers and not opt_c.is_tomorrow:
+                did = id(opt_c.definition)
+                if did in seen_u_defs:
+                    continue
+                seen_u_defs.add(did)
+            if fast_plain_keep:
+                m_opt = meta_by_slug[opt_c.definition.slug]
+                c_i = opt_costs[i]  # type: ignore[index]
+                if m_opt.q_const_eligible and c_i == m_opt.cost:
+                    can_play_now = (
+                        m_opt.beh.can_play(game, player, opt_c)
+                        if m_opt.has_can_play
+                        else True
+                    )
+                    if is_day6_d and not can_play_now:
+                        v = -5.0
+                    elif is_day6_d and c_i > p_e and (
+                        c_i
+                        > p_e
+                        + _fast_extra_energy_support(
+                            game, player_index, opt_c, _ctx=ctx, _in_hand=True
+                        )
+                    ) and not eod_h:
+                        v = -4.0
+                    else:
+                        val_q = _eval_q_const_with_arr(
+                            m_opt, w_arr, w_mask, is_day6_d  # type: ignore[arg-type]
+                        )
+                        if not can_play_now:
+                            val_q -= 1.25
+                        elif c_i <= p_e:
+                            val_q += 0.45
+                        v = val_q
+                elif (
+                    not is_day6_d
+                    and not m_opt.q_early_flags
+                    and not m_opt.q_late_flags
+                    and m_opt.h_qcode == _HQ_NONE
+                ):
+                    val_q = (m_opt.q_fun_term - c_i * 0.78) + m_opt.q_imm_e_term
+                    if w_mask & m_opt.tag_mask:
+                        tm_q = 0.0
+                        if c_i <= 1:
+                            for b_q in m_opt.sorted_tag_bits:
+                                wq = w_arr[b_q]  # type: ignore[index]
+                                if wq != 0.0:
+                                    tm_q += wq * 0.78
+                                    if wq > 0.0:
+                                        tm_q += 0.38 * (wq if wq < 2.5 else 2.5)
+                        else:
+                            for b_q in m_opt.sorted_tag_bits:
+                                wq = w_arr[b_q]  # type: ignore[index]
+                                if wq != 0.0:
+                                    tm_q += wq * 0.78
+                        if m_opt.must_play_first and tm_q > 0.0:
+                            tm_q *= 0.30
+                        val_q += tm_q
+                    if c_i <= 1 and m_opt.base_fun >= 0:
+                        val_q += 0.65 if c_i == 0 else 0.25
+                    can_play_now = (
+                        m_opt.beh.can_play(game, player, opt_c)
+                        if m_opt.has_can_play
+                        else True
+                    )
+                    if not can_play_now:
+                        val_q -= 1.25
+                    elif c_i <= p_e:
+                        val_q += 0.45
+                    v = val_q
+                else:
+                    v = _hydrogen_hand_keep_value(
+                        game,
+                        player_index,
+                        opt_c,
+                        wanted_tags,
+                        cost=c_i,
+                        _ctx=ctx,
+                        _in_hand=in_hand_arg,
+                        _meta=m_opt,
+                        _has_eod_hand=eod_h,
+                    )
+            else:
+                v = _hydrogen_hand_keep_value(
+                    game,
+                    player_index,
+                    opt_c,
+                    wanted_tags,
+                    cost=opt_costs[i] if opt_costs is not None else None,
+                    _ctx=ctx,
+                    _in_hand=in_hand_arg,
+                    _meta=meta_by_slug[opt_c.definition.slug] if plain_opts else None,
+                    _has_eod_hand=eod_h,
+                )
             if v < best_disc_v:
                 best_disc_v = v
                 best_disc_i = i
@@ -5195,12 +5892,18 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                 game, player_index, options
             )
         if last_played == "Navy SEALing":
+            is_hsim_ns = type(game) is _HYDROGEN_SIM_GAME_CLS
+            all_in_hand_ns = len(options) == len(player.hand) and all(
+                a is b for a, b in zip(options, player.hand)
+            )
             wanted_tags, ctx = _build_wanted_and_ctx(
                 player, getattr(game, "_all_canonical_defs", False)
             )
             opt_costs_ns = (
-                game.cards_energy_costs(player_index, options)  # type: ignore[attr-defined]
-                if type(game) is _HYDROGEN_SIM_GAME_CLS
+                game.cards_energy_costs(
+                    player_index, options, _not_in_played=all_in_hand_ns
+                )  # type: ignore[attr-defined]
+                if is_hsim_ns
                 else None
             )
             eod_ns: bool | None = None
@@ -5418,7 +6121,31 @@ class _HydrogenEvalAI(_CarbonEvalAI):
         if not cards:
             return ()
         player = game.players[player_index]
-        wanted_tags = _wanted_tags_for_player_fast(player)
+        is_hsim = type(game) is _HYDROGEN_SIM_GAME_CLS
+        is_canon = is_hsim and game._all_canonical_defs  # type: ignore[attr-defined]
+        wanted_tags, ctx = _build_wanted_and_ctx(player, is_canon)
+        costs = game.cards_energy_costs(player_index, cards) if is_hsim else None  # type: ignore[attr-defined]
+        meta_by_slug = _HYDROGEN_META_BY_SLUG
+        metas = (
+            [
+                meta_by_slug.get(c.definition.slug) if not c.markers else None
+                for c in cards
+            ]
+            if is_canon
+            else None
+        )
+
+        def _quick(i: int) -> float:
+            return _hydrogen_quick_card_desirability(
+                game,
+                player_index,
+                cards[i],
+                wanted_tags,
+                cost=costs[i] if costs is not None else None,
+                _ctx=ctx,
+                _in_hand=False,
+                _meta=metas[i] if metas is not None else None,
+            )
 
         has_cutlery = False
         has_bcm = False
@@ -5448,18 +6175,11 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                 rest.sort(
                     key=lambda i: (
                         "Outdoors" in cards[i].tags,
-                        _hydrogen_quick_card_desirability(
-                            game, player_index, cards[i], wanted_tags
-                        ),
+                        _quick(i),
                     )
                 )
             else:
-                rest.sort(
-                    key=lambda i: _hydrogen_quick_card_desirability(
-                        game, player_index, cards[i], wanted_tags
-                    ),
-                    reverse=True,
-                )
+                rest.sort(key=_quick, reverse=True)
             order = [best_top, *rest]
         elif has_bcm:
             order = sorted(
@@ -5470,9 +6190,7 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                     )
                     + 2.5
                     if "Food" in cards[i].tags
-                    else _hydrogen_quick_card_desirability(
-                        game, player_index, cards[i], wanted_tags
-                    )
+                    else _quick(i)
                 ),
                 reverse=True,
             )
@@ -5481,19 +6199,11 @@ class _HydrogenEvalAI(_CarbonEvalAI):
                 indices,
                 key=lambda i: (
                     "Outdoors" in cards[i].tags,
-                    _hydrogen_quick_card_desirability(
-                        game, player_index, cards[i], wanted_tags
-                    ),
+                    _quick(i),
                 ),
             )
         else:
-            order = sorted(
-                indices,
-                key=lambda i: _hydrogen_quick_card_desirability(
-                    game, player_index, cards[i], wanted_tags
-                ),
-                reverse=True,
-            )
+            order = sorted(indices, key=_quick, reverse=True)
 
         if game.stats is _get_shared_sim_stats():
             prev_state = getattr(game, "_known_trunk_state", None)
@@ -5541,6 +6251,11 @@ def _compute_player_board_flags(p: PlayerState) -> int:
     flags = 0
     for tc in p.tomorrow_cards:
         tm = tc.markers
+        if tm:
+            if "_all_tags" in tm or "_extra_tags" in tm:
+                flags |= _PF_MAY_HAVE_TAG_MARKERS
+            if "_copied_definition" in tm:
+                flags |= _PF_HAS_COPIED | _PF_HAS_SIG_MARKER
         if not tm or "_copied_definition" not in tm:
             d = tc.definition
             tmeta = meta_by_slug.get(d.slug)
@@ -5549,6 +6264,8 @@ def _compute_player_board_flags(p: PlayerState) -> int:
                 continue
         flags |= _get_card_meta(tc).tom_board_flags
     for pc in p.played_today:
+        if pc.is_tomorrow:
+            flags |= _PF_HAS_PLAYED_IS_TOM
         pm = pc.markers
         if not pm:
             d = pc.definition
@@ -5557,6 +6274,10 @@ def _compute_player_board_flags(p: PlayerState) -> int:
                 flags |= pmeta.played_board_flags
                 continue
         else:
+            if pm.get("_gave_energy"):
+                flags |= _PF_GAVE_ENERGY
+            if "_all_tags" in pm or "_extra_tags" in pm:
+                flags |= _PF_MAY_HAVE_TAG_MARKERS
             if "_blind_poker" in pm or "_blind_quacks" in pm:
                 flags |= _PF_HAS_LOOP2
             if "_copied_definition" in pm:
@@ -5578,6 +6299,113 @@ def _compute_player_board_flags(p: PlayerState) -> int:
                     continue
         flags |= _get_card_meta(pc).played_board_flags
     return flags
+
+
+def _cheesy_phone_game_bonus(
+    sim: Game,
+    player: PlayerState,
+    meta_by_slug: dict[str, _HydrogenDefnMeta],
+) -> int:
+    relax_opps = 0
+    opp_cnt = 0
+    for opp in sim.players:
+        if opp is player:
+            continue
+        opp_cnt += 1
+        for oc in opp.played_today:
+            om = oc.markers
+            if not om:
+                if meta_by_slug[oc.definition.slug].tag_mask & _MASK_RELAX:
+                    relax_opps += 1
+                    break
+            elif "_all_tags" in om and om["_all_tags"]:
+                relax_opps += 1
+                break
+            elif "_extra_tags" in om and om["_extra_tags"]:
+                if "Relax" in oc.tags:
+                    relax_opps += 1
+                    break
+            elif meta_by_slug[oc.definition.slug].tag_mask & _MASK_RELAX:
+                relax_opps += 1
+                break
+    return 3 if relax_opps * 2 >= opp_cnt else 0
+
+
+def _inline_own_cost_mod(
+    sim: Game,
+    player: PlayerState,
+    card: CardInstance,
+    c_meta: _HydrogenDefnMeta,
+    cost: int,
+    pf: int,
+    is_canon: bool,
+    meta_by_slug: dict[str, _HydrogenDefnMeta],
+    not_in_played: bool,
+) -> int:
+    """Inline Classic Book and Sing Song own-cost modifiers without Python method dispatch."""
+    ocm = c_meta.own_cost_mod_kind
+    if (
+        ocm == _OCM_CLASSIC_BOOK
+        and not_in_played
+        and is_canon
+        and not (pf & _PF_ALL_TAGS)
+    ):
+        relax_cnt = 0
+        for pc in player.played_today:
+            pm = pc.markers
+            if not pm:
+                if meta_by_slug[pc.definition.slug].tag_mask & _MASK_RELAX:
+                    relax_cnt += 1
+            elif "_all_tags" in pm and pm["_all_tags"]:
+                relax_cnt += 1
+            elif "_extra_tags" in pm and pm["_extra_tags"]:
+                if "Relax" in pc.tags:
+                    relax_cnt += 1
+            elif meta_by_slug[pc.definition.slug].tag_mask & _MASK_RELAX:
+                relax_cnt += 1
+        return cost - relax_cnt
+    if ocm == _OCM_SING_SONG and is_canon:
+        soc_opps = 0
+        for opp in sim.players:
+            if opp is player:
+                continue
+            for oc in opp.played_today:
+                om = oc.markers
+                if not om:
+                    if meta_by_slug[oc.definition.slug].tag_mask & _MASK_SOCIAL:
+                        soc_opps += 1
+                        break
+                elif "_all_tags" in om and om["_all_tags"]:
+                    soc_opps += 1
+                    break
+                elif "_extra_tags" in om and om["_extra_tags"]:
+                    if "Social" in oc.tags:
+                        soc_opps += 1
+                        break
+                elif meta_by_slug[oc.definition.slug].tag_mask & _MASK_SOCIAL:
+                    soc_opps += 1
+                    break
+        return cost - soc_opps
+    return c_meta.beh.modify_own_energy_cost(sim, player, card, cost)
+
+
+def _apply_tom_first_ops(
+    val: int,
+    t_mask: int,
+    tom_first_ops: list[tuple[int, int, int]],
+) -> int:
+    for tk_o, tm_m, tm_p in tom_first_ops:
+        if tk_o == _TMF_FIRST_MUL2:
+            val *= 2
+        elif tk_o == _TMF_ALL_ADD:
+            val += tm_p
+        elif tk_o == _TMF_TAG_ADD:
+            if t_mask & tm_m:
+                val += tm_p
+        elif tk_o == _TMF_FIRST_OUTDOORS:
+            if t_mask & _MASK_OUTDOORS:
+                val += tm_p
+    return val
 
 
 def _get_hydrogen_sim_game_cls() -> type:
@@ -5803,10 +6631,87 @@ def _get_hydrogen_sim_game_cls() -> type:
             self._recompute_all_flags()
 
         def card_fun(self, player_index: int, target: CardInstance) -> int:
-            if self._played_items_shared and player_index == self._cow_acting_idx:
-                if self._p_flags[player_index] & _PF_ALL_TAGS:
-                    self._unshare_played_items()
-            return super().card_fun(player_index, target)
+            if target.is_tomorrow:
+                return 0
+            player = self.players[player_index]
+            pf = self._p_flags[player_index]
+            if pf & (_PF_ALL_TAGS | _PF_MAY_HAVE_TAG_MARKERS):
+                t_pos = -1
+                for i_p, played_card in enumerate(player.played_today):
+                    if played_card is target:
+                        t_pos = i_p
+                        break
+                if t_pos >= 0:
+                    if self._shared_opp_mask & (1 << player_index):
+                        player = self._unshare_opp(player_index)
+                        target = player.played_today[t_pos]
+                    elif (
+                        self._played_items_shared
+                        and player_index == self._cow_acting_idx
+                    ):
+                        self._unshare_played_items()
+                        target = player.played_today[t_pos]
+                    self._sync_played_today_tags(player)
+            tm = target.markers
+            if (
+                self._all_canonical_defs
+                and (not tm or "_copied_definition" not in tm)
+            ):
+                t_meta = _HYDROGEN_META_BY_SLUG[target.definition.slug]
+                value = (
+                    t_meta.beh.fun_value(self, player, target)
+                    if t_meta.has_fun_val
+                    else t_meta.base_fun
+                )
+            else:
+                t_defn = target.definition if not tm else target.effective_definition
+                t_beh = t_defn.behavior
+                value = (
+                    t_defn.base_fun
+                    if type(t_beh).fun_value is CardBehavior.fun_value
+                    else t_beh.fun_value(self, player, target)
+                )
+            cond = self.daily_condition
+            char = player.character
+            has_tom_f = bool(pf & _PF_HAS_TOM_FUN_MOD) and bool(player.tomorrow_cards)
+            has_played_f = bool(pf & _PF_HAS_FUN_MOD) and bool(player.played_today)
+            if cond is None and char is None and not has_tom_f and not has_played_f:
+                return value
+            t_tags = target.tags if tm else target.definition.tags
+            if cond is not None:
+                value = cond.modify_fun(t_tags, value)
+            if char is not None:
+                value = char.modify_fun(t_tags, value)
+            if has_tom_f:
+                for source in player.tomorrow_cards:
+                    sm = source.markers
+                    s_beh = (
+                        source.definition.behavior
+                        if (not sm or "_copied_definition" not in sm)
+                        else source.effective_behavior
+                    )
+                    if (
+                        type(s_beh).modify_tomorrow_fun
+                        is not CardBehavior.modify_tomorrow_fun
+                    ):
+                        value = s_beh.modify_tomorrow_fun(
+                            self, player, source, target, value
+                        )
+            if has_played_f:
+                for source in player.played_today:
+                    sm = source.markers
+                    s_beh = (
+                        source.definition.behavior
+                        if (not sm or "_copied_definition" not in sm)
+                        else source.effective_behavior
+                    )
+                    if type(s_beh).modify_fun is not CardBehavior.modify_fun:
+                        value = s_beh.modify_fun(
+                            self, player, source, target, value
+                        )
+            if char is not None:
+                value = char.finalize_fun(t_tags, value)
+            return value
 
         def give_card(self, player_index: int, card: CardInstance) -> None:
             cm = card.markers
@@ -5901,6 +6806,8 @@ def _get_hydrogen_sim_game_cls() -> type:
                                 source = played[i_s]
                                 break
                     source.markers["_gave_energy"] = True
+                    if p_idx >= 0:
+                        self._p_flags[p_idx] |= _PF_GAVE_ENERGY
                 return
             if amount < 0:
                 if self._shared_opp_mask:
@@ -5921,7 +6828,8 @@ def _get_hydrogen_sim_game_cls() -> type:
             c_meta: _HydrogenDefnMeta,
             cost: int,
         ) -> CardInstance:
-            self._capture_day_start_fun()
+            if self._fun_at_start_of_day is None:
+                self._capture_day_start_fun()
             player.energy -= cost
             player.hand.pop(hand_index)
             rm = raw_card.markers
@@ -5949,8 +6857,10 @@ def _get_hydrogen_sim_game_cls() -> type:
                     for c in player.hand
                 ]
             pf = self._p_flags[player_index] | c_meta.played_board_flags
+            if card.is_tomorrow:
+                pf |= _PF_HAS_PLAYED_IS_TOM
             self._p_flags[player_index] = pf
-            is_bohnanza = type(c_meta.beh).__name__ == "BohnanzaBehavior"
+            is_bohnanza = type(c_meta.beh) is BohnanzaBehavior
             if self._played_items_shared and (
                 (pf & (_PF_ALL_TAGS | _PF_HAS_CARD_PLAY | _PF_HAS_ACQUIRE | _PF_HAS_PICK))
                 or is_bohnanza
@@ -5970,35 +6880,87 @@ def _get_hydrogen_sim_game_cls() -> type:
                             ):
                                 self._has_nonplain_hand = True
                 if is_bohnanza:
-                    self._sync_played_today_tags(player)
+                    if pf & (_PF_ALL_TAGS | _PF_MAY_HAVE_TAG_MARKERS):
+                        self._sync_played_today_tags(player)
                     self._recompute_player_flags(player_index)
                 pf = self._p_flags[player_index]
             if (pf & _PF_HAS_TOM_PLAY) and player.tomorrow_cards:
-                for source in tuple(player.tomorrow_cards):
-                    sm = source.markers
-                    s_beh = (
-                        source.definition.behavior
-                        if (not sm or "_copied_definition" not in sm)
-                        else source.effective_behavior
-                    )
-                    if (
-                        type(s_beh).on_tomorrow_card_play
-                        is not CardBehavior.on_tomorrow_card_play
-                    ):
-                        s_beh.on_tomorrow_card_play(
-                            self, player, source, card
+                skip_photo_loop = False
+                if (
+                    not (pf & (_PF_HAS_GENERIC_TOM_PLAY | _PF_ALL_TAGS))
+                    and self._all_canonical_defs
+                ):
+                    cm_t = card.markers
+                    if not (
+                        cm_t
+                        and (
+                            ("_all_tags" in cm_t and cm_t["_all_tags"])
+                            or ("_extra_tags" in cm_t and cm_t["_extra_tags"])
                         )
-                pf = self._p_flags[player_index]
+                    ):
+                        if not (
+                            _HYDROGEN_META_BY_SLUG[card.definition.slug].tag_mask
+                            & (_MASK_SOCIAL | _MASK_RELAX)
+                        ):
+                            skip_photo_loop = True
+                if not skip_photo_loop:
+                    for source in tuple(player.tomorrow_cards):
+                        sm = source.markers
+                        s_beh = (
+                            source.definition.behavior
+                            if (not sm or "_copied_definition" not in sm)
+                            else source.effective_behavior
+                        )
+                        if (
+                            type(s_beh).on_tomorrow_card_play
+                            is not CardBehavior.on_tomorrow_card_play
+                        ):
+                            s_beh.on_tomorrow_card_play(
+                                self, player, source, card
+                            )
+                    pf = self._p_flags[player_index]
             if pf & _PF_HAS_CARD_PLAY:
                 if self._played_items_shared:
                     self._unshare_played_items()
-                for source in tuple(player.played_today):
+                played_now = player.played_today
+                card_is_last = bool(played_now) and played_now[-1] is card
+                cm_c = card.markers
+                if (
+                    not (pf & _PF_ALL_TAGS)
+                    and self._all_canonical_defs
+                    and not (
+                        cm_c
+                        and (
+                            ("_all_tags" in cm_c and cm_c["_all_tags"])
+                            or ("_extra_tags" in cm_c and cm_c["_extra_tags"])
+                        )
+                    )
+                ):
+                    card_has_euchre_tag: bool | None = bool(
+                        _HYDROGEN_META_BY_SLUG[card.definition.slug].tag_mask
+                        & (_MASK_FOOD | _MASK_BOARD_GAME)
+                    )
+                else:
+                    card_has_euchre_tag = None
+                for source in tuple(played_now):
                     sm = source.markers
                     s_beh = (
                         source.definition.behavior
                         if (not sm or "_copied_definition" not in sm)
                         else source.effective_behavior
                     )
+                    if type(s_beh) is EuchreTournamentAwardsCeremonyBehavior:
+                        if source is card or card_has_euchre_tag is False:
+                            continue
+                        if (
+                            card_has_euchre_tag is True
+                            and card_is_last
+                            and player.played_today
+                            and player.played_today[-1] is card
+                            and source in player.played_today
+                        ):
+                            self.pick_from_suitcase(player_index)
+                            continue
                     if type(s_beh).on_card_play is not CardBehavior.on_card_play:
                         s_beh.on_card_play(self, player, source, card)
             cm = card.markers
@@ -6009,7 +6971,7 @@ def _get_hydrogen_sim_game_cls() -> type:
                     self._p_flags[player_index] |= (
                         _PF_HAS_COPIED | _PF_HAS_SIG_MARKER
                     )
-                elif (
+                elif not _SIG_MARKER_KEYS.isdisjoint(cm) and (
                     cm.get("energy_cubes")
                     or cm.get("_ski_on_shoulders_energy_cube")
                     or cm.get("discarded_card")
@@ -6042,7 +7004,10 @@ def _get_hydrogen_sim_game_cls() -> type:
             )
 
         def play_card_known_cost(
-            self, player_index: int, hand_index: int, cost: int
+            self,
+            player_index: int,
+            hand_index: int,
+            cost: int,
         ) -> CardInstance:
             player = self.players[player_index]
             raw_card = player.hand[hand_index]
@@ -6056,7 +7021,12 @@ def _get_hydrogen_sim_game_cls() -> type:
                 else _get_card_meta(raw_card)
             )
             return self._finish_play_card_idx(
-                player_index, player, hand_index, raw_card, c_meta, cost
+                player_index,
+                player,
+                hand_index,
+                raw_card,
+                c_meta,
+                cost,
             )
 
         def play_card_for_effect(
@@ -6407,7 +7377,11 @@ def _get_hydrogen_sim_game_cls() -> type:
             return mods
 
         def cards_energy_costs(
-            self, player_index: int, cards: Sequence[CardInstance]
+            self,
+            player_index: int,
+            cards: Sequence[CardInstance],
+            *,
+            _not_in_played: bool = False,
         ) -> list[int]:
             player = self.players[player_index]
             pf = self._p_flags[player_index]
@@ -6417,6 +7391,11 @@ def _get_hydrogen_sim_game_cls() -> type:
                 meta_by_slug = _HYDROGEN_META_BY_SLUG
                 is_canon = self._all_canonical_defs
                 has_board_mods = bool(pf & _PF_HAS_COST_MOD)
+                not_in_played = (
+                    _not_in_played
+                    or (cards is player.hand)
+                    or (cards is self.suitcase)
+                )
                 if cond is None and char is None and not has_board_mods:
                     out_fast: list[int] = []
                     for card in cards:
@@ -6427,9 +7406,19 @@ def _get_hydrogen_sim_game_cls() -> type:
                             else _get_card_meta(card)
                         )
                         cost = c_meta.cost
+                        if cost < 0:
+                            cost = 0
                         if c_meta.has_own_cost_mod:
-                            cost = c_meta.beh.modify_own_energy_cost(
-                                self, player, card, cost
+                            cost = _inline_own_cost_mod(
+                                self,
+                                player,
+                                card,
+                                c_meta,
+                                cost,
+                                pf,
+                                is_canon,
+                                meta_by_slug,
+                                not_in_played,
                             )
                         out_fast.append(cost if cost >= 0 else 0)
                     return out_fast
@@ -6441,10 +7430,9 @@ def _get_hydrogen_sim_game_cls() -> type:
                     char_e_mask = 0
                     char_e_delta = 0
                     char_custom = False
-                if (
-                    is_canon
-                    and not char_custom
-                    and not any(
+                has_tag_mods_in_cards = (
+                    not (cards is player.hand and not self._has_nonplain_hand)
+                    and any(
                         c.markers
                         and (
                             ("_all_tags" in c.markers and c.markers["_all_tags"])
@@ -6452,9 +7440,15 @@ def _get_hydrogen_sim_game_cls() -> type:
                         )
                         for c in cards
                     )
-                    and not (
-                        (pf & _PF_HAS_PLAYED_COST_MOD)
-                        and any(pc is c for pc in player.played_today for c in cards)
+                )
+                if (
+                    is_canon
+                    and not char_custom
+                    and not has_tag_mods_in_cards
+                    and (
+                        not_in_played
+                        or not (pf & _PF_HAS_PLAYED_COST_MOD)
+                        or not any(pc is c for pc in player.played_today for c in cards)
                     )
                 ):
                     b_mods = (
@@ -6490,8 +7484,16 @@ def _get_hydrogen_sim_game_cls() -> type:
                             if cost < 0:
                                 cost = 0
                         if c_meta.has_own_cost_mod:
-                            cost = c_meta.beh.modify_own_energy_cost(
-                                self, player, card, cost
+                            cost = _inline_own_cost_mod(
+                                self,
+                                player,
+                                card,
+                                c_meta,
+                                cost,
+                                pf,
+                                is_canon,
+                                meta_by_slug,
+                                not_in_played,
                             )
                             if cost < 0:
                                 cost = 0
@@ -6680,9 +7682,19 @@ def _get_hydrogen_sim_game_cls() -> type:
                             ):
                                 continue
                             cost = c_meta.cost
+                            if cost < 0:
+                                cost = 0
                             if c_meta.has_own_cost_mod:
-                                cost = c_meta.beh.modify_own_energy_cost(
-                                    self, player, card, cost
+                                cost = _inline_own_cost_mod(
+                                    self,
+                                    player,
+                                    card,
+                                    c_meta,
+                                    cost,
+                                    pf,
+                                    True,
+                                    meta_by_slug,
+                                    True,
                                 )
                             if cost < 0:
                                 cost = 0
@@ -6717,8 +7729,16 @@ def _get_hydrogen_sim_game_cls() -> type:
                                 if cost < 0:
                                     cost = 0
                             if c_meta.has_own_cost_mod:
-                                cost = c_meta.beh.modify_own_energy_cost(
-                                    self, player, card, cost
+                                cost = _inline_own_cost_mod(
+                                    self,
+                                    player,
+                                    card,
+                                    c_meta,
+                                    cost,
+                                    pf,
+                                    True,
+                                    meta_by_slug,
+                                    True,
                                 )
                                 if cost < 0:
                                     cost = 0
@@ -6894,7 +7914,12 @@ def _get_hydrogen_sim_game_cls() -> type:
                         for s in player.played_today
                     )
                     if pf & _PF_HAS_PLAYED_COST_MOD:
-                        if self._played_items_shared:
+                        if self._shared_opp_mask & (1 << player_index):
+                            player = self._unshare_opp(player_index)
+                        elif (
+                            self._played_items_shared
+                            and player_index == self._cow_acting_idx
+                        ):
                             self._unshare_played_items()
                         self._sync_played_today_tags(player)
                     b_mods = self._resolve_board_cost_mods(player, pf)
@@ -6950,13 +7975,19 @@ def _get_hydrogen_sim_game_cls() -> type:
             cond = self.daily_condition
             char = player.character
             pf = self._p_flags[player_index]
-            if not (pf & _PF_ALL_TAGS):
+            if (pf & _PF_MAY_HAVE_TAG_MARKERS) and not (pf & _PF_ALL_TAGS):
                 for idx_chk in range(n_played):
                     cm_chk = played[idx_chk].markers
                     if cm_chk and (
                         "_all_tags" in cm_chk or "_extra_tags" in cm_chk
                     ):
-                        if self._played_items_shared:
+                        if self._shared_opp_mask & (1 << player_index):
+                            player = self._unshare_opp(player_index)
+                            played = player.played_today
+                        elif (
+                            self._played_items_shared
+                            and player_index == self._cow_acting_idx
+                        ):
                             self._unshare_played_items()
                             played = player.played_today
                         played[idx_chk].markers.pop("_all_tags", None)
@@ -6987,12 +8018,17 @@ def _get_hydrogen_sim_game_cls() -> type:
                     char_zero_mask = 0
                     char_custom = False
                 if not cond_custom and not char_custom:
+                    has_gave_e = bool(pf & _PF_GAVE_ENERGY)
+                    seen_gave_e = False
+                    cpg_bonus: int | None = None
                     has_tom_f = bool(pf & _PF_HAS_TOM_FUN_MOD) and bool(
                         player.tomorrow_cards
                     )
                     tom_all_f = 0
                     tom_first_out_f = 0
                     tom_tag_f: list[tuple[int, int]] | None = None
+                    has_tom_first_mul2 = False
+                    tom_first_ops: list[tuple[int, int, int]] | None = None
                     if has_tom_f:
                         for tc_s in player.tomorrow_cards:
                             tcm = tc_s.markers
@@ -7021,6 +8057,27 @@ def _get_hydrogen_sim_game_cls() -> type:
                                 tom_first_out_f += tc_meta.tom_mod_fun_param
                             elif tk == _TMF_ALL_ADD:
                                 tom_all_f += tc_meta.tom_mod_fun_param
+                            elif tk == _TMF_FIRST_MUL2:
+                                has_tom_first_mul2 = True
+                        if has_tom_first_mul2 and len(player.tomorrow_cards) > 1:
+                            ops_tom: list[tuple[int, int, int]] = []
+                            for tc_s in player.tomorrow_cards:
+                                tcm = tc_s.markers
+                                tc_meta = (
+                                    meta_by_slug[tc_s.definition.slug]
+                                    if (not tcm or "_copied_definition" not in tcm)
+                                    else _get_card_meta(tc_s)
+                                )
+                                tk = tc_meta.tom_mod_fun_kind
+                                if tk != _TMF_NONE:
+                                    ops_tom.append(
+                                        (
+                                            tk,
+                                            tc_meta.tom_mod_fun_mask,
+                                            tc_meta.tom_mod_fun_param,
+                                        )
+                                    )
+                            tom_first_ops = ops_tom
                     plain_cc = (
                         not cond_f_mask
                         and not char_f_mask
@@ -7032,44 +8089,93 @@ def _get_hydrogen_sim_game_cls() -> type:
                         if not (pf & (_PF_HAS_COPIED | _PF_HAS_TOM_ACTION)):
                             scored_u = 0
                             if plain_cc:
+                                if not (pf & (_PF_HAS_FUN_VAL | _PF_HAS_PLAYED_IS_TOM)):
+                                    for target in played:
+                                        scored_u += target.definition.base_fun
+                                    return scored_u, []
                                 for target in played:
                                     if not target.is_tomorrow:
                                         t_meta = meta_by_slug[target.definition.slug]
-                                        scored_u += (
-                                            t_meta.beh.fun_value(self, player, target)
-                                            if t_meta.has_fun_val
-                                            else t_meta.base_fun
-                                        )
+                                        fvk = t_meta.fun_val_kind
+                                        if fvk == _FV_NONE:
+                                            scored_u += t_meta.base_fun
+                                        elif fvk == _FV_BUBLY:
+                                            scored_u += t_meta.base_fun + (
+                                                2 if seen_gave_e else 0
+                                            )
+                                        elif fvk == _FV_CHEESY_PHONE:
+                                            if cpg_bonus is None:
+                                                cpg_bonus = _cheesy_phone_game_bonus(
+                                                    self, player, meta_by_slug
+                                                )
+                                            scored_u += t_meta.base_fun + cpg_bonus
+                                        else:
+                                            scored_u += t_meta.beh.fun_value(
+                                                self, player, target
+                                            )
+                                    if (
+                                        has_gave_e
+                                        and not seen_gave_e
+                                        and target.markers
+                                        and target.markers.get("_gave_energy")
+                                    ):
+                                        seen_gave_e = True
                                 return scored_u, []
                             for t_i in range(n_played):
                                 target = played[t_i]
                                 if not target.is_tomorrow:
                                     t_meta = meta_by_slug[target.definition.slug]
-                                    val = (
-                                        t_meta.beh.fun_value(self, player, target)
-                                        if t_meta.has_fun_val
-                                        else t_meta.base_fun
-                                    )
+                                    fvk = t_meta.fun_val_kind
+                                    if fvk == _FV_NONE:
+                                        val = t_meta.base_fun
+                                    elif fvk == _FV_BUBLY:
+                                        val = t_meta.base_fun + (
+                                            2 if seen_gave_e else 0
+                                        )
+                                    elif fvk == _FV_CHEESY_PHONE:
+                                        if cpg_bonus is None:
+                                            cpg_bonus = _cheesy_phone_game_bonus(
+                                                self, player, meta_by_slug
+                                            )
+                                        val = t_meta.base_fun + cpg_bonus
+                                    else:
+                                        val = t_meta.beh.fun_value(self, player, target)
                                     t_mask = t_meta.tag_mask
                                     if cond_f_mask and (t_mask & cond_f_mask):
                                         val += cond_f_delta
                                     if char_f_mask and (t_mask & char_f_mask):
                                         val += char_f_delta
                                     if has_tom_f:
-                                        val += tom_all_f
-                                        if (
-                                            t_i == 0
-                                            and tom_first_out_f
-                                            and (t_mask & _MASK_OUTDOORS)
-                                        ):
-                                            val += tom_first_out_f
-                                        if tom_tag_f is not None:
-                                            for tm_m, tm_p in tom_tag_f:
-                                                if t_mask & tm_m:
-                                                    val += tm_p
+                                        if t_i == 0 and has_tom_first_mul2:
+                                            val = (
+                                                val * 2
+                                                if tom_first_ops is None
+                                                else _apply_tom_first_ops(
+                                                    val, t_mask, tom_first_ops
+                                                )
+                                            )
+                                        else:
+                                            val += tom_all_f
+                                            if (
+                                                t_i == 0
+                                                and tom_first_out_f
+                                                and (t_mask & _MASK_OUTDOORS)
+                                            ):
+                                                val += tom_first_out_f
+                                            if tom_tag_f is not None:
+                                                for tm_m, tm_p in tom_tag_f:
+                                                    if t_mask & tm_m:
+                                                        val += tm_p
                                     if char_zero_mask and (t_mask & char_zero_mask):
                                         val = 0
                                     scored_u += val
+                                if (
+                                    has_gave_e
+                                    and not seen_gave_e
+                                    and target.markers
+                                    and target.markers.get("_gave_energy")
+                                ):
+                                    seen_gave_e = True
                             return scored_u, []
                         scored_p1 = 0
                         next_tom_p1: list[CardInstance] = []
@@ -7084,11 +8190,21 @@ def _get_hydrogen_sim_game_cls() -> type:
                             if t_meta.has_tomorrow_action:
                                 next_tom_p1.append(target)
                             if not target.is_tomorrow:
-                                val = (
-                                    t_meta.beh.fun_value(self, player, target)
-                                    if t_meta.has_fun_val
-                                    else t_meta.base_fun
-                                )
+                                fvk = t_meta.fun_val_kind
+                                if fvk == _FV_NONE:
+                                    val = t_meta.base_fun
+                                elif fvk == _FV_BUBLY:
+                                    val = t_meta.base_fun + (
+                                        2 if seen_gave_e else 0
+                                    )
+                                elif fvk == _FV_CHEESY_PHONE:
+                                    if cpg_bonus is None:
+                                        cpg_bonus = _cheesy_phone_game_bonus(
+                                            self, player, meta_by_slug
+                                        )
+                                    val = t_meta.base_fun + cpg_bonus
+                                else:
+                                    val = t_meta.beh.fun_value(self, player, target)
                                 if not plain_cc:
                                     t_mask = (
                                         t_meta.tag_mask
@@ -7100,20 +8216,31 @@ def _get_hydrogen_sim_game_cls() -> type:
                                     if char_f_mask and (t_mask & char_f_mask):
                                         val += char_f_delta
                                     if has_tom_f:
-                                        val += tom_all_f
-                                        if (
-                                            t_i == 0
-                                            and tom_first_out_f
-                                            and (t_mask & _MASK_OUTDOORS)
-                                        ):
-                                            val += tom_first_out_f
-                                        if tom_tag_f is not None:
-                                            for tm_m, tm_p in tom_tag_f:
-                                                if t_mask & tm_m:
-                                                    val += tm_p
+                                        if t_i == 0 and has_tom_first_mul2:
+                                            val = (
+                                                val * 2
+                                                if tom_first_ops is None
+                                                else _apply_tom_first_ops(
+                                                    val, t_mask, tom_first_ops
+                                                )
+                                            )
+                                        else:
+                                            val += tom_all_f
+                                            if (
+                                                t_i == 0
+                                                and tom_first_out_f
+                                                and (t_mask & _MASK_OUTDOORS)
+                                            ):
+                                                val += tom_first_out_f
+                                            if tom_tag_f is not None:
+                                                for tm_m, tm_p in tom_tag_f:
+                                                    if t_mask & tm_m:
+                                                        val += tm_p
                                     if char_zero_mask and (t_mask & char_zero_mask):
                                         val = 0
                                 scored_p1 += val
+                            if has_gave_e and not seen_gave_e and tm and tm.get("_gave_energy"):
+                                seen_gave_e = True
                         return scored_p1, next_tom_p1
 
                     # Fast Path 2: purely additive today_mods via 8-bit tag masks
@@ -7129,11 +8256,15 @@ def _get_hydrogen_sim_game_cls() -> type:
                             nt0 = [t0] if t_meta0.has_tomorrow_action else []
                             if t0.is_tomorrow:
                                 return 0, nt0
-                            val0 = (
-                                t_meta0.beh.fun_value(self, player, t0)
-                                if t_meta0.has_fun_val
-                                else t_meta0.base_fun
-                            )
+                            fvk0 = t_meta0.fun_val_kind
+                            if fvk0 == _FV_NONE or fvk0 == _FV_BUBLY:
+                                val0 = t_meta0.base_fun
+                            elif fvk0 == _FV_CHEESY_PHONE:
+                                val0 = t_meta0.base_fun + _cheesy_phone_game_bonus(
+                                    self, player, meta_by_slug
+                                )
+                            else:
+                                val0 = t_meta0.beh.fun_value(self, player, t0)
                             if not plain_cc:
                                 t_mask0 = meta_by_slug[t0.definition.slug].tag_mask
                                 if cond_f_mask and (t_mask0 & cond_f_mask):
@@ -7141,13 +8272,22 @@ def _get_hydrogen_sim_game_cls() -> type:
                                 if char_f_mask and (t_mask0 & char_f_mask):
                                     val0 += char_f_delta
                                 if has_tom_f:
-                                    val0 += tom_all_f
-                                    if tom_first_out_f and (t_mask0 & _MASK_OUTDOORS):
-                                        val0 += tom_first_out_f
-                                    if tom_tag_f is not None:
-                                        for tm_m, tm_p in tom_tag_f:
-                                            if t_mask0 & tm_m:
-                                                val0 += tm_p
+                                    if has_tom_first_mul2:
+                                        val0 = (
+                                            val0 * 2
+                                            if tom_first_ops is None
+                                            else _apply_tom_first_ops(
+                                                val0, t_mask0, tom_first_ops
+                                            )
+                                        )
+                                    else:
+                                        val0 += tom_all_f
+                                        if tom_first_out_f and (t_mask0 & _MASK_OUTDOORS):
+                                            val0 += tom_first_out_f
+                                        if tom_tag_f is not None:
+                                            for tm_m, tm_p in tom_tag_f:
+                                                if t_mask0 & tm_m:
+                                                    val0 += tm_p
                                 if char_zero_mask and (t_mask0 & char_zero_mask):
                                     val0 = 0
                             return val0, nt0
@@ -7163,6 +8303,92 @@ def _get_hydrogen_sim_game_cls() -> type:
                                 if (pf & _PF_HAS_TOM_ACTION)
                                 else []
                             )
+                            if plain_cc and not (pf & _PF_HAS_PLAYED_IS_TOM):
+                                scored_direct = 0
+                                for s_i in range(n_played):
+                                    t_meta = metas_u[s_i]
+                                    fvk = t_meta.fun_val_kind
+                                    if fvk == _FV_NONE:
+                                        scored_direct += t_meta.base_fun
+                                    elif fvk == _FV_BUBLY:
+                                        scored_direct += t_meta.base_fun + (
+                                            2 if seen_gave_e else 0
+                                        )
+                                    elif fvk == _FV_CHEESY_PHONE:
+                                        if cpg_bonus is None:
+                                            cpg_bonus = _cheesy_phone_game_bonus(
+                                                self, player, meta_by_slug
+                                            )
+                                        scored_direct += t_meta.base_fun + cpg_bonus
+                                    else:
+                                        scored_direct += t_meta.beh.fun_value(
+                                            self, player, played[s_i]
+                                        )
+                                    if has_gave_e and not seen_gave_e:
+                                        pm_g = played[s_i].markers
+                                        if pm_g and pm_g.get("_gave_energy"):
+                                            seen_gave_e = True
+                                    if not t_meta.has_fun_mod:
+                                        continue
+                                    kind = t_meta.mod_fun_kind
+                                    if kind == _MF_AFTER_TAG_ADD:
+                                        m_mask = t_meta.mod_fun_mask
+                                        param = t_meta.mod_fun_param
+                                        for j in range(s_i + 1, n_played):
+                                            if metas_u[j].tag_mask & m_mask:
+                                                scored_direct += param
+                                    elif kind == _MF_AFTER_ALL_ADD:
+                                        scored_direct += (
+                                            t_meta.mod_fun_param
+                                            * (n_played - 1 - s_i)
+                                        )
+                                    elif kind == _MF_BEFORE_TAG_ADD:
+                                        m_mask = t_meta.mod_fun_mask
+                                        param = t_meta.mod_fun_param
+                                        for j in range(s_i):
+                                            if metas_u[j].tag_mask & m_mask:
+                                                scored_direct += param
+                                    elif kind == _MF_BEFORE_ALL_ADD:
+                                        scored_direct += (
+                                            t_meta.mod_fun_param * s_i
+                                        )
+                                    elif kind == _MF_OTHER_TAGS_ADD:
+                                        m_mask = t_meta.mod_fun_mask
+                                        param = t_meta.mod_fun_param
+                                        for j in range(n_played):
+                                            if j != s_i and (
+                                                metas_u[j].tag_mask & m_mask
+                                            ):
+                                                scored_direct += param
+                                    elif kind == _MF_NEXT_CARD_ADD:
+                                        if s_i + 1 < n_played:
+                                            scored_direct += t_meta.mod_fun_param
+                                    elif kind == _MF_NEXT_TAG_ADD:
+                                        m_mask = t_meta.mod_fun_mask
+                                        param = t_meta.mod_fun_param
+                                        for j in range(s_i + 1, n_played):
+                                            if metas_u[j].tag_mask & m_mask:
+                                                scored_direct += param
+                                                break
+                                    elif kind == _MF_NEXT_TAG_COST_ADD:
+                                        m_mask = t_meta.mod_fun_mask
+                                        param = t_meta.mod_fun_param
+                                        for j in range(s_i + 1, n_played):
+                                            if metas_u[j].tag_mask & m_mask:
+                                                scored_direct += (
+                                                    param * metas_u[j].cost
+                                                )
+                                                break
+                                    elif kind == _MF_NOS_BOOK:
+                                        tc_ref = played[s_i].markers.get(
+                                            "target_card"
+                                        )
+                                        if tc_ref is not None:
+                                            for j in range(s_i):
+                                                if played[j] is tc_ref:
+                                                    scored_direct += 3
+                                                    break
+                                return scored_direct, next_tom_u
                             bonuses_u = [0] * n_played
                             for s_i in range(n_played):
                                 s_meta = metas_u[s_i]
@@ -7225,49 +8451,101 @@ def _get_hydrogen_sim_game_cls() -> type:
                                     target = played[t_i]
                                     if not target.is_tomorrow:
                                         t_meta = metas_u[t_i]
-                                        scored_u2 += (
-                                            (
-                                                t_meta.beh.fun_value(self, player, target)
-                                                if t_meta.has_fun_val
-                                                else t_meta.base_fun
+                                        fvk = t_meta.fun_val_kind
+                                        if fvk == _FV_NONE:
+                                            val = t_meta.base_fun
+                                        elif fvk == _FV_BUBLY:
+                                            val = t_meta.base_fun + (
+                                                2 if seen_gave_e else 0
                                             )
-                                            + bonuses_u[t_i]
-                                        )
+                                        elif fvk == _FV_CHEESY_PHONE:
+                                            if cpg_bonus is None:
+                                                cpg_bonus = _cheesy_phone_game_bonus(
+                                                    self, player, meta_by_slug
+                                                )
+                                            val = t_meta.base_fun + cpg_bonus
+                                        else:
+                                            val = t_meta.beh.fun_value(
+                                                self, player, target
+                                            )
+                                        scored_u2 += val + bonuses_u[t_i]
+                                    if (
+                                        has_gave_e
+                                        and not seen_gave_e
+                                        and target.markers
+                                        and target.markers.get("_gave_energy")
+                                    ):
+                                        seen_gave_e = True
                                 return scored_u2, next_tom_u
                             for t_i in range(n_played):
                                 target = played[t_i]
                                 if not target.is_tomorrow:
                                     t_meta = metas_u[t_i]
-                                    val = (
-                                        t_meta.beh.fun_value(self, player, target)
-                                        if t_meta.has_fun_val
-                                        else t_meta.base_fun
-                                    ) + bonuses_u[t_i]
+                                    fvk = t_meta.fun_val_kind
+                                    if fvk == _FV_NONE:
+                                        val = t_meta.base_fun
+                                    elif fvk == _FV_BUBLY:
+                                        val = t_meta.base_fun + (
+                                            2 if seen_gave_e else 0
+                                        )
+                                    elif fvk == _FV_CHEESY_PHONE:
+                                        if cpg_bonus is None:
+                                            cpg_bonus = _cheesy_phone_game_bonus(
+                                                self, player, meta_by_slug
+                                            )
+                                        val = t_meta.base_fun + cpg_bonus
+                                    else:
+                                        val = t_meta.beh.fun_value(
+                                            self, player, target
+                                        )
                                     t_mask = t_meta.tag_mask
                                     if cond_f_mask and (t_mask & cond_f_mask):
                                         val += cond_f_delta
                                     if char_f_mask and (t_mask & char_f_mask):
                                         val += char_f_delta
                                     if has_tom_f:
-                                        val += tom_all_f
-                                        if (
-                                            t_i == 0
-                                            and tom_first_out_f
-                                            and (t_mask & _MASK_OUTDOORS)
-                                        ):
-                                            val += tom_first_out_f
-                                        if tom_tag_f is not None:
-                                            for tm_m, tm_p in tom_tag_f:
-                                                if t_mask & tm_m:
-                                                    val += tm_p
+                                        if t_i == 0 and has_tom_first_mul2:
+                                            val = (
+                                                val * 2
+                                                if tom_first_ops is None
+                                                else _apply_tom_first_ops(
+                                                    val, t_mask, tom_first_ops
+                                                )
+                                            )
+                                        else:
+                                            val += tom_all_f
+                                            if (
+                                                t_i == 0
+                                                and tom_first_out_f
+                                                and (t_mask & _MASK_OUTDOORS)
+                                            ):
+                                                val += tom_first_out_f
+                                            if tom_tag_f is not None:
+                                                for tm_m, tm_p in tom_tag_f:
+                                                    if t_mask & tm_m:
+                                                        val += tm_p
+                                    val += bonuses_u[t_i]
                                     if char_zero_mask and (t_mask & char_zero_mask):
                                         val = 0
                                     scored_u2 += val
+                                if (
+                                    has_gave_e
+                                    and not seen_gave_e
+                                    and target.markers
+                                    and target.markers.get("_gave_energy")
+                                ):
+                                    seen_gave_e = True
                             return scored_u2, next_tom_u
 
                         check_aa = bool(pf & _PF_ALL_TAGS)
                         if check_aa:
-                            if self._played_items_shared:
+                            if self._shared_opp_mask & (1 << player_index):
+                                player = self._unshare_opp(player_index)
+                                played = player.played_today
+                            elif (
+                                self._played_items_shared
+                                and player_index == self._cow_acting_idx
+                            ):
                                 self._unshare_played_items()
                                 played = player.played_today
                             self._sync_played_today_tags(player)
@@ -7360,44 +8638,88 @@ def _get_hydrogen_sim_game_cls() -> type:
                                 target = played[t_i]
                                 if not target.is_tomorrow:
                                     t_meta = metas_p2[t_i]
-                                    scored_p2 += (
-                                        (
-                                            t_meta.beh.fun_value(self, player, target)
-                                            if t_meta.has_fun_val
-                                            else t_meta.base_fun
+                                    fvk = t_meta.fun_val_kind
+                                    if fvk == _FV_NONE:
+                                        val = t_meta.base_fun
+                                    elif fvk == _FV_BUBLY:
+                                        val = t_meta.base_fun + (
+                                            2 if seen_gave_e else 0
                                         )
-                                        + bonuses[t_i]
-                                    )
+                                    elif fvk == _FV_CHEESY_PHONE:
+                                        if cpg_bonus is None:
+                                            cpg_bonus = _cheesy_phone_game_bonus(
+                                                self, player, meta_by_slug
+                                            )
+                                        val = t_meta.base_fun + cpg_bonus
+                                    else:
+                                        val = t_meta.beh.fun_value(
+                                            self, player, target
+                                        )
+                                    scored_p2 += val + bonuses[t_i]
+                                if (
+                                    has_gave_e
+                                    and not seen_gave_e
+                                    and target.markers
+                                    and target.markers.get("_gave_energy")
+                                ):
+                                    seen_gave_e = True
                             return scored_p2, next_tom_p2
                         for t_i in range(n_played):
                             target = played[t_i]
                             if not target.is_tomorrow:
                                 t_meta = metas_p2[t_i]
-                                val = (
-                                    t_meta.beh.fun_value(self, player, target)
-                                    if t_meta.has_fun_val
-                                    else t_meta.base_fun
-                                ) + bonuses[t_i]
+                                fvk = t_meta.fun_val_kind
+                                if fvk == _FV_NONE:
+                                    val = t_meta.base_fun
+                                elif fvk == _FV_BUBLY:
+                                    val = t_meta.base_fun + (
+                                        2 if seen_gave_e else 0
+                                    )
+                                elif fvk == _FV_CHEESY_PHONE:
+                                    if cpg_bonus is None:
+                                        cpg_bonus = _cheesy_phone_game_bonus(
+                                            self, player, meta_by_slug
+                                        )
+                                    val = t_meta.base_fun + cpg_bonus
+                                else:
+                                    val = t_meta.beh.fun_value(self, player, target)
                                 t_mask = masks_p2[t_i]
                                 if cond_f_mask and (t_mask & cond_f_mask):
                                     val += cond_f_delta
                                 if char_f_mask and (t_mask & char_f_mask):
                                     val += char_f_delta
                                 if has_tom_f:
-                                    val += tom_all_f
-                                    if (
-                                        t_i == 0
-                                        and tom_first_out_f
-                                        and (t_mask & _MASK_OUTDOORS)
-                                    ):
-                                        val += tom_first_out_f
-                                    if tom_tag_f is not None:
-                                        for tm_m, tm_p in tom_tag_f:
-                                            if t_mask & tm_m:
-                                                val += tm_p
+                                    if t_i == 0 and has_tom_first_mul2:
+                                        val = (
+                                            val * 2
+                                            if tom_first_ops is None
+                                            else _apply_tom_first_ops(
+                                                val, t_mask, tom_first_ops
+                                            )
+                                        )
+                                    else:
+                                        val += tom_all_f
+                                        if (
+                                            t_i == 0
+                                            and tom_first_out_f
+                                            and (t_mask & _MASK_OUTDOORS)
+                                        ):
+                                            val += tom_first_out_f
+                                        if tom_tag_f is not None:
+                                            for tm_m, tm_p in tom_tag_f:
+                                                if t_mask & tm_m:
+                                                    val += tm_p
+                                val += bonuses[t_i]
                                 if char_zero_mask and (t_mask & char_zero_mask):
                                     val = 0
                                 scored_p2 += val
+                            if (
+                                has_gave_e
+                                and not seen_gave_e
+                                and target.markers
+                                and target.markers.get("_gave_energy")
+                            ):
+                                seen_gave_e = True
                         return scored_p2, next_tom_p2
 
                     # Fast Path 3: non-additive today_mods (Bring a Friend / Work Call / Water Trampoline / Schwank / Christmas Name Draw)
@@ -7418,39 +8740,86 @@ def _get_hydrogen_sim_game_cls() -> type:
                                 target = played[t_i]
                                 if not target.is_tomorrow:
                                     t_meta = metas_u3[t_i]
-                                    vals_u3[t_i] = (
-                                        t_meta.beh.fun_value(self, player, target)
-                                        if t_meta.has_fun_val
-                                        else t_meta.base_fun
-                                    )
+                                    fvk = t_meta.fun_val_kind
+                                    if fvk == _FV_NONE:
+                                        vals_u3[t_i] = t_meta.base_fun
+                                    elif fvk == _FV_BUBLY:
+                                        vals_u3[t_i] = t_meta.base_fun + (
+                                            2 if seen_gave_e else 0
+                                        )
+                                    elif fvk == _FV_CHEESY_PHONE:
+                                        if cpg_bonus is None:
+                                            cpg_bonus = _cheesy_phone_game_bonus(
+                                                self, player, meta_by_slug
+                                            )
+                                        vals_u3[t_i] = t_meta.base_fun + cpg_bonus
+                                    else:
+                                        vals_u3[t_i] = t_meta.beh.fun_value(
+                                            self, player, target
+                                        )
+                                if (
+                                    has_gave_e
+                                    and not seen_gave_e
+                                    and target.markers
+                                    and target.markers.get("_gave_energy")
+                                ):
+                                    seen_gave_e = True
                         else:
                             for t_i in range(n_played):
                                 target = played[t_i]
                                 if not target.is_tomorrow:
                                     t_meta = metas_u3[t_i]
-                                    val = (
-                                        t_meta.beh.fun_value(self, player, target)
-                                        if t_meta.has_fun_val
-                                        else t_meta.base_fun
-                                    )
+                                    fvk = t_meta.fun_val_kind
+                                    if fvk == _FV_NONE:
+                                        val = t_meta.base_fun
+                                    elif fvk == _FV_BUBLY:
+                                        val = t_meta.base_fun + (
+                                            2 if seen_gave_e else 0
+                                        )
+                                    elif fvk == _FV_CHEESY_PHONE:
+                                        if cpg_bonus is None:
+                                            cpg_bonus = _cheesy_phone_game_bonus(
+                                                self, player, meta_by_slug
+                                            )
+                                        val = t_meta.base_fun + cpg_bonus
+                                    else:
+                                        val = t_meta.beh.fun_value(
+                                            self, player, target
+                                        )
                                     t_mask = t_meta.tag_mask
                                     if cond_f_mask and (t_mask & cond_f_mask):
                                         val += cond_f_delta
                                     if char_f_mask and (t_mask & char_f_mask):
                                         val += char_f_delta
                                     if has_tom_f:
-                                        val += tom_all_f
-                                        if (
-                                            t_i == 0
-                                            and tom_first_out_f
-                                            and (t_mask & _MASK_OUTDOORS)
-                                        ):
-                                            val += tom_first_out_f
-                                        if tom_tag_f is not None:
-                                            for tm_m, tm_p in tom_tag_f:
-                                                if t_mask & tm_m:
-                                                    val += tm_p
+                                        if t_i == 0 and has_tom_first_mul2:
+                                            val = (
+                                                val * 2
+                                                if tom_first_ops is None
+                                                else _apply_tom_first_ops(
+                                                    val, t_mask, tom_first_ops
+                                                )
+                                            )
+                                        else:
+                                            val += tom_all_f
+                                            if (
+                                                t_i == 0
+                                                and tom_first_out_f
+                                                and (t_mask & _MASK_OUTDOORS)
+                                            ):
+                                                val += tom_first_out_f
+                                            if tom_tag_f is not None:
+                                                for tm_m, tm_p in tom_tag_f:
+                                                    if t_mask & tm_m:
+                                                        val += tm_p
                                     vals_u3[t_i] = val
+                                if (
+                                    has_gave_e
+                                    and not seen_gave_e
+                                    and target.markers
+                                    and target.markers.get("_gave_energy")
+                                ):
+                                    seen_gave_e = True
                         for s_i in range(n_played):
                             s_meta = metas_u3[s_i]
                             if not s_meta.has_fun_mod:
@@ -7527,6 +8896,17 @@ def _get_hydrogen_sim_game_cls() -> type:
                                         if played[j] is tc_ref:
                                             vals_u3[j] += 3
                                             break
+                            elif kind == _MF_ADE:
+                                has_prev_food = False
+                                for j in range(s_i):
+                                    if metas_u3[j].tag_mask & _MASK_FOOD:
+                                        has_prev_food = True
+                                        break
+                                if has_prev_food:
+                                    for j in range(s_i + 1, n_played):
+                                        if metas_u3[j].tag_mask & _MASK_EXERCISE:
+                                            vals_u3[j] *= 2
+                                            break
                             else:
                                 s_beh = s_meta.beh
                                 s_card = played[s_i]
@@ -7551,7 +8931,13 @@ def _get_hydrogen_sim_game_cls() -> type:
                     # Fast Path 3b: non-additive today_mods WITH _all_tags or copied cards
                     check_aa3 = bool(pf & _PF_ALL_TAGS)
                     if check_aa3:
-                        if self._played_items_shared:
+                        if self._shared_opp_mask & (1 << player_index):
+                            player = self._unshare_opp(player_index)
+                            played = player.played_today
+                        elif (
+                            self._played_items_shared
+                            and player_index == self._cow_acting_idx
+                        ):
                             self._unshare_played_items()
                             played = player.played_today
                         self._sync_played_today_tags(player)
@@ -7586,39 +8972,86 @@ def _get_hydrogen_sim_game_cls() -> type:
                             target = played[t_i]
                             if not target.is_tomorrow:
                                 t_meta = metas_p3[t_i]
-                                vals_p3[t_i] = (
-                                    t_meta.beh.fun_value(self, player, target)
-                                    if t_meta.has_fun_val
-                                    else t_meta.base_fun
-                                )
+                                fvk = t_meta.fun_val_kind
+                                if fvk == _FV_NONE:
+                                    vals_p3[t_i] = t_meta.base_fun
+                                elif fvk == _FV_BUBLY:
+                                    vals_p3[t_i] = t_meta.base_fun + (
+                                        2 if seen_gave_e else 0
+                                    )
+                                elif fvk == _FV_CHEESY_PHONE:
+                                    if cpg_bonus is None:
+                                        cpg_bonus = _cheesy_phone_game_bonus(
+                                            self, player, meta_by_slug
+                                        )
+                                    vals_p3[t_i] = t_meta.base_fun + cpg_bonus
+                                else:
+                                    vals_p3[t_i] = t_meta.beh.fun_value(
+                                        self, player, target
+                                    )
+                            if (
+                                has_gave_e
+                                and not seen_gave_e
+                                and target.markers
+                                and target.markers.get("_gave_energy")
+                            ):
+                                seen_gave_e = True
                     else:
                         for t_i in range(n_played):
                             target = played[t_i]
                             if not target.is_tomorrow:
                                 t_meta = metas_p3[t_i]
-                                val = (
-                                    t_meta.beh.fun_value(self, player, target)
-                                    if t_meta.has_fun_val
-                                    else t_meta.base_fun
-                                )
+                                fvk = t_meta.fun_val_kind
+                                if fvk == _FV_NONE:
+                                    val = t_meta.base_fun
+                                elif fvk == _FV_BUBLY:
+                                    val = t_meta.base_fun + (
+                                        2 if seen_gave_e else 0
+                                    )
+                                elif fvk == _FV_CHEESY_PHONE:
+                                    if cpg_bonus is None:
+                                        cpg_bonus = _cheesy_phone_game_bonus(
+                                            self, player, meta_by_slug
+                                        )
+                                    val = t_meta.base_fun + cpg_bonus
+                                else:
+                                    val = t_meta.beh.fun_value(
+                                        self, player, target
+                                    )
                                 t_mask = masks_p3[t_i]
                                 if cond_f_mask and (t_mask & cond_f_mask):
                                     val += cond_f_delta
                                 if char_f_mask and (t_mask & char_f_mask):
                                     val += char_f_delta
                                 if has_tom_f:
-                                    val += tom_all_f
-                                    if (
-                                        t_i == 0
-                                        and tom_first_out_f
-                                        and (t_mask & _MASK_OUTDOORS)
-                                    ):
-                                        val += tom_first_out_f
-                                    if tom_tag_f is not None:
-                                        for tm_m, tm_p in tom_tag_f:
-                                            if t_mask & tm_m:
-                                                val += tm_p
+                                    if t_i == 0 and has_tom_first_mul2:
+                                        val = (
+                                            val * 2
+                                            if tom_first_ops is None
+                                            else _apply_tom_first_ops(
+                                                val, t_mask, tom_first_ops
+                                            )
+                                        )
+                                    else:
+                                        val += tom_all_f
+                                        if (
+                                            t_i == 0
+                                            and tom_first_out_f
+                                            and (t_mask & _MASK_OUTDOORS)
+                                        ):
+                                            val += tom_first_out_f
+                                        if tom_tag_f is not None:
+                                            for tm_m, tm_p in tom_tag_f:
+                                                if t_mask & tm_m:
+                                                    val += tm_p
                                 vals_p3[t_i] = val
+                            if (
+                                has_gave_e
+                                and not seen_gave_e
+                                and target.markers
+                                and target.markers.get("_gave_energy")
+                            ):
+                                seen_gave_e = True
                     for s_i in range(n_played):
                         s_meta = metas_p3[s_i]
                         if not s_meta.has_fun_mod:
@@ -7695,6 +9128,17 @@ def _get_hydrogen_sim_game_cls() -> type:
                                     if played[j] is tc_ref:
                                         vals_p3[j] += 3
                                         break
+                        elif kind == _MF_ADE:
+                            has_prev_food = False
+                            for j in range(s_i):
+                                if masks_p3[j] & _MASK_FOOD:
+                                    has_prev_food = True
+                                    break
+                            if has_prev_food:
+                                for j in range(s_i + 1, n_played):
+                                    if masks_p3[j] & _MASK_EXERCISE:
+                                        vals_p3[j] *= 2
+                                        break
                         else:
                             s_beh = s_meta.beh
                             s_card = played[s_i]
@@ -7732,7 +9176,13 @@ def _get_hydrogen_sim_game_cls() -> type:
             next_tomorrow_cards: list[CardInstance] = []
             check_all_tags = bool(pf & _PF_ALL_TAGS)
             if check_all_tags:
-                if self._played_items_shared:
+                if self._shared_opp_mask & (1 << player_index):
+                    player = self._unshare_opp(player_index)
+                    played = player.played_today
+                elif (
+                    self._played_items_shared
+                    and player_index == self._cow_acting_idx
+                ):
                     self._unshare_played_items()
                     played = player.played_today
                 self._sync_played_today_tags(player)
@@ -7946,6 +9396,19 @@ def _get_hydrogen_sim_game_cls() -> type:
                                 if played[j] is tc_ref:
                                     resolved_mods.append(
                                         (_RMF_EXACT_POS_ADD, j, None, 3, None)
+                                    )
+                                    break
+                    elif kind == _MF_ADE:
+                        has_prev_food = False
+                        for j in range(s_i):
+                            if "Food" in tags_by_pos[j]:
+                                has_prev_food = True
+                                break
+                        if has_prev_food:
+                            for j in range(s_i + 1, n_played):
+                                if "Exercise" in tags_by_pos[j]:
+                                    resolved_mods.append(
+                                        (_RMF_EXACT_POS_MUL, j, None, 2, None)
                                     )
                                     break
                     else:
@@ -8264,20 +9727,16 @@ def _hydrogen_copy_game_for_play(src: Game, player_index: int) -> Game:
         return _hydrogen_copy_game(src)
 
     sim = object.__new__(sim_cls)
-    sim.rng = src.rng
+    sim.__dict__ = src.__dict__.copy()
     sim.ais = _HYDROGEN_SIM_AIS
     sim._trunk_shared = True
     sim._discard_shared = True
     sim._cond_shared = True
     sim._shared_opp_mask = 0b1111 ^ (1 << player_index)
     sim._cow_acting_idx = player_index
-    sim._all_canonical_defs = src._all_canonical_defs  # type: ignore[attr-defined]
     sim._has_opp_suitcase_ref = False
     has_ref = src._has_card_ref  # type: ignore[attr-defined]
     has_marked_hand = src._has_marked_hand  # type: ignore[attr-defined]
-    sim._has_card_ref = has_ref
-    sim._has_marked_hand = has_marked_hand
-    sim._has_nonplain_hand = src._has_nonplain_hand  # type: ignore[attr-defined]
     p_flags = src._p_flags.copy()  # type: ignore[attr-defined]
     sim._p_flags = p_flags
 
@@ -8324,9 +9783,9 @@ def _hydrogen_copy_game_for_play(src: Game, player_index: int) -> Game:
                     if os_c is sc:
                         nm["suitcase_target"] = cs_c
                         break
+        sim.suitcase = new_suitcase
     else:
         sim._suitcase_shared = True
-        new_suitcase = src.suitcase
         if p.played_today and not (
             p_flags[player_index]
             & (_PF_ALL_TAGS | _PF_HAS_CARD_PLAY | _PF_HAS_ACQUIRE | _PF_HAS_PICK)
@@ -8347,55 +9806,38 @@ def _hydrogen_copy_game_for_play(src: Game, player_index: int) -> Game:
             sim._played_items_shared = False
             sim._shared_played_len = 0
 
+    new_hand = (
+        p.hand.copy()
+        if not has_marked_hand
+        else [
+            CardInstance(
+                c.instance_id,
+                c.definition,
+                c.is_tomorrow,
+                dict(c.markers),
+            )
+            if (c.markers or c.is_tomorrow)
+            else c
+            for c in p.hand
+        ]
+    )
     new_p = PlayerState(
-        name=p.name,
-        energy=p.energy,
-        fun=p.fun,
-        character=p.character,
-        hand=(
-            p.hand.copy()
-            if not has_marked_hand
-            else [
-                CardInstance(
-                    c.instance_id,
-                    c.definition,
-                    c.is_tomorrow,
-                    dict(c.markers),
-                )
-                if (c.markers or c.is_tomorrow)
-                else c
-                for c in p.hand
-            ]
-        ),
-        played_today=new_played,
-        tomorrow_cards=p.tomorrow_cards,
-        asleep=p.asleep,
-        skipped_turns=p.skipped_turns,
-        acquired_cards=_NOOP_COUNTER,
-        picked_cards=_NOOP_COUNTER,
+        p.name,
+        new_hand,
+        new_played,
+        p.tomorrow_cards,
+        p.energy,
+        p.fun,
+        p.asleep,
+        p.skipped_turns,
+        _NOOP_COUNTER,
+        _NOOP_COUNTER,
+        p.character,
     )
 
-    players_list = list(src_players)
+    players_list = src_players.copy()
     players_list[player_index] = new_p
     sim.players = players_list
-    sim.suitcase = new_suitcase
-    sim.trunk = src.trunk
-    sim.discard = src.discard
-    sim._known_trunk_state = src._known_trunk_state  # type: ignore[attr-defined]
-    sim.day = src.day
-    sim.daily_conditions = src.daily_conditions
-    sim.characters = src.characters
-    sim.daily_condition = src.daily_condition
-    sim._condition_deck = src._condition_deck
-    sim.revealed_conditions = src.revealed_conditions
-    sim._condition_knowledge = src._condition_knowledge
-    sim.starting_player = src.starting_player
-    sim._is_setup = src._is_setup
-    sim.stats = src.stats
-    sim._fun_at_start_of_scoring = src._fun_at_start_of_scoring
-    sim._fun_at_start_of_day = src._fun_at_start_of_day
-    sim._fun_scored_today = src._fun_scored_today
-    sim._end_day_played_tags = src._end_day_played_tags
     sim._scored_card_fun = None
     return sim
 
@@ -9134,22 +10576,35 @@ class HydrogenAI(CarbonAI):
         best_actions: list[int | None] = []
         best_mean = float("-inf")
         n_total = 2.0 + len(extra_samples)
+        can_reuse_bed = (
+            not game.daily_conditions
+            and not any(p.character is not None for p in game.players)
+            and type(base_sim) is _HYDROGEN_SIM_GAME_CLS
+            and not (
+                base_sim._p_flags[player_index]
+                & (_PF_HAS_END_DAY | _PF_HAS_AWAKE_OPP_TERM)
+            )
+        )
 
         for cand in contenders:
             total = 2.0 * table_0[cand][0]
             valid = True
-            for sim in extra_samples:
+            for s_idx, sim in enumerate(extra_samples):
                 root_skipped = sim.players[player_index].skipped_turns
                 if cand is None:
                     bed_sim = _hydrogen_copy_game_for_play(sim, player_index)
                     if not in_extra_play:
                         bed_sim.go_to_bed(player_index)
-                    total += self._evaluate_terminal_day(
+                    bed_val = self._evaluate_terminal_day(
                         bed_sim,
                         player_index,
                         turns_from_root=1 if in_extra_play else 0,
                         root_skipped_turns=root_skipped,
                     )
+                    if can_reuse_bed:
+                        total += len(extra_samples) * bed_val
+                        break
+                    total += bed_val
                 else:
                     try:
                         cand_card = sim.players[player_index].hand[cand]
@@ -9159,7 +10614,8 @@ class HydrogenAI(CarbonAI):
                         child = self._simulate_play_step(
                             sim, player_index, cand
                         )
-                        if child.players[player_index].asleep:
+                        c_player = child.players[player_index]
+                        if c_player.asleep:
                             val = self._evaluate_terminal_day(
                                 child,
                                 player_index,
@@ -9177,6 +10633,27 @@ class HydrogenAI(CarbonAI):
                                 root_skipped_override=root_skipped,
                                 start_extra_active=child_extra,
                             )
+                        if (
+                            s_idx == 0
+                            and len(extra_samples) > 1
+                            and can_reuse_bed
+                            and cand_card.title not in _STOCHASTIC_PLAY_TITLES
+                            and type(child) is _HYDROGEN_SIM_GAME_CLS
+                            and child.trunk is sim.trunk
+                            and child.suitcase is sim.suitcase
+                            and not (
+                                child._p_flags[player_index]
+                                & (_PF_HAS_END_DAY | _PF_HAS_AWAKE_OPP_TERM)
+                            )
+                            and (
+                                c_player.asleep
+                                or not child.hand_playable_with_costs(
+                                    player_index
+                                )
+                            )
+                        ):
+                            total += len(extra_samples) * val
+                            break
                         total += val
                     except Exception:
                         valid = False
@@ -9261,6 +10738,9 @@ class HydrogenAI(CarbonAI):
         has_ck: bool,
         epic_prank_target: int | None,
         has_unconsumed_nos_shirt: bool = False,
+        *,
+        _cur_day_fun: float | None = None,
+        _opp_cache: dict | None = None,
     ) -> float:
         is_early_day = sim.day < DAY_COUNT
         if not (
@@ -9323,17 +10803,25 @@ class HydrogenAI(CarbonAI):
                         break
 
         if is_early_day and (has_dates_fn or epic_prank_target is not None):
-            start_f = (
-                sim._fun_at_start_of_day[player_index]
-                if sim._fun_at_start_of_day is not None
-                else player.fun
-            )
-            cur_day_fun = float(
-                (player.fun - start_f)
-                + sum(
-                    sim.card_fun(player_index, pc) for pc in player.played_today
+            if _cur_day_fun is not None:
+                cur_day_fun = _cur_day_fun
+            else:
+                start_f = (
+                    sim._fun_at_start_of_day[player_index]
+                    if sim._fun_at_start_of_day is not None
+                    else player.fun
                 )
-            )
+                if type(sim) is _HYDROGEN_SIM_GAME_CLS and sim._all_canonical_defs:  # type: ignore[attr-defined]
+                    scored_now, _ = sim.score_played_today_fast(player_index)  # type: ignore[attr-defined]
+                    cur_day_fun = float((player.fun - start_f) + scored_now)
+                else:
+                    cur_day_fun = float(
+                        (player.fun - start_f)
+                        + sum(
+                            sim.card_fun(player_index, pc)
+                            for pc in player.played_today
+                        )
+                    )
             if has_dates_fn and cur_day_fun < 2.0 and energy_budget >= 0:
                 for hc in hand:
                     hm = hc.markers
@@ -9357,7 +10845,30 @@ class HydrogenAI(CarbonAI):
                             extra += 3.5
                             break
             if epic_prank_target is not None:
-                opp_proj = _projected_opponent_day_fun(sim, epic_prank_target)
+                if (
+                    _opp_cache is not None
+                    and epic_prank_target != player_index
+                    and type(sim) is _HYDROGEN_SIM_GAME_CLS
+                    and not (
+                        sim._p_flags[epic_prank_target]  # type: ignore[attr-defined]
+                        & (
+                            _PF_HAS_AWAKE_OPP_TERM
+                            | _PF_HAS_END_DAY
+                            | _PF_HAS_COMPLEX_END_DAY
+                        )
+                    )
+                ):
+                    ck = ("opr", epic_prank_target)
+                    opp_proj = _opp_cache.get(ck)
+                    if opp_proj is None:
+                        opp_proj = _projected_opponent_day_fun(
+                            sim, epic_prank_target
+                        )
+                        _opp_cache[ck] = opp_proj
+                else:
+                    opp_proj = _projected_opponent_day_fun(
+                        sim, epic_prank_target
+                    )
                 if cur_day_fun < opp_proj and (
                     opp_proj - cur_day_fun <= energy_budget * 2.0 + 4.0
                 ):
@@ -9435,7 +10946,15 @@ class HydrogenAI(CarbonAI):
 
         return extra
 
-    def _continuation_potential(self, sim: Game, player_index: int) -> float:
+    def _continuation_potential(
+        self,
+        sim: Game,
+        player_index: int,
+        *,
+        _has_before_scaler_in_hand: bool | None = None,
+        _cur_day_fun: float | None = None,
+        _opp_cache: dict | None = None,
+    ) -> float:
         """PYTHONHASHSEED-deterministic continuation upside for active/pending scalers."""
         player = sim.players[player_index]
         hand = player.hand
@@ -9472,22 +10991,37 @@ class HydrogenAI(CarbonAI):
                     played_today
                     and _effective_card_title(played_today[-1]) == "Nos Shirt"
                 )
+                plain_played_cont = not (
+                    pf
+                    & (_PF_ALL_TAGS | _PF_MAY_HAVE_TAG_MARKERS | _PF_HAS_COPIED)
+                )
                 for played in played_today:
-                    pm = played.markers
-                    meta = (
-                        meta_by_slug[played.definition.slug]
-                        if (not pm or "_copied_definition" not in pm)
-                        else _get_card_meta(played)
-                    )
-                    p_mask = (
-                        _ALL_TAGS_BITMASK
-                        if (pm and "_all_tags" in pm and pm["_all_tags"])
-                        else (
-                            _tags_to_mask(played.tags)[0]
-                            if (pm and "_extra_tags" in pm and pm["_extra_tags"])
-                            else meta.tag_mask
+                    if plain_played_cont:
+                        meta = meta_by_slug[played.definition.slug]
+                        p_mask = meta.tag_mask
+                        if not (meta.played_board_flags & _PF_HAS_CONT_AFTER):
+                            if has_unconsumed_ade and (p_mask & _MASK_EXERCISE):
+                                has_unconsumed_ade = False
+                            if p_mask & _MASK_FOOD:
+                                has_food_played = True
+                            continue
+                        pm = played.markers
+                    else:
+                        pm = played.markers
+                        meta = (
+                            meta_by_slug[played.definition.slug]
+                            if (not pm or "_copied_definition" not in pm)
+                            else _get_card_meta(played)
                         )
-                    )
+                        p_mask = (
+                            _ALL_TAGS_BITMASK
+                            if (pm and "_all_tags" in pm and pm["_all_tags"])
+                            else (
+                                _tags_to_mask(played.tags)[0]
+                                if (pm and "_extra_tags" in pm and pm["_extra_tags"])
+                                else meta.tag_mask
+                            )
+                        )
                     if has_unconsumed_ade and (p_mask & _MASK_EXERCISE):
                         has_unconsumed_ade = False
                     eff_t = meta.title
@@ -9520,66 +11054,104 @@ class HydrogenAI(CarbonAI):
                         if aa_arr is None:
                             aa_arr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
                         smb = meta.signed_match_benefit
-                        for t in meta.sorted_target_tags:
-                            b_idx = _TAG_BIT[t]
-                            aa_arr[b_idx] += smb
-                            aa_mask |= 1 << b_idx
+                        b_single = meta.target_single_bit
+                        if b_single >= 0:
+                            aa_arr[b_single] += smb
+                            aa_mask |= 1 << b_single
+                        else:
+                            for t in meta.sorted_target_tags:
+                                b_idx = _TAG_BIT[t]
+                                aa_arr[b_idx] += smb
+                                aa_mask |= 1 << b_idx
                     elif meta.is_global_after_scaler:
                         global_after_bonus += meta.signed_match_benefit
 
             pending_before_bonus = 0.0
-            for hc in hand:
-                h_meta = meta_by_slug[hc.definition.slug]
-                if h_meta.is_before_scaler and h_meta.cost <= energy_budget:
-                    if h_meta.target_mask:
-                        t_m = h_meta.target_mask
-                        matches_played = 0
-                        for p in played_today:
-                            pm = p.markers
-                            p_mask = (
-                                _ALL_TAGS_BITMASK
-                                if (pm and "_all_tags" in pm and pm["_all_tags"])
-                                else (
-                                    _tags_to_mask(p.tags)[0]
-                                    if (pm and "_extra_tags" in pm and pm["_extra_tags"])
-                                    else meta_by_slug[p.definition.slug].tag_mask
+            if _has_before_scaler_in_hand is not False and energy_budget >= 2:
+                for hc in hand:
+                    h_meta = meta_by_slug[hc.definition.slug]
+                    if h_meta.is_before_scaler and h_meta.cost <= energy_budget:
+                        if h_meta.target_mask:
+                            t_m = h_meta.target_mask
+                            matches_played = 0
+                            for p in played_today:
+                                pm = p.markers
+                                p_mask = (
+                                    _ALL_TAGS_BITMASK
+                                    if (pm and "_all_tags" in pm and pm["_all_tags"])
+                                    else (
+                                        _tags_to_mask(p.tags)[0]
+                                        if (pm and "_extra_tags" in pm and pm["_extra_tags"])
+                                        else meta_by_slug[p.definition.slug].tag_mask
+                                    )
                                 )
+                                if p_mask & t_m:
+                                    matches_played += 1
+                            pending_before_bonus += (
+                                matches_played * h_meta.signed_match_benefit * 0.90
                             )
-                            if p_mask & t_m:
-                                matches_played += 1
-                        pending_before_bonus += (
-                            matches_played * h_meta.signed_match_benefit * 0.90
-                        )
-                        if aa_arr is None:
-                            aa_arr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-                        b_delta = h_meta.signed_match_benefit * 0.70
-                        for t in h_meta.sorted_target_tags:
-                            b_idx = _TAG_BIT[t]
-                            aa_arr[b_idx] += b_delta
-                            aa_mask |= 1 << b_idx
-                    elif h_meta.title in {"Evening on the Dock", "Nos Book"}:
-                        pending_before_bonus += len(played_today) * 0.90
-                    elif h_meta.title == "Couch Tube":
-                        cost_sum = 0
-                        for p in played_today:
-                            pm = p.markers
-                            cost_sum += (
-                                p.definition.cost
-                                if (not pm or "_copied_definition" not in pm)
-                                else p.effective_cost
-                            )
-                        pending_before_bonus += cost_sum * 0.85
+                            if aa_arr is None:
+                                aa_arr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+                            b_delta = h_meta.signed_match_benefit * 0.70
+                            hb_single = h_meta.target_single_bit
+                            if hb_single >= 0:
+                                aa_arr[hb_single] += b_delta
+                                aa_mask |= 1 << hb_single
+                            else:
+                                for t in h_meta.sorted_target_tags:
+                                    b_idx = _TAG_BIT[t]
+                                    aa_arr[b_idx] += b_delta
+                                    aa_mask |= 1 << b_idx
+                        elif h_meta.title in {"Evening on the Dock", "Nos Book"}:
+                            pending_before_bonus += len(played_today) * 0.90
+                        elif h_meta.title == "Couch Tube":
+                            cost_sum = 0
+                            for p in played_today:
+                                pm = p.markers
+                                cost_sum += (
+                                    p.definition.cost
+                                    if (not pm or "_copied_definition" not in pm)
+                                    else p.effective_cost
+                                )
+                            pending_before_bonus += cost_sum * 0.85
 
-            extra_cont = self._extra_continuation_bonus(
-                sim,
-                player_index,
-                energy_budget,
-                has_unconsumed_ade,
-                has_dates_fn,
-                has_ck,
-                epic_prank_target,
-                has_unconsumed_nos_shirt,
-            )
+            if (
+                has_unconsumed_ade
+                or has_unconsumed_nos_shirt
+                or (
+                    sim.day < DAY_COUNT
+                    and (has_dates_fn or has_ck or epic_prank_target is not None)
+                )
+            ):
+                if (
+                    type(self)._extra_continuation_bonus
+                    is HydrogenAI._extra_continuation_bonus
+                ):
+                    extra_cont = self._extra_continuation_bonus(
+                        sim,
+                        player_index,
+                        energy_budget,
+                        has_unconsumed_ade,
+                        has_dates_fn,
+                        has_ck,
+                        epic_prank_target,
+                        has_unconsumed_nos_shirt,
+                        _cur_day_fun=_cur_day_fun,
+                        _opp_cache=_opp_cache,
+                    )
+                else:
+                    extra_cont = self._extra_continuation_bonus(
+                        sim,
+                        player_index,
+                        energy_budget,
+                        has_unconsumed_ade,
+                        has_dates_fn,
+                        has_ck,
+                        epic_prank_target,
+                        has_unconsumed_nos_shirt,
+                    )
+            else:
+                extra_cont = 0.0
             if not aa_mask and global_after_bonus == 0.0:
                 return (
                     (energy_budget if energy_budget < 7 else 7) * 0.72
@@ -9598,6 +11170,19 @@ class HydrogenAI(CarbonAI):
                     if c_meta.cost <= energy_budget:
                         matching_playable += global_after_bonus
                         matching_playable += all_after_sum
+            elif (
+                granted_mask == 0
+                and aa_arr is not None
+                and aa_mask
+                and (aa_mask & (aa_mask - 1)) == 0
+            ):
+                single_aa = aa_arr[aa_mask.bit_length() - 1]  # type: ignore[index]
+                for hc in hand:
+                    c_meta = meta_by_slug[hc.definition.slug]
+                    if c_meta.cost <= energy_budget:
+                        matching_playable += global_after_bonus
+                        if c_meta.tag_mask & aa_mask:
+                            matching_playable += single_aa
             else:
                 for hc in hand:
                     c_meta = meta_by_slug[hc.definition.slug]
@@ -9858,11 +11443,22 @@ class HydrogenAI(CarbonAI):
                             for t in sorted_granted:
                                 if t not in c_tags and t in active_after_tags:
                                     matching_playable += active_after_tags[t]
-        return (
-            min(player.energy, 7) * 0.72
-            + matching_playable * 0.95
-            + pending_before_bonus
-            + self._extra_continuation_bonus(
+        extra_cont_ret = (
+            self._extra_continuation_bonus(
+                sim,
+                player_index,
+                energy_budget,
+                has_unconsumed_ade,
+                has_dates_fn,
+                has_ck,
+                epic_prank_target,
+                has_unconsumed_nos_shirt,
+                _cur_day_fun=_cur_day_fun,
+                _opp_cache=_opp_cache,
+            )
+            if type(self)._extra_continuation_bonus
+            is HydrogenAI._extra_continuation_bonus
+            else self._extra_continuation_bonus(
                 sim,
                 player_index,
                 energy_budget,
@@ -9872,6 +11468,12 @@ class HydrogenAI(CarbonAI):
                 epic_prank_target,
                 has_unconsumed_nos_shirt,
             )
+        )
+        return (
+            min(player.energy, 7) * 0.72
+            + matching_playable * 0.95
+            + pending_before_bonus
+            + extra_cont_ret
         )
 
     def _ordered_candidate_indices_with_costs(
@@ -10277,7 +11879,7 @@ class HydrogenAI(CarbonAI):
                     )
                     bucket = 3 if has_pb_hand else 2
                     if has_pb_played:
-                        desirability += 3.5
+                        desirability += 4.5
                     safe = has_epic_duels_played or awake_opps == 0
                     if safe and first_cutlery_card is not None:
                         c_cost = sim.energy_cost(player_index, first_cutlery_card)
@@ -10616,6 +12218,23 @@ class HydrogenAI(CarbonAI):
         root_skipped_override: int | None = None,
         start_extra_active: bool = False,
     ) -> tuple[int | None, float]:
+        if (
+            type(self)._search_best_day_plan_with_table
+            is HydrogenAI._search_best_day_plan_with_table
+        ):
+            best_action, best_val, _ = self._search_best_day_plan_with_table(
+                base_sim,
+                player_index,
+                beam_width=beam_width,
+                max_plays=max_plays,
+                allow_bed_now=allow_bed_now,
+                allowed_first_indices=allowed_first_indices,
+                base_turns_offset=base_turns_offset,
+                root_skipped_override=root_skipped_override,
+                start_extra_active=start_extra_active,
+                _need_table=False,
+            )
+            return best_action, best_val
         best_action, best_val, _ = self._search_best_day_plan_with_table(
             base_sim,
             player_index,
@@ -10642,6 +12261,7 @@ class HydrogenAI(CarbonAI):
         base_turns_offset: int = 0,
         root_skipped_override: int | None = None,
         start_extra_active: bool = False,
+        _need_table: bool = True,
     ) -> tuple[int | None, float, dict[int | None, tuple[float, Game]]]:
         """Multi-card beam search tracking turn counts accurately."""
         played_count = len(base_sim.players[player_index].played_today)

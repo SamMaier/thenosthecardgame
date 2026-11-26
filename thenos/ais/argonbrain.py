@@ -217,6 +217,28 @@ def _unseen_tag_counts_and_total(
                 counts[t] = counts.get(t, 0) + 1
         return counts, len(game.discard)
 
+    if not known_top:
+        player = game.players[player_index]
+        vis_len = len(game.suitcase) + len(game.discard) + len(player.hand)
+        for p in game.players:
+            vis_len += len(p.played_today) + len(p.tomorrow_cards)
+        unseen_total = _CATALOG_TOTAL_CARDS - vis_len
+        if unseen_total <= 0 or len(game.trunk) > _CATALOG_TOTAL_CARDS:
+            return dict(_CATALOG_TAG_COUNTS), max(1, _CATALOG_TOTAL_CARDS)
+        counts = dict(_CATALOG_TAG_COUNTS)
+        for zone in (game.suitcase, game.discard, player.hand):
+            for c in zone:
+                for t in c.definition.tags:
+                    if t in counts:
+                        counts[t] = max(0, counts[t] - 1)
+        for p in game.players:
+            for zone in (p.played_today, p.tomorrow_cards):
+                for c in zone:
+                    for t in c.definition.tags:
+                        if t in counts:
+                            counts[t] = max(0, counts[t] - 1)
+        return counts, unseen_total
+
     visible_cards: list[CardInstance] = []
     visible_cards.extend(game.suitcase)
     visible_cards.extend(game.discard)

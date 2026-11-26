@@ -49,6 +49,8 @@ if TYPE_CHECKING:
 
 _CARBON_PROFILE_BY_DEFN_ID: dict[int, CardSynergyProfile] = {}
 _CARBON_RESERVE_EVAL_CACHE: dict[tuple, float] = {}
+# Mirrors hydrogen._PF_ALL_TAGS (1 << 0) | hydrogen._PF_MAY_HAVE_TAG_MARKERS (1 << 22).
+_CARBON_TAG_SYNC_FLAGS: int = (1 << 0) | (1 << 22)
 _ALL_TAG_BONUS_KEYS: tuple[str, ...] = (
     "Relax",
     "Food",
@@ -3009,9 +3011,15 @@ def _get_carbon_sim_game_cls() -> type:
                 players[2].fun - baseline[2],
                 players[3].fun - baseline[3],
             )
-            for player in players:
-                if player.played_today:
-                    self._sync_played_today_tags(player)
+            if hasattr(self, "_p_flags"):
+                p_flags = self._p_flags
+                for p_i, player in enumerate(players):
+                    if player.played_today and (p_flags[p_i] & _CARBON_TAG_SYNC_FLAGS):
+                        self._sync_played_today_tags(player)
+            else:
+                for player in players:
+                    if player.played_today:
+                        self._sync_played_today_tags(player)
             self._end_day_played_tags = tuple(
                 tuple(
                     card.definition.tags if not card.markers else card.tags

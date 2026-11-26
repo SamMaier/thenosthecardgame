@@ -29,13 +29,28 @@ class ReadTheRadarBehavior(CardBehavior):
         game.return_cards_to_trunk_top(player_index, revealed)
 
 
+_POKER_TAGS_CACHE: tuple[int, tuple[str, ...]] | None = None
+
+
 class PokerBehavior(CardBehavior):
     def on_play(self, game: Game, player: PlayerState, card: CardInstance) -> None:
+        global _POKER_TAGS_CACHE
         from thenos.cards.catalog import CARD_REGISTRY
 
-        tags = tuple(sorted({
-            tag for definition in CARD_REGISTRY.values() for tag in definition.tags
-        }))
+        if _POKER_TAGS_CACHE is None or _POKER_TAGS_CACHE[0] != len(CARD_REGISTRY):
+            _POKER_TAGS_CACHE = (
+                len(CARD_REGISTRY),
+                tuple(
+                    sorted(
+                        {
+                            tag
+                            for definition in CARD_REGISTRY.values()
+                            for tag in definition.tags
+                        }
+                    )
+                ),
+            )
+        tags = _POKER_TAGS_CACHE[1]
         index = game.players.index(player)
         tag = game.ais[index].choose_tag(game, index, tags)
         if tag not in tags:

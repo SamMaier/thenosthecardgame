@@ -288,15 +288,16 @@ class GameTests(unittest.TestCase):
         game.ais[0] = SwapFirstAI()
         game.pick_from_suitcase(0)
 
-        # Player 0 plays Last Year's Shirt: draws shirt_draw (recorded via give_card)
+        # Player 0 plays Last Year's Shirt: draws 2 cards (recorded via give_card)
         # and places hand_dump on top of the Trunk (recorded in seen_suitcase_ids).
-        shirt_draw = make_card("high-end-red")
-        game.trunk.append(shirt_draw)
+        shirt_draw_1 = make_card("high-end-red")
+        shirt_draw_2 = make_card("high-end-white")
+        game.trunk.extend([shirt_draw_2, shirt_draw_1])
         game.players[0].energy = 10
         game.players[0].hand = [hand_dump, shirt]
         game.play_card(0, 1)
         self.assertIs(game.suitcase[0], unseen_flip)
-        self.assertEqual(game.players[0].hand, [shirt_draw])
+        self.assertEqual(game.players[0].hand, [shirt_draw_1, shirt_draw_2])
         self.assertIs(game.trunk[-1], hand_dump)
 
         # Player 0 sees unseen_flip and flips hand_dump into slot 0.

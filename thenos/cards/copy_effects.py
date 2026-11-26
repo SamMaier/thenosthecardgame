@@ -92,7 +92,7 @@ NOS_SHIRT = CardDefinition(
 
 
 class LastYearsShirtBehavior(CardBehavior):
-    """Draw one card from the Trunk, then place one hand card on top of the Trunk."""
+    """Draw two cards from the Trunk, then place one hand card on top of the Trunk."""
 
     def on_play(
         self,
@@ -101,8 +101,8 @@ class LastYearsShirtBehavior(CardBehavior):
         card: CardInstance,
     ) -> None:
         player_index = game.players.index(player)
-        drawn_card = game.draw_from_trunk(player_index, 1)[0]
-        game.give_card(player_index, drawn_card)
+        for drawn_card in game.draw_from_trunk(player_index, 2):
+            game.give_card(player_index, drawn_card)
         if not player.hand:
             return
         hand = tuple(player.hand)
@@ -122,7 +122,7 @@ LAST_YEARS_SHIRT = CardDefinition(
     slug="last-years-shirt",
     title="Last Year's Shirt",
     tags=frozenset({"Item"}),
-    cost=0,
+    cost=1,
     base_fun=0,
     behavior=LastYearsShirtBehavior(),
 )

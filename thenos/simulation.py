@@ -557,7 +557,9 @@ def simulate_games(
 
             _ensure_hydrogen_caches()
             _get_hydrogen_sim_game_cls()
-        with ProcessPoolExecutor(max_workers=workers) as executor:
+        with ProcessPoolExecutor(
+            max_workers=min(workers, games, os.cpu_count() or workers)
+        ) as executor:
             future_indices = {
                 executor.submit(_run_game, job): index
                 for index, job in enumerate(jobs)

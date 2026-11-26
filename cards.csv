@@ -131,7 +131,7 @@ You may choose to spend any number of additional (energy), score that much +(fun
 KEEPER,FOOD,2,"(fun)
 (energy) for each (before)(OUTDOORS_card)",I caught you a delicious bass
 KNEEBOARD,"EXERCISE, OUTDOORS",4,(fun)(fun)(fun)(fun)(fun),Try not to traumatize the children by putting them in too tight
-LAST YEAR'S SHIRT,ITEM,0,"Draw (trunk), then place 1 (card) on top of the (trunk)","Hmmm, what else is behind some furniture?"
+LAST YEAR'S SHIRT,ITEM,1,"Draw 2 (trunk), then place 1 (card) on top of the (trunk)","Hmmm, what else is behind some furniture?"
 LEFTOVERS,FOOD,3,"Copy the effects (but not tags or cost) of a (before)(FOOD_card)
 (cubes)","""I haven't been full for 3 years since I got filled up at a hockey banquet"" - Chris"
 LONG DISTANCE VISITORS,SOCIAL,4,"Pick 2 (suitcase)
